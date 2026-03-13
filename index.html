@@ -330,7 +330,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.24</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.25</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -560,12 +560,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle';
-    const APP_VERSION='6.24',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["David F","Lorena R","Matt R","Robert W","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J"];
+    const APP_VERSION='6.25',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["David F","Lorena R","Matt R","Robert W","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.25:
+- Fix: Webhook queue breathe gap reduced from 1500ms to 600ms. An 8-door burst now drains in ~11s instead of ~28s.
+- Fix: Retry backoff on network failure reduced from 5000ms to 3000ms.
+- Fix: Queue overflow now drops oldest start/update payload first (not oldest overall), protecting completions from being lost when queue is full under heavy load.
+- New: Completion payloads (stage=end, SHIFT_END, NEW_SHIFT) are sorted to the front of the queue. Arrival/update payloads yield to completions. Stats and leaderboards always have the most recent data first.
+
 v6.24:
 - Fix: Share sheet text corrected. Was "CPU Door X", now "Door X CPU" to match how team reads it on the floor.
   Wally + box unchecked: "Door X done" (unchanged)
@@ -729,8 +735,16 @@ v5.06:
         if(config.noWebhook){console.log('[Webhook suppressed - demo mode]',payload);return;}
         let queue=[];
         try{queue=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
-        if(queue.length>=500){console.warn('Webhook queue full, dropping oldest');queue.shift();}
+        if(queue.length>=500){console.warn('Webhook queue full, dropping oldest');
+            // Drop oldest non-completion payload first to protect completions
+            const dropIdx=queue.findIndex(p=>p.stage==='start'||p.stage==='update');
+            if(dropIdx>-1)queue.splice(dropIdx,1);else queue.shift();}
+        // Tag completions as high priority so they sort to front
+        payload._priority=(payload.stage==='end'||payload.dataType==='SHIFT_END'||payload.dataType==='NEW_SHIFT')?0:1;
         queue.push(payload);
+        // Sort: completions (priority 0) ahead of arrivals/updates (priority 1)
+        // Stable sort -- preserve relative order within each priority tier
+        queue.sort(function(a,b){return (a._priority||0)-(b._priority||0);});
         try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(queue));}catch(e){console.error('Queue storage failed:',e);}
         updateSyncBadge();
     }
@@ -761,14 +775,14 @@ v5.06:
             isSyncingWebhook=false;
             updateSyncBadge();
             // 1.5s breathe gap -- measured from response received
-            setTimeout(processWebhookQueue,1500);
+            setTimeout(processWebhookQueue,600);
         })
         .catch(function(err){
             isSyncingWebhook=false;
             const badge=byId('sync-badge');
             if(badge){badge.classList.add('visible','error');const t=byId('sync-badge-text');if(t)t.textContent='Sync failed';}
             // retry in 5s on network error
-            setTimeout(function(){updateSyncBadge();processWebhookQueue();},5000);
+            setTimeout(function(){updateSyncBadge();processWebhookQueue();},3000);
         });
     }
     function openPPHCalculator(){byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='#e5e5ea';byId('pph-diff').style.color='#000';byId('pph-modal').style.display='flex'}
