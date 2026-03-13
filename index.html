@@ -330,7 +330,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.25</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.26</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -560,12 +560,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle';
-    const APP_VERSION='6.25',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["David F","Lorena R","Matt R","Robert W","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J"];
+    const APP_VERSION='6.26',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["David F","Lorena R","Matt R","Robert W","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.26:
+- Fix: Share sheet now sends a single message with both lines when the CPU checkbox is checked on a Wally completion.
+  Previously it sent two sequential share sheets which was unreliable on iOS.
+  Wally + box unchecked:  "Door X done"
+  Wally + box checked:    "Door X done\nDoor X CPU"  (one share, both lines)
+  CPU   + box checked:    "Door X CPU"
+  CPU   + box unchecked:  no share
+
 v6.25:
 - Fix: Webhook queue breathe gap reduced from 1500ms to 600ms. An 8-door burst now drains in ~11s instead of ~28s.
 - Fix: Retry backoff on network failure reduced from 5000ms to 3000ms.
@@ -1092,18 +1100,20 @@ v5.06:
         // Wally + cpuNext=false: "Door X done"
         // Wally + cpuNext=true:  "Door X done" -> then "Door X CPU"
         // CPU   + cpuNext=true:  "Door X CPU" only (no "done" first)
+        // Share sheet logic:
+        // Wally + cpuNext=false: "Door X done"
+        // Wally + cpuNext=true:  "Door X done\nDoor X CPU"  (both lines, single share)
+        // CPU   + cpuNext=true:  "Door X CPU"
         // CPU   + cpuNext=false: no share
         if(navigator.share&&!demoActive&&config.shareOnComplete){
+            let shareText='';
             if(d.type==='Wally'){
-                setTimeout(()=>{
-                    navigator.share({text:`Door ${doorNum} done`})
-                    .then(()=>{
-                        if(cpuNext){setTimeout(()=>{navigator.share({text:`Door ${doorNum} CPU`}).catch(err=>console.log('CPU share dismissed:',err));},300);}
-                    })
-                    .catch(err=>console.log('Share dismissed:',err));
-                },100);
+                shareText=cpuNext?`Door ${doorNum} done\nDoor ${doorNum} CPU`:`Door ${doorNum} done`;
             }else if(d.type==='CPU'&&cpuNext){
-                setTimeout(()=>{navigator.share({text:`Door ${doorNum} CPU`}).catch(err=>console.log('CPU share dismissed:',err));},100);
+                shareText=`Door ${doorNum} CPU`;
+            }
+            if(shareText){
+                setTimeout(()=>{navigator.share({text:shareText}).catch(err=>console.log('Share dismissed:',err));},100);
             }
         }
         saveHistory();doors[doorNum]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:endTime,assignments:[]};saveDoors();renderDashboard();renderActiveTab();updateTabBadges();showSaveToast();if(demoActive&&config.replenish){const replenishDelay=config.autoComplete?(Math.floor(Math.random()*2000)+2000):10000;setTimeout(()=>{if(doors[doorNum]&&doors[doorNum].status==='empty')randomArrival(doorNum)},replenishDelay)}}
