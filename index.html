@@ -330,7 +330,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.29</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.30</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -580,12 +580,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.29',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["David F","Lorena R","Matt R","Robert W","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J"];
+    const APP_VERSION='6.30',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["David F","Lorena R","Matt R","Robert W","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.30:
+- Fix: Idle timer (open bay minutes) no longer runs after shift ends.
+  Root cause: shiftEndTime was a volatile JS variable that was lost on page reload.
+  After reload, shiftState loaded as 'idle' from localStorage but shiftEndTime was null,
+  so nowOrFrozen() fell through to Date.now() and timers kept counting indefinitely.
+  Fix: shiftEndTime is now persisted to localStorage (ps9_shift_end_time) on shift end
+  and restored in loadShiftState on every page load.
+- Fix: Open bay idle timers are now hidden entirely when shiftState is idle (no active shift).
+  Showing a 967m idle timer after shift end is meaningless and confusing. The timer only
+  renders during live or demo shifts.
+- Fix: shiftEndTime localStorage key is cleared when a new shift starts so timers resume
+  cleanly from zero.
+
 v6.29:
 - Fix: Settings "Start New Shift" now routes through handleShiftAction() -- the same function as the dashboard nameplate button. Both buttons share identical behavior: respects demo mode, sets shift state, fires NEW_SHIFT webhook. Previously the settings button called the old newShift() which bypassed the state machine and left the nameplate stuck on "Ready".
 - New: Bay timers freeze when a shift ends. The elapsed-time calc in both the dashboard bay circles and the Active tab now uses nowOrFrozen() which returns Date.now() during a live shift and the exact shift end timestamp when idle. Ring animations (warn/crit) also stop ticking. Timers unfreeze automatically when the next shift starts.
@@ -943,7 +956,7 @@ v5.06:
             preview.style.display='block';
             preview.innerHTML=`<div class="onboard-note-ghost" onclick="openNoteModal('${wallyId}','onboard')"><i class="ph ph-note-pencil" style="font-size:18px;"></i> Add note for Wally ${wallyId}</div>`}}
     // ── SHIFT STATE MACHINE ─────────────────────────────────
-    function loadShiftState(){const s=localStorage.getItem('ps9_shift_state');if(s==='live'||s==='demo')shiftState=s;else shiftState='idle'}
+    function loadShiftState(){const s=localStorage.getItem('ps9_shift_state');if(s==='live'||s==='demo')shiftState=s;else shiftState='idle';const et=localStorage.getItem('ps9_shift_end_time');shiftEndTime=et?parseInt(et,10):null;}
     function saveShiftState(){localStorage.setItem('ps9_shift_state',shiftState)}
     function updateNameplate(){
         const pill=byId('shift-state-pill'),dot=byId('shift-state-dot'),label=byId('shift-state-label');
@@ -986,6 +999,7 @@ v5.06:
         saveDoors();saveHistory();saveData();
         shiftState='live';saveShiftState();
         shiftEndTime=null; // unfreeze timers
+        localStorage.removeItem('ps9_shift_end_time');
         startDashboardRefresh(); // restart auto-refresh
         updateNameplate();renderDashboard();renderActiveTab();updateTabBadges();
         attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime()});
@@ -1022,6 +1036,7 @@ v5.06:
     function confirmEndShift(keepBays){
         const now=Date.now();
         shiftEndTime=now; // freeze all bay timers at this moment
+        localStorage.setItem('ps9_shift_end_time',String(now));
         const isDemo=shiftState==='demo';
         let closedCount=0;
         if(!keepBays){
@@ -1209,7 +1224,7 @@ v5.06:
     function calculateAndRenderStats(){const stats={};historyLog.forEach(l=>{if(!l.completionHour)return;const n=l.unloader;if(!stats[n])stats[n]={w:0,c:0,t:0};if(l.type==='Wally')stats[n].w++;else if(l.type==='CPU')stats[n].c++;stats[n].t++});const tb=byId('unloader-stats-body');tb.innerHTML='';Object.entries(stats).sort((a,b)=>b[1].t-a[1].t).forEach(([n,d])=>tb.innerHTML+=`<tr><td>${n}</td><td style="text-align:center">${d.w}</td><td style="text-align:center">${d.c}</td><td style="text-align:right">${d.t}</td></tr>`)}
     function calculateAndRenderHourlyStats(){const{shiftStart}=getShiftTimeWindows();const h={};historyLog.forEach(l=>{if(!l.completionHour)return;const idx=Math.floor((l.end-(l.statOffset||0)-shiftStart.getTime())/3600000)+1;if(!h[idx])h[idx]=0;h[idx]++});const tb=byId('hourly-stats-body');tb.innerHTML='';Object.keys(h).sort((a,b)=>a-b).forEach(k=>tb.innerHTML+=`<tr><td>${getHourText(parseInt(k))}</td><td style="text-align:center">${h[k]}</td></tr>`)}
     function nowOrFrozen(){return(shiftState==='idle'&&shiftEndTime)?shiftEndTime:Date.now();}
-    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const laborRef=d.laborStart||d.start;const min=(nowOrFrozen()-laborRef)/60000;let statusClass='status-ok';if(min>60)statusClass='status-crit';else if(min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
+    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const laborRef=d.laborStart||d.start;const min=(nowOrFrozen()-laborRef)/60000;let statusClass='status-ok';if(min>60)statusClass='status-crit';else if(min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
     function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const laborRef=d.laborStart||d.start;const min=(nowOrFrozen()-laborRef)/60000;let urgencyClass=d.status==='staged'?'':'';if(d.status==='active'){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:#007aff;" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:#999;margin-top:40px;">No active trailers</div>'}
     function openActiveDetails(doorNum){detailDoor=doorNum;const d=doors[doorNum];byId('detail-door-num').innerText=doorNum;byId('detail-type').innerText=d.type;byId('detail-id').innerText=d.id;byId('detail-unloader').innerText=d.unloader||"Unassigned";byId('detail-time').innerText=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const now=Date.now();byId('detail-duration').innerText=Math.floor((now-d.start)/60000)+"m";const ar=byId('row-account');if(d.account){ar.style.display='flex';byId('detail-account').innerText=d.account}else ar.style.display='none';const rowOpts=byId('row-cpu-opts');if(d.type==='CPU'&&d.cpuOptions&&d.cpuOptions.length>0){rowOpts.style.display='flex';byId('detail-cpu-opts').innerText=d.cpuOptions.join(', ')}else rowOpts.style.display='none';const laborStart=d.laborStart||d.start;const dwell=Math.round((laborStart-d.start)/60000);if(d.laborStart&&d.laborStart>d.start){byId('row-labor-start').style.display='flex';byId('detail-labor-time').innerText=new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('row-unload-time').style.display='flex';byId('detail-unload-duration').innerText=Math.floor((now-d.laborStart)/60000)+"m";byId('row-dwell').style.display='flex';byId('detail-dwell').innerText=dwell+"m"}else{byId('row-labor-start').style.display='none';byId('row-unload-time').style.display='none';byId('row-dwell').style.display='none'}
         // Show CPU-next checkbox for both Wally and CPU doors, always reset it
