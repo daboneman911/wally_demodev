@@ -411,7 +411,7 @@
         .ht-emp-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
 
         /* Employee row */
-        .ht-emp-row{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm);transition:all 0.2s;position:relative;overflow:hidden;border-left:4px solid transparent;}
+        .ht-emp-row{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px 16px;min-height:78px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);transition:all 0.2s;position:relative;overflow:hidden;border-left:4px solid transparent;}
         .ht-emp-row.ht-active.ht-role-belt{border-left-color:#f59e0b;background:#fffbeb;}
         .ht-emp-row.ht-active.ht-role-bulk{border-left-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-emp-row.ht-active.ht-role-unload{border-left-color:var(--border);background:var(--surface-raised);}
@@ -431,7 +431,7 @@
 
         /* Emp info */
         .ht-emp-info{flex:1;min-width:0;}
-        .ht-emp-name{font-size:14px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px;line-height:1.2;}
+        .ht-emp-name{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
         .ht-emp-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;}
         .ht-role-tag{font-size:10px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding:2px 7px;border-radius:5px;}
         .ht-tag-belt{background:#fef3c7;color:#92400e;}
@@ -448,12 +448,12 @@
         .ht-hrs-lbl{font-size:9px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
 
         /* Action buttons */
-        .ht-actions{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
-        .ht-btn{font-size:12px;font-weight:800;padding:11px 14px;min-height:44px;border-radius:var(--radius-sm);cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
+        .ht-actions{display:flex;flex-direction:row;gap:5px;align-items:center;flex-shrink:0;}
+        .ht-btn{font-size:11px;font-weight:800;padding:9px 12px;min-height:36px;border-radius:10px;cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
         .ht-btn:active{transform:scale(0.94);}
         .ht-btn-start{background:var(--text-main);color:#fff;}
         .ht-btn-cut{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
-        .ht-btn-time{background:transparent;border:1px solid var(--border);color:var(--text-sub);font-size:10px;padding:5px 9px;}
+        .ht-btn-time{background:transparent;border:1.5px solid var(--border);color:var(--text-sub);}
         .ht-cut-label{font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;padding:4px 6px;text-align:center;}
         .ht-clickable{cursor:pointer;}
         .ht-clickable:active{background:var(--border-light);}
@@ -526,7 +526,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.43</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.44</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -860,12 +860,23 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.43',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.44',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.44:
+- Hours tab: employee rows now match Dashboard card design language.
+  Shadow upgraded to --shadow-md, min-height 78px, padding 16px for
+  more breathability.
+- Hours tab: employee name labels restyled to match stat-label (11px
+  uppercase, muted, letter-spaced) matching "WALLIES" treatment.
+- Hours tab: Start/Set Time buttons converted to horizontal row layout.
+  Start button retains black fill matching btn-shift; Set Time is now
+  a ghost/outline button. Both sized consistently at 36px height,
+  10px radius, 11px font.
+
 v6.43:
 - Hours tab: employee name font reduced (16px→14px), DOP status label
   reduced (15px→13px), and shift time input reduced (16px→15px) for
