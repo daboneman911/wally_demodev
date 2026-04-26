@@ -539,22 +539,19 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.45</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.46</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
                     <div class="shift-state-dot idle" id="shift-state-dot"></div>
                     <span id="shift-state-label">Ready</span>
                 </div>
+                <button class="icon-btn" aria-label="Manual add" onclick="openManualAddModal()"><i class="ph ph-pencil-simple-line"></i></button>
                 <button class="btn-shift start" id="btn-shift-action" onclick="handleShiftAction()">
                     <i class="ph ph-play-circle" id="btn-shift-icon"></i>
                     <span id="btn-shift-label">Start Shift</span>
                 </button>
             </div>
-        </div>
-        <div class="top-actions" style="padding-top:0;">
-            <button class="action-btn" onclick="openAddUnloaderModal()"><i class="ph ph-user-plus"></i> Add Unloader</button>
-            <button class="action-btn" onclick="openManualAddModal()"><i class="ph ph-pencil-simple-line"></i> Manual</button>
         </div>
         <!-- STATS GRID -->
         <div class="section-label">Sort Statistics</div>
@@ -877,12 +874,27 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.45',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.46',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.46:
+- Dashboard UI: Removed redundant "Add Unloader" button. The Manual button
+  is now a compact icon button (pencil) in the nameplate actions row,
+  between the shift-state pill and Start Shift button.
+- End-of-Shift Report: Replaced role assignment in htBuildBreakdown() with
+  a pure hours-ranked algorithm. Highest-hours employee = Belt Tender,
+  next 2 = Bulk Sweep, remainder = Unloader. Robert Rule satisfied naturally:
+  Robert only holds Belt Tender if he actually has the most hours. Minimizes
+  total Unloader group hours regardless of staffing configuration.
+- Cut Employee: Cut employees now show a time-edit button (ghost style,
+  frozen start time + ✎) so their hours remain adjustable after cut.
+  htCutEmployee() and htEndShift() now store cutTime on the employee object.
+  htApplyCustomTime() recalculates frozenHours = (cutTime - newStartTime)
+  when editing a cut employee's start time, keeping displayed hours accurate.
+
 v6.45:
 - UX/Accessibility audit: 16-point improvement pass.
 - A11Y: Removed user-scalable=no; users can now pinch-to-zoom (WCAG 1.4.4).
@@ -1984,8 +1996,9 @@ v5.06:
     // -- REQ2: htEndShift -- called by Wally's confirmEndShift -------------
     function htEndShift(){
         if(!hoursState.shiftStarted)return;
+        const endNow=Date.now();
         hoursState.employees.forEach(e=>{
-            if(e.status==='active'){e.frozenHours=htCalcHours(e);e.status='cut';}
+            if(e.status==='active'){e.frozenHours=htCalcHours(e);e.cutTime=endNow;e.status='cut';}
         });
         hoursState.shiftEnded=true;
         htSaveState();
@@ -1994,28 +2007,36 @@ v5.06:
         if(hoursTab&&hoursTab.classList.contains('active'))htRenderAll();
     }
 
-    // REQ2: Build employee hours breakdown HTML for end-shift-summary
+    // REQ2: Build employee hours breakdown HTML for end-shift-summary.
+    // Uses optimized hours-ranked assignment (separate from live htAssignRoles).
+    // Goal: minimize total Unloader group hours.
+    // Highest-hours employee → Belt Tender (Robert Rule satisfied automatically).
+    // Next 2 highest → Bulk Sweep. Remainder → Unloader (lowest hours, least total).
     function htBuildBreakdown(){
         if(!hoursState.shiftStarted)return '';
         const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
         if(!engaged.length)return '';
-        htAssignRoles();
-        const elapsed=htShiftElapsed();
-        // Group by role for the optimized display (belt/bulk first, fewest people, most hrs)
+        // Sort descending by hours — no special Robert default, pure merit-based
+        const sorted=[...engaged].sort((a,b)=>htCalcHours(b)-htCalcHours(a));
+        const bulkSlots=2; // always 2 for 5/2 and 6/2 DOP configs
         const byRole={belt:[],bulk:[],unload:[]};
-        engaged.forEach(e=>{if(e.role&&byRole[e.role])byRole[e.role].push(e);});
+        sorted.forEach((e,i)=>{
+            if(i===0)byRole.belt.push(e);
+            else if(i<=bulkSlots)byRole.bulk.push(e);
+            else byRole.unload.push(e);
+        });
         const ROLE_LABELS={belt:'Belt Tender',bulk:'Bulk Sweep',unload:'Unloader'};
         const ROLE_COLORS={belt:'#d97706',bulk:'#2563eb',unload:'#6b7280'};
         let html='<div style="font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Employee Hours Breakdown</div>';
         ['belt','bulk','unload'].forEach(role=>{
             const emps=byRole[role];
             if(!emps.length)return;
-            html+='<div style="background:#f8f9fa;border-radius:10px;padding:10px 12px;border-left:3px solid '+ROLE_COLORS[role]+';margin-bottom:4px;">';
+            html+='<div style="background:var(--border-light);border-radius:10px;padding:10px 12px;border-left:3px solid '+ROLE_COLORS[role]+';margin-bottom:4px;">';
             html+='<div style="font-size:11px;font-weight:800;color:'+ROLE_COLORS[role]+';text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'+ROLE_LABELS[role]+'</div>';
             emps.forEach(e=>{
                 const hrs=htCalcHours(e);
                 html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">';
-                html+='<span style="font-size:13px;font-weight:600;color:#1a1a1a;">'+e.name+'</span>';
+                html+='<span style="font-size:13px;font-weight:600;color:var(--text-main);">'+e.name+'</span>';
                 html+='<span style="font-size:13px;font-weight:800;color:'+ROLE_COLORS[role]+';">'+htFmtHrs(hrs)+'h</span>';
                 html+='</div>';
             });
@@ -2075,7 +2096,7 @@ v5.06:
     function htCutEmployee(id){
         const emp=hoursState.employees.find(e=>e.id===id);
         if(!emp||emp.status!=='active')return;
-        emp.frozenHours=htCalcHours(emp);emp.status='cut';emp.manualRole=null;
+        emp.frozenHours=htCalcHours(emp);emp.cutTime=Date.now();emp.status='cut';emp.manualRole=null;
         htSaveState();
         if(!hoursState.employees.some(e=>e.status==='active')){hoursState.shiftEnded=true;htSaveState();}
         htRenderAll();
@@ -2105,7 +2126,19 @@ v5.06:
         const val=document.getElementById('ht-custom-time').value;
         if(!val)return;
         const emp=hoursState.employees.find(e=>e.id===hoursState.pendingTimeId);
-        if(emp){emp.customStartStr=val;if(emp.status==='active')emp.startTime=htParseHHMM(val);htSaveState();}
+        if(emp){
+            emp.customStartStr=val;
+            if(emp.status==='active'){
+                emp.startTime=htParseHHMM(val);
+            }else if(emp.status==='cut'){
+                // Recalculate frozen hours from new start time to stored cut time
+                const startMs=htParseHHMM(val).getTime();
+                const endMs=emp.cutTime||Date.now();
+                emp.startTime=htParseHHMM(val);
+                emp.frozenHours=Math.max(0,(endMs-startMs)/3600000);
+            }
+            htSaveState();
+        }
         htCloseModal('ht-time-modal');hoursState.pendingTimeId=null;htRenderAll();
     }
 
@@ -2342,7 +2375,12 @@ v5.06:
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
                 '</div>';
         }else{
-            actHTML='<div class="ht-actions"><div class="ht-cut-label">CUT</div></div>';
+            // Cut: show CUT label + editable time button so frozen hours remain adjustable
+            const ts=emp.customStartStr?emp.customStartStr:(emp.startTime?htFmtTime(emp.startTime):'--');
+            actHTML='<div class="ht-actions">'+
+                '<div class="ht-cut-label">CUT</div>'+
+                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
+                '</div>';
         }
         return'<div class="'+rowCls+'" id="ht-row-'+emp.id+'" '+rowClick+'>'+
             '<div class="ht-rank">'+rankTxt+'</div>'+
