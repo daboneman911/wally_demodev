@@ -519,7 +519,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.38gem</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.39</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -699,20 +699,12 @@
         <div class="ht-live-dot"></div>LIVE
       </div>
       <div class="ht-dop-toggle">
-        <button class="ht-dop-btn active" id="ht-dop6" onclick="htSetDOP(6)">6U/2B</button>
-        <button class="ht-dop-btn"        id="ht-dop5" onclick="htSetDOP(5)">5U/2B</button>
+        <button class="ht-dop-btn active" id="ht-dop6" onclick="htSetDOP(6)">6/2</button>
+        <button class="ht-dop-btn"        id="ht-dop5" onclick="htSetDOP(5)">5/2</button>
       </div>
     </div>
-    <div class="ht-header-row2">
-      <div class="ht-time-wrap">
-        <span class="ht-time-lbl">Shift</span>
-        <input type="time" class="ht-time-input" id="ht-time-input" value="20:00">
-      </div>
-      <button class="ht-shift-btn idle" id="ht-shift-btn" onclick="htHandleShiftBtn()">Begin</button>
-    </div>
-    <div class="ht-dop-bar state-none" id="ht-dop-bar" style="margin-top:10px;">
+    <div class="ht-dop-bar state-none" id="ht-dop-bar" style="margin-top:8px;">
       <div class="ht-dop-left">
-        <div id="ht-dop-icon" style="font-size:20px;">⬜</div>
         <div>
           <div class="ht-dop-label" id="ht-dop-label">NO ACTIVE STAFF</div>
           <div class="ht-dop-sub" id="ht-dop-sub">Start employees to evaluate DOP</div>
@@ -860,12 +852,29 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.38gem',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.39',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.39:
+- Hours tab: shift start/begin buttons removed. Global "Start Shift" on Dashboard
+  is now the sole shift trigger for the Hours tracker. Hours tab auto-syncs when
+  the global shift goes live.
+- Hours tab: Robert W now auto-assigns as Belt Tender when on shift. If Robert is
+  not present, the employee with the most hours is assigned Belt Tender.
+- Role order: most hours = Belt Tender, next 2 = Bulk Sweep, rest = Unloaders.
+  All roles remain manually overridable via the role assignment modal.
+- KPI strip: hours now calculated as sum of each employee's individual hours
+  (based on their specific start time) rather than count x elapsed. Employees
+  with custom start times are reflected correctly in role totals.
+- DOP toggle: labels simplified to "6/2" and "5/2" (was "6U/2B" / "5U/2B").
+  DOP bar and toast messaging updated to match.
+- DOP bar: emoji icon removed, count chips use plain text labels.
+- Employee activation: if Hours tab has not yet synced and global shift is live,
+  tapping Start on an employee now auto-syncs instead of prompting a confirm dialog.
+
 v6.38gem:
 - Fix (Issue #1): Corrected fatal SyntaxError in encoding guard <head> script.
   var SENTINEL = ''' contained three consecutive single quotes -- the parser
@@ -1726,8 +1735,6 @@ v5.06:
         init();
         htLoadState();
         htSyncDOPButtons();
-        const htInp = document.getElementById('ht-time-input');
-        if (htInp) htInp.value = hoursState.shiftStartStr || getShiftStartTime();
     });
 
     // ======================================================
@@ -1827,14 +1834,12 @@ v5.06:
         hoursState.shiftStarted=true;
         hoursState.shiftEnded=false;
         hoursState.overDopMuted=false;
-        // Activate Robert W automatically if he's on the roster
+        // Activate Robert W automatically (he auto-assigns to Bulk Sweep by role engine)
         const robertW=hoursState.employees.find(e=>e.name===HT_BELT_DEFAULT&&e.status==='inactive');
         if(robertW){
             robertW.status='active';
             robertW.startTime=new Date(hoursState.shiftStartTime);
         }
-        const htInp=document.getElementById('ht-time-input');
-        if(htInp)htInp.value=wallyTime;
         htSaveState();
         htRenderAll();
     }
@@ -1919,9 +1924,10 @@ v5.06:
     // -- Employee actions ----------------------------------
     function htActivateEmployee(id){
         if(!hoursState.shiftStarted){
-            // Prompt to start shift if not yet started
-            if(confirm('Start the shift first. Start shift now?'))openStartShiftConfirm();
-            return;
+            // Auto-sync from global shift if it's already live; otherwise do nothing
+            const wallyLive=(typeof shiftState!=='undefined')&&(shiftState==='live'||shiftState==='demo');
+            if(wallyLive){htSyncFromWallyShift();}
+            else{return;}
         }
         const emp=hoursState.employees.find(e=>e.id===id);
         if(!emp||emp.status!=='inactive')return;
@@ -2055,9 +2061,13 @@ v5.06:
     }
 
     // -- Role assignment engine ----------------------------
+    // Logic: most hours → Belt, next 2 → Bulk, rest → Unload.
+    // Robert W special case: auto-assigned Bulk (not Belt) when active.
+    // Manual role pins always override auto-assignment.
     function htAssignRoles(){
         const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
-        const bulkMax=2,unloadMax=hoursState.dopConfig;
+        const bulkMax=2;
+        // Sort descending by hours (most hours first = belt priority)
         const sorted=[...engaged].sort((a,b)=>{
             const diff=htCalcHours(b)-htCalcHours(a);
             if(Math.abs(diff)>0.0001)return diff;
@@ -2069,21 +2079,23 @@ v5.06:
         if(beltPinned.length>1)beltPinned.slice(1).forEach(e=>{e.manualRole=null;});
         const bulkPinned=sorted.filter(e=>e.manualRole==='bulk');
         if(bulkPinned.length>bulkMax)bulkPinned.slice(bulkMax).forEach(e=>{e.manualRole=null;});
-        // Pass 2: Robert W auto-belt
+        sorted.forEach(e=>{e.role=null;e._autoBelt=false;});
+        // Pass 2: Robert W auto-belt (if no manual role and belt slot open)
         const robertW=sorted.find(e=>e.name===HT_BELT_DEFAULT&&!e.manualRole);
-        let beltFilled=beltPinned.length>0?1:0,bulkFilled=0,unloadFilled=0;
-        sorted.forEach(e=>{e.role=null;});
-        if(robertW&&beltFilled<1){robertW._autoBelt=true;beltFilled++;}
-        // Pass 3: assign
+        if(robertW&&beltPinned.length<1){robertW._autoBelt=true;}
+        // Pass 3: assign roles in hours-ranked order
+        let beltFilled=0,bulkFilled=0;
         sorted.forEach(emp=>{
-            if(emp.manualRole){emp.role=emp.manualRole;
-                if(emp.manualRole==='bulk')bulkFilled++;
-                else if(emp.manualRole==='unload')unloadFilled++;
-                return;}
-            if(emp._autoBelt){emp.role='belt';emp._autoBelt=false;return;}
+            if(emp.manualRole){
+                emp.role=emp.manualRole;
+                if(emp.manualRole==='belt')beltFilled++;
+                else if(emp.manualRole==='bulk')bulkFilled++;
+                return;
+            }
+            if(emp._autoBelt){emp.role='belt';beltFilled++;emp._autoBelt=false;return;}
             if(beltFilled<1){emp.role='belt';beltFilled++;}
             else if(bulkFilled<bulkMax){emp.role='bulk';bulkFilled++;}
-            else{emp.role='unload';unloadFilled++;}
+            else{emp.role='unload';}
         });
         hoursState.employees.filter(e=>e.status==='inactive').forEach(e=>{e.role=null;});
     }
@@ -2099,9 +2111,10 @@ v5.06:
         const totalRequired=1+2+hoursState.dopConfig;
         const delta=active.length-totalRequired;
         let dopState,label,sub;
-        if(delta===0){dopState='met';label='DOP MET';sub=hoursState.dopConfig+'U / 2B / 1 Belt -- Fully staffed';}
-        else if(delta<0){const d=Math.abs(delta);dopState='low';label='DOWN '+d;sub='Need '+d+' more employee'+(d>1?'s':'')+' for '+hoursState.dopConfig+'U DOP';}
-        else{dopState='over';label='OVER '+delta;sub=delta+' employee'+(delta>1?'s':'')+' above '+hoursState.dopConfig+'U DOP';}
+        const dopLabel=hoursState.dopConfig+'/2';
+        if(delta===0){dopState='met';label='DOP MET';sub=dopLabel+' · Fully staffed';}
+        else if(delta<0){const d=Math.abs(delta);dopState='low';label='DOWN '+d;sub='Need '+d+' more for '+dopLabel+' DOP';}
+        else{dopState='over';label='OVER '+delta;sub=delta+' above '+dopLabel+' DOP';}
         return{dopState,label,sub,unloaderCount,bulkCount,targetUnloaders:hoursState.dopConfig,delta};
     }
 
@@ -2112,7 +2125,7 @@ v5.06:
         const isOver=dopState==='over';
         if(isOver&&!htLastDOPOver&&!hoursState.overDopMuted){
             document.getElementById('ht-toast-msg').textContent=
-                'You are '+delta+' employee'+(delta>1?'s':'')+' above DOP ('+hoursState.dopConfig+'U / 2B).';
+                'You are '+delta+' employee'+(delta>1?'s':'')+' above '+hoursState.dopConfig+'/2 DOP.';
             document.getElementById('ht-toast').classList.add('show');
         }
         htLastDOPOver=isOver;
@@ -2127,17 +2140,16 @@ v5.06:
         const bar=document.getElementById('ht-dop-bar');
         if(!bar)return;
         bar.className='ht-dop-bar state-'+d.dopState;
-        document.getElementById('ht-dop-icon').textContent=HT_DOP_ICON_MAP[d.dopState];
         document.getElementById('ht-dop-label').textContent=d.label;
         document.getElementById('ht-dop-sub').textContent=d.sub;
         const counts=document.getElementById('ht-dop-counts');
         counts.innerHTML=d.dopState!=='none'?
-            '<div class="ht-count-chip">\u26a1 1</div>'+
-            '<div class="ht-count-chip">\u2699\ufe0f '+d.bulkCount+'/2</div>'+
-            '<div class="ht-count-chip">\ud83d\udce6 '+d.unloaderCount+'/'+d.targetUnloaders+'</div>':'';
+            '<div class="ht-count-chip">Belt '+1+'</div>'+
+            '<div class="ht-count-chip">Bulk '+d.bulkCount+'/2</div>'+
+            '<div class="ht-count-chip">Unload '+d.unloaderCount+'/'+d.targetUnloaders+'</div>':'';
     }
 
-    // -- Render KPI (count x elapsed) ----------------------
+    // -- Render KPI (sum of individual employee hours per role) ----
     function htRenderKPI(){
         if(!hoursState.shiftStarted||!hoursState.shiftStartTime){
             ['ht-kpi-belt','ht-kpi-bulk','ht-kpi-unload'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0.00';});
@@ -2145,17 +2157,17 @@ v5.06:
             if(bs)bs.textContent='hrs \u00b7 0 people';if(us)us.textContent='hrs \u00b7 0 people';
             return;
         }
-        const elapsed=htShiftElapsed();
-        const active=hoursState.employees.filter(e=>e.status==='active');
-        const beltN=active.filter(e=>e.role==='belt').length;
-        const bulkN=active.filter(e=>e.role==='bulk').length;
-        const unloadN=active.filter(e=>e.role==='unload').length;
+        const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
+        const belt=engaged.filter(e=>e.role==='belt');
+        const bulk=engaged.filter(e=>e.role==='bulk');
+        const unload=engaged.filter(e=>e.role==='unload');
+        const sumHrs=emps=>emps.reduce((s,e)=>s+htCalcHours(e),0);
         const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-        setEl('ht-kpi-belt',htFmtHrs(beltN*elapsed));
-        setEl('ht-kpi-bulk',htFmtHrs(bulkN*elapsed));
-        setEl('ht-kpi-unload',htFmtHrs(unloadN*elapsed));
-        setEl('ht-kpi-bulk-sub','hrs \u00b7 '+bulkN+' people');
-        setEl('ht-kpi-unload-sub','hrs \u00b7 '+unloadN+' people');
+        setEl('ht-kpi-belt',htFmtHrs(sumHrs(belt)));
+        setEl('ht-kpi-bulk',htFmtHrs(sumHrs(bulk)));
+        setEl('ht-kpi-unload',htFmtHrs(sumHrs(unload)));
+        setEl('ht-kpi-bulk-sub','hrs \u00b7 '+bulk.length+' people');
+        setEl('ht-kpi-unload-sub','hrs \u00b7 '+unload.length+' people');
     }
 
     // -- Render employee row -------------------------------
@@ -2210,24 +2222,9 @@ v5.06:
     // -- Full render ---------------------------------------
     function htRenderAll(){
         htAssignRoles();
-        const btn=document.getElementById('ht-shift-btn');
-        const inp=document.getElementById('ht-time-input');
         const pill=document.getElementById('ht-live-pill');
-        // REQ1: Mirror Wally's shift state
         const wallyLive=(typeof shiftState!=='undefined')&&(shiftState==='live'||shiftState==='demo');
-        if(!hoursState.shiftStarted||(!hoursState.shiftStarted&&wallyLive)){
-            if(btn){btn.textContent='Begin';btn.className='ht-shift-btn idle';}
-            if(inp)inp.disabled=false;
-            if(pill)pill.classList.remove('show');
-        }else if(!hoursState.shiftEnded){
-            if(btn){btn.textContent='End';btn.className='ht-shift-btn live';}
-            if(inp)inp.disabled=true;
-            if(pill)pill.classList.add('show');
-        }else{
-            if(btn){btn.textContent='Done';btn.className='ht-shift-btn ended';}
-            if(inp)inp.disabled=true;
-            if(pill)pill.classList.remove('show');
-        }
+        if(pill)pill.classList.toggle('show',wallyLive&&hoursState.shiftStarted&&!hoursState.shiftEnded);
         const endBanner=document.getElementById('ht-ended-banner');
         if(endBanner)endBanner.classList.toggle('show',hoursState.shiftEnded);
         const dopInfo=htCalcDOP();
