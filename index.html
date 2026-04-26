@@ -54,7 +54,7 @@
             --bay-green:#4ade80;
             --bay-purple:#a78bfa;
             --bay-orange:#fb923c;
-            --safe-top:max(env(safe-area-inset-top),47px);
+            --safe-top:max(env(safe-area-inset-top),59px);
             --safe-bottom:env(safe-area-inset-bottom);
             --tab-height:80px;
             --radius-sm:10px;
@@ -71,7 +71,9 @@
         html{height:100%}body{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
         .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 44px);overflow:hidden}
         .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
-        .tab-content.active{display:block}.tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
+        .tab-content.active{display:block}
+        .tab-content.tab-hours-flex{overflow:hidden;padding:0;padding-bottom:0;}
+        .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
         .nameplate{background:var(--surface-raised);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:16px;margin-top:8px;box-shadow:var(--shadow-md);border:1px solid var(--border-light)}
@@ -312,6 +314,9 @@
         .onboard-note-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
         .onboard-note-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#d97706;display:flex;align-items:center;gap:4px}
         .onboard-note-edit-btn{font-size:12px;font-weight:800;color:var(--text-main);background:none;border:1.5px solid var(--text-main);border-radius:7px;padding:3px 9px;cursor:pointer}
+        .note-quick-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+        .note-quick-btn{padding:7px 13px;border-radius:20px;font-size:12px;font-weight:700;background:var(--accent-orange-bg);color:var(--accent-orange);border:1px solid rgba(234,88,12,0.25);cursor:pointer;display:inline-flex;align-items:center;gap:5px;touch-action:manipulation;transition:all 0.12s;}
+        .note-quick-btn:active{background:var(--accent-orange);color:#fff;transform:scale(0.95);}
         .onboard-note-ghost{background:var(--border-light);border:1.5px dashed var(--border);border-radius:var(--radius-md);padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-sub);font-size:14px;font-weight:600}
         .onboard-note-ghost:active{background:var(--border)}
         .type-badge-small{background:var(--text-main);color:white;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:3px}
@@ -325,12 +330,10 @@
         /* hours tab is now a standard tab-content div -- no fixed positioning needed */
 
         /* Panel header */
-        .ht-header{background:var(--surface-raised);border-bottom:1px solid var(--border-light);padding:16px 16px 14px;flex-shrink:0;position:sticky;top:0;z-index:10;}
-        .ht-header-row1{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-bottom:12px;}
-        .ht-back-btn{background:var(--border-light);border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:14px;font-weight:700;color:var(--text-main);cursor:pointer;display:flex;align-items:center;gap:6px;}
-        .ht-back-btn:active{background:var(--border);}
-        .ht-title{font-size:18px;font-weight:900;color:var(--text-main);letter-spacing:-0.5px;}
-        .ht-header-row2{display:flex;align-items:center;gap:8px;}
+        .ht-header{background:var(--surface-raised);border-bottom:1px solid var(--border-light);padding:14px 16px 12px;flex-shrink:0;z-index:10;}
+        .ht-header-title-row{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:8px;min-height:28px;}
+        .ht-header-title{font-size:17px;font-weight:900;color:var(--text-main);letter-spacing:-0.4px;text-align:center;}
+        .ht-header-dop-row{display:flex;justify-content:center;margin-bottom:10px;}
 
         /* Shift time row */
         .ht-time-wrap{display:flex;align-items:center;gap:8px;flex:1;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:8px 14px;}
@@ -344,7 +347,7 @@
 
         /* DOP toggle */
         .ht-dop-toggle{display:flex;gap:3px;background:var(--border-light);border-radius:var(--radius-sm);padding:3px;border:1px solid var(--border);}
-        .ht-dop-btn{font-size:11px;font-weight:800;padding:5px 10px;border:none;border-radius:6px;background:transparent;color:var(--text-sub);cursor:pointer;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px;}
+        .ht-dop-btn{font-size:12px;font-weight:800;padding:8px 16px;min-height:36px;border:none;border-radius:6px;background:transparent;color:var(--text-sub);cursor:pointer;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px;}
         .ht-dop-btn.active{background:var(--text-main);color:#fff;}
 
         /* DOP status bar */
@@ -369,7 +372,7 @@
         .ht-count-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--border-light);color:var(--text-sub);white-space:nowrap;border:1px solid var(--border);}
 
         /* Scroll body */
-        .ht-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 20px);}
+        .ht-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 40px);}
 
         /* KPI strip */
         .ht-kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border-light);}
@@ -416,7 +419,7 @@
         .ht-role-bulk .ht-rank{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue);}
 
         /* Role icon */
-        .ht-role-icon{width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;background:var(--border-light);border:1px solid var(--border);cursor:pointer;transition:all 0.15s;}
+        .ht-role-icon{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;background:var(--border-light);border:1px solid var(--border);cursor:pointer;transition:all 0.15s;}
         .ht-role-belt .ht-role-icon{background:#fef3c7;border-color:#fde68a;}
         .ht-role-bulk .ht-role-icon{background:var(--accent-blue-bg);border-color:rgba(37,99,235,0.3);}
         .ht-role-unload .ht-role-icon{background:var(--border-light);border-color:var(--border);}
@@ -442,7 +445,7 @@
 
         /* Action buttons */
         .ht-actions{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
-        .ht-btn{font-size:12px;font-weight:800;padding:7px 12px;border-radius:var(--radius-sm);cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;}
+        .ht-btn{font-size:12px;font-weight:800;padding:11px 14px;min-height:44px;border-radius:var(--radius-sm);cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
         .ht-btn:active{transform:scale(0.94);}
         .ht-btn-start{background:var(--text-main);color:#fff;}
         .ht-btn-cut{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
@@ -519,7 +522,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.40</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.41</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -693,17 +696,19 @@
 
   <!-- HEADER -->
   <div class="ht-header">
-    <div class="ht-header-row1">
+    <div class="ht-header-title-row">
+      <div class="ht-header-title">Hours Tracker</div>
+      <div class="ht-live-pill" id="ht-live-pill" style="position:absolute;right:0;">
+        <div class="ht-live-dot"></div>LIVE
+      </div>
+    </div>
+    <div class="ht-header-dop-row">
       <div class="ht-dop-toggle">
         <button class="ht-dop-btn active" id="ht-dop6" onclick="htSetDOP(6)">6/2</button>
         <button class="ht-dop-btn"        id="ht-dop5" onclick="htSetDOP(5)">5/2</button>
       </div>
-      <div style="font-size:16px;font-weight:900;color:var(--text-main);letter-spacing:-0.3px;text-align:center;">Hours Tracker</div>
-      <div class="ht-live-pill" id="ht-live-pill">
-        <div class="ht-live-dot"></div>LIVE
-      </div>
     </div>
-    <div class="ht-dop-bar state-none" id="ht-dop-bar" style="margin-top:8px;">
+    <div class="ht-dop-bar state-none" id="ht-dop-bar">
       <div class="ht-dop-left">
         <div>
           <div class="ht-dop-label" id="ht-dop-label">NO ACTIVE STAFF</div>
@@ -785,6 +790,9 @@
     <div class="note-editor-section-label">Contents</div>
     <div class="note-tags-row" id="note-tag-chips"></div>
     <div class="note-editor-section-label">Additional Notes</div>
+    <div class="note-quick-row">
+      <button class="note-quick-btn" onclick="appendNoteText('Wooden Boxes')">📦 Wooden Boxes</button>
+    </div>
     <textarea id="note-text" class="note-text-input" placeholder="Optional free text (keep it brief)..." maxlength="120"></textarea>
     <div style="display:flex;gap:10px;margin-top:16px;">
         <button class="btn-primary" onclick="saveNote()" style="flex:1;margin:0;">Save</button>
@@ -852,12 +860,28 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.40',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.41',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.41:
+- Hours tab: fixed scroll architecture. Tab container no longer scrolls;
+  only the employee list body scrolls independently. Header (title + DOP +
+  status bar) stays pinned at the top at all times.
+- Hours header redesigned: "Hours Tracker" title is perfectly centered.
+  LIVE pill anchored to the right edge. DOP toggle (6/2 / 5/2) centered
+  directly underneath the title in its own row. Follows Apple HIG spacing.
+- Bottom padding increased on the Hours scroll body to prevent last employee
+  row from being obscured behind the tab bar on iPhone 16 Pro Max.
+- Notes: added "Wooden Boxes" quick-pick button above the free-text field.
+  Tapping it appends the text automatically -- no typing required.
+- iPhone 16 Pro Max: safe-top fallback updated to 59px for Dynamic Island.
+  HT employee action buttons enlarged to meet 44pt minimum touch target.
+  Role icon tap targets increased. DOP toggle buttons enlarged for easier
+  tapping on the 6.9-inch display.
+
 v6.40:
 - Hours tab: employees can now be added to the active roster before the shift
   starts. Their hours clock begins when the global shift is triggered from the
@@ -1362,6 +1386,7 @@ v5.06:
         }
         byId('note-modal').style.display='flex'}
     function toggleNoteTag(el){el.classList.toggle('selected')}
+    function appendNoteText(text){const ta=byId('note-text');if(!ta)return;const cur=ta.value.trim();ta.value=cur?(cur+' '+text):text;ta.focus();}
     function saveNote(){
         const id=byId('note-wally-id').value.trim();
         if(!id){alert('Please enter a Wally ID');return}
