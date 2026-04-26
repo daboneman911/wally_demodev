@@ -69,54 +69,54 @@
         /* ── BASE ─────────────────────────────────────────── */
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
         html{height:100%}body{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
-        .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 44px);overflow:hidden}
+        .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden}
         .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
         .tab-content.active{display:block}
         .tab-content.tab-hours-flex{overflow:hidden;padding:0;padding-bottom:0;}
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
-        .nameplate{background:var(--surface-raised);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:16px;margin-top:8px;box-shadow:var(--shadow-md);border:1px solid var(--border-light)}
-        .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:3px;margin-bottom:14px}
-        .nameplate-title{font-size:26px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px;line-height:1}
-        .nameplate-sub{font-size:12px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
+        .nameplate{background:var(--surface-raised);border-radius:var(--radius-lg);padding:10px 14px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md);border:1px solid var(--border-light)}
+        .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
+        .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
+        .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
         .nameplate-actions{display:flex;align-items:center;gap:8px}
-        .shift-state-pill{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:30px;font-size:12px;font-weight:800;letter-spacing:0.2px;flex:1;justify-content:center}
+        .shift-state-pill{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:30px;font-size:11px;font-weight:700;letter-spacing:0.1px;flex:1;justify-content:center}
         .shift-state-pill.idle{background:var(--border-light);color:var(--text-sub)}
         .shift-state-pill.live{background:var(--accent-green-bg);color:var(--accent-green)}
         .shift-state-pill.demo{background:var(--accent-orange-bg);color:var(--accent-orange)}
-        .shift-state-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .shift-state-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
         .shift-state-dot.idle{background:#d1d5db}
         .shift-state-dot.live{background:var(--accent-green);box-shadow:0 0 0 3px rgba(22,163,74,0.2);animation:dot-pulse 2s ease-in-out infinite}
         .shift-state-dot.demo{background:var(--accent-orange);box-shadow:0 0 0 3px rgba(234,88,12,0.2);animation:dot-pulse 1.5s ease-in-out infinite}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-        .btn-shift{border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s;letter-spacing:0.1px}
+        .btn-shift{border:none;border-radius:10px;padding:9px 15px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s;letter-spacing:0.1px}
         .btn-shift.start{background:var(--text-main);color:#fff}
         .btn-shift.start:active{background:#1f2937;transform:scale(0.96)}
         .btn-shift.end{background:var(--accent-red);color:#fff}
         .btn-shift.end:active{background:#b91c1c;transform:scale(0.96)}
 
         /* ── TOP ACTION BUTTONS ───────────────────────────── */
-        .top-actions{display:flex;gap:10px;padding:6px 0 14px;justify-content:center}
-        .action-btn{background:var(--text-main);color:white;border:none;border-radius:30px;padding:10px 20px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform 0.1s}
+        .top-actions{display:flex;gap:8px;padding:2px 0 8px;justify-content:center}
+        .action-btn{background:var(--text-main);color:white;border:none;border-radius:30px;padding:8px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform 0.1s}
         .action-btn:active{transform:scale(0.96)}
-        .action-btn i{font-size:17px}
+        .action-btn i{font-size:15px}
 
         /* ── SECTION LABELS ───────────────────────────────── */
-        .section-label{font-size:11px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px;padding-left:4px}
+        .section-label{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;margin-top:2px;padding-left:4px}
 
         /* ── STAT CARDS ───────────────────────────────────── */
-        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-        .stat-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:18px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:100px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.12s,box-shadow 0.12s;position:relative;overflow:hidden}
+        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+        .stat-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;min-height:62px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.12s,box-shadow 0.12s;position:relative;overflow:hidden}
         .stat-card:active{transform:scale(0.97);box-shadow:var(--shadow-sm)}
-        .stat-card-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius-lg) var(--radius-lg) 0 0}
-        .stat-label{font-size:11px;color:var(--text-sub);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
-        .stat-value{font-size:52px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-3px}
+        .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0}
+        .stat-label{font-size:10px;color:var(--text-sub);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px}
+        .stat-value{font-size:34px;font-weight:800;color:var(--text-main);line-height:1;letter-spacing:-1.5px}
 
         /* ── BAY CIRCLES ──────────────────────────────────── */
-        .bays-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:28px;min-height:60px}
-        .empty-state-text{color:var(--text-muted);font-size:15px;font-weight:500;text-align:center;width:100%;padding:16px 0}
-        .bay-circle{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;cursor:pointer;transition:transform 0.1s;box-shadow:var(--shadow-md);position:relative}
+        .bays-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px;min-height:50px}
+        .empty-state-text{color:var(--text-muted);font-size:13px;font-weight:500;text-align:center;width:100%;padding:10px 0}
+        .bay-circle{width:52px;height:52px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;cursor:pointer;transition:transform 0.1s;box-shadow:var(--shadow-md);position:relative}
         .bay-circle:active{transform:scale(0.9)}
         .bay-circle.unavailable{background:#9ca3af !important;opacity:0.45;color:#fff;border:none !important}
         .bay-9{background:linear-gradient(135deg,#34d399,#059669)}
@@ -124,15 +124,15 @@
         .bay-11{background:linear-gradient(135deg,#fb923c,#ea580c)}
         .bay-12{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
         .bay-13,.bay-14,.bay-15,.bay-16{background:linear-gradient(135deg,#fb923c,#ea580c)}
-        .bay-circle.status-ok{border:3px solid #16a34a}
-        .bay-circle.status-staged{border:3px solid var(--accent-blue)}
-        @keyframes ring-warn{0%,100%{box-shadow:var(--shadow-md),0 0 0 0 rgba(234,88,12,0.5)}70%{box-shadow:var(--shadow-md),0 0 0 9px rgba(234,88,12,0)}}
-        @keyframes ring-crit{0%,100%{box-shadow:var(--shadow-md),0 0 0 0 rgba(220,38,38,0.6)}70%{box-shadow:var(--shadow-md),0 0 0 11px rgba(220,38,38,0)}}
-        .bay-circle.status-warn{border:3px solid var(--accent-orange);animation:ring-warn 1.8s ease-out infinite}
-        .bay-circle.status-crit{border:3px solid var(--accent-red);animation:ring-crit 1.2s ease-out infinite}
-        .type-badge{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:white;background:#0a0a0a;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
-        .bay-timer{position:absolute;bottom:-8px;font-size:9px;font-weight:800;color:var(--text-sub);background:white;padding:1px 5px;border-radius:4px;min-width:22px;text-align:center;box-shadow:var(--shadow-sm)}
-        .bay-note-dot{position:absolute;top:-1px;left:-1px;width:11px;height:11px;background:#0a0a0a;border-radius:50%;border:2px solid white;z-index:2}
+        .bay-circle.status-ok{border:2px solid #16a34a}
+        .bay-circle.status-staged{border:2px solid var(--accent-blue)}
+        @keyframes ring-warn{0%,100%{box-shadow:var(--shadow-md),0 0 0 0 rgba(234,88,12,0.5)}70%{box-shadow:var(--shadow-md),0 0 0 7px rgba(234,88,12,0)}}
+        @keyframes ring-crit{0%,100%{box-shadow:var(--shadow-md),0 0 0 0 rgba(220,38,38,0.6)}70%{box-shadow:var(--shadow-md),0 0 0 9px rgba(220,38,38,0)}}
+        .bay-circle.status-warn{border:2px solid var(--accent-orange);animation:ring-warn 1.8s ease-out infinite}
+        .bay-circle.status-crit{border:2px solid var(--accent-red);animation:ring-crit 1.2s ease-out infinite}
+        .type-badge{position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:white;background:#0a0a0a;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+        .bay-timer{position:absolute;bottom:-7px;font-size:8px;font-weight:800;color:var(--text-sub);background:white;padding:1px 4px;border-radius:4px;min-width:20px;text-align:center;box-shadow:var(--shadow-sm)}
+        .bay-note-dot{position:absolute;top:-1px;left:-1px;width:9px;height:9px;background:#0a0a0a;border-radius:50%;border:2px solid white;z-index:2}
 
         /* ── ACTIVE CARDS ─────────────────────────────────── */
         .active-tab-list{display:flex;flex-direction:column;gap:12px}
@@ -210,6 +210,10 @@
         .tab-badge.warning{background:var(--accent-orange)}
         .tab-badge.success{background:var(--accent-green)}
 
+        /* ── GLOBAL TYPOGRAPHY STANDARDS ─────────────────── */
+        .modal-sheet h2{font-size:22px!important;font-weight:800!important;letter-spacing:-0.3px;}
+        .header-bar h1{font-size:22px;font-weight:800;letter-spacing:-0.4px;}
+
         /* ── MODALS ───────────────────────────────────────── */
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;justify-content:center;align-items:flex-end;backdrop-filter:blur(6px)}
         .modal-sheet{background:white;width:100%;max-width:600px;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:92vh;overflow-y:auto}
@@ -217,15 +221,15 @@
         .z-high{z-index:3000 !important}
         .form-input{width:100%;padding:16px 18px;background:var(--border-light);border:none;border-radius:var(--radius-md);font-size:17px;margin-bottom:14px;outline:none;appearance:none;color:var(--text-main);font-weight:500}
         .form-input:focus{background:#ececf0}
-        .type-selector{display:flex;background:var(--border-light);padding:4px;border-radius:var(--radius-md);margin-bottom:22px}
-        .type-opt{flex:1;text-align:center;padding:11px;border-radius:var(--radius-sm);font-weight:800;font-size:14px;color:var(--text-sub);cursor:pointer}
+        .type-selector{display:flex;background:var(--border-light);padding:3px;border-radius:12px;margin-bottom:20px}
+        .type-opt{flex:1;text-align:center;padding:10px;border-radius:9px;font-weight:600;font-size:14px;color:var(--text-sub);cursor:pointer;transition:all 0.15s}
         .type-opt.selected{background:white;color:var(--text-main);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
-        .btn-primary{width:100%;padding:17px;border-radius:var(--radius-md);border:none;font-size:16px;font-weight:900;background:var(--text-main);color:white;margin-top:10px;cursor:pointer;letter-spacing:0.2px;transition:background 0.15s}
+        .btn-primary{width:100%;padding:15px;border-radius:14px;border:none;font-size:15px;font-weight:700;background:var(--text-main);color:white;margin-top:10px;cursor:pointer;letter-spacing:0.1px;transition:background 0.15s}
         .btn-primary:active{background:#1f2937}
         .btn-danger{background:var(--accent-red)}
         .btn-danger:active{background:#b91c1c}
         .btn-history{background:var(--border-light);color:var(--text-main);margin-top:10px}
-        .btn-cancel{background:transparent;color:var(--text-sub);width:100%;padding:14px;border:none;font-size:16px;font-weight:700;margin-top:4px;cursor:pointer}
+        .btn-cancel{background:transparent;color:var(--text-sub);width:100%;padding:13px;border:none;font-size:15px;font-weight:600;margin-top:4px;cursor:pointer}
         .detail-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-light)}
         .detail-label{color:var(--text-sub);font-weight:600;font-size:14px}
         .detail-value{font-weight:800;color:var(--text-main);font-size:14px}
@@ -513,7 +517,7 @@
 </div>
 <div class="app-container">
     <div id="tab-dashboard" class="tab-content active">
-        <div style="padding:10px 20px 0;">
+        <div>
         <div class="top-actions" style="padding-top:0;">
             <button class="action-btn" onclick="openAddUnloaderModal()"><i class="ph ph-user-plus"></i> Add Unloader</button>
             <button class="action-btn" onclick="openManualAddModal()"><i class="ph ph-pencil-simple-line"></i> Manual</button>
@@ -522,7 +526,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.41</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.42</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -563,7 +567,6 @@
         <div id="active-trailers-grid" class="bays-grid"></div>
         <div class="section-label">Open Bays</div>
         <div id="open-bays-grid" class="bays-grid"></div>
-        <div style="height:120px;"></div>
         </div>
     </div>
     <div id="tab-active" class="tab-content"><div class="header-bar"><h1>Active Details</h1></div><div id="active-tab-list" class="active-tab-list"></div></div>
@@ -790,9 +793,6 @@
     <div class="note-editor-section-label">Contents</div>
     <div class="note-tags-row" id="note-tag-chips"></div>
     <div class="note-editor-section-label">Additional Notes</div>
-    <div class="note-quick-row">
-      <button class="note-quick-btn" onclick="appendNoteText('Wooden Boxes')">📦 Wooden Boxes</button>
-    </div>
     <textarea id="note-text" class="note-text-input" placeholder="Optional free text (keep it brief)..." maxlength="120"></textarea>
     <div style="display:flex;gap:10px;margin-top:16px;">
         <button class="btn-primary" onclick="saveNote()" style="flex:1;margin:0;">Save</button>
@@ -860,12 +860,39 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.41',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.42',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.42:
+- Dashboard: full single-screen layout for iPhone 16 Pro Max. All content
+  (nameplate, 5 stat cards, active bays, open bays) now fits without
+  scrolling on a 6.9-inch display. Content no longer renders behind or
+  below the tab bar.
+- App container top padding reduced (44px → 8px above safe area) so
+  Dynamic Island breathing room is handled by the OS safe area inset.
+- Nameplate: reduced padding and title size (26→21px) to reclaim ~40px.
+- Stat cards: height 100→62px, value font 52→34px, gap 12→8px. Saves
+  ~120px of vertical space while keeping numbers clearly readable.
+- Section labels: tighter margins (margin-bottom 10→5px).
+- Bay circles: 62→52px diameter, gap 12→8px, margins 28→8px. All 8
+  open bays now fit in a single compact row without overflow.
+- Removed 120px dead-space div at the bottom of the dashboard.
+- Notes contents chips updated: added "BARN DOORS" and "CPU"; full list
+  alphabetized: Barn Doors, CPU, Gaylords, Heavy Bulk, Heavy Flats,
+  HOTT, Mixed, Overflow, Smalls, Sortable, Tires, Wooden Crates.
+- Removed "Wooden Boxes" quick-pick button from Additional Notes.
+- App-wide button standardization: btn-primary → 15px font / 700 weight
+  / 14px radius. btn-cancel → 15px / 600 weight. Consistent across all
+  modals and flows.
+- Segmented controls (Wally/CPU, type selectors): unified padding (10px),
+  radius (9px inner / 12px outer), weight (600). Matches across all views.
+- Typography: global CSS rule enforces 22px / weight 800 on all modal h2
+  headers. Section sub-headers unified at 11px / 700 / uppercase / gray.
+  header-bar h1 (Logs, Active tabs) unified at 22px / 800.
+
 v6.41:
 - Hours tab: fixed scroll architecture. Tab container no longer scrolls;
   only the employee list body scrolls independently. Header (title + DOP +
@@ -1357,7 +1384,7 @@ v5.06:
     function openPPHCalculator(){byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='#e5e5ea';byId('pph-diff').style.color='#000';byId('pph-modal').style.display='flex'}
     function calculatePPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value),resEl=byId('pph-result'),diffEl=byId('pph-diff');if(isNaN(vol)||isNaN(hrs)||hrs<=0){resEl.innerText='0';diffEl.innerText='0.00 hrs';diffEl.style.background='#e5e5ea';diffEl.style.color='#000';return}const pph=Math.round(vol/hrs);resEl.innerText=pph;const targetHours=vol/600,diff=hrs-targetHours;let diffText=diff>0?'+'+diff.toFixed(2):diff.toFixed(2);diffEl.innerText=diffText+' hrs';if(diff<=0){diffEl.style.background='#e8f5e9';diffEl.style.color='#2e7d32'}else{diffEl.style.background='#ffebee';diffEl.style.color='#c62828'}}
     function uploadPPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value);if(isNaN(vol)||isNaN(hrs)||hrs<=0)return alert("Please enter valid volume and hours first.");const pph=Math.round(vol/hrs),diff=(hrs-vol/600).toFixed(2);attemptWebhook({dataType:'PPH_UPLOAD',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime(),volume:vol,hours:hrs,pph:pph,diffHours:diff});const btn=byId('pph-push-btn'),origText=btn.innerText;btn.innerText='Pushed!';btn.style.background='#34c759';setTimeout(()=>{btn.innerText=origText;btn.style.background='#000'},2000)}
-    const NOTE_TAGS=['SORTABLE','MIXED','HEAVY BULK','HEAVY FLATS','WOODEN CRATES','GAYLORDS','SMALLS','TIRES','HOTT','OVERFLOW'];
+    const NOTE_TAGS=['BARN DOORS','CPU','GAYLORDS','HEAVY BULK','HEAVY FLATS','HOTT','MIXED','OVERFLOW','SMALLS','SORTABLE','TIRES','WOODEN CRATES'];
     function migrateNote(raw){if(!raw)return null;if(typeof raw==='string'){return{tags:[],text:raw,updated:Date.now()}}return raw}
     function getNoteObj(id){return migrateNote(wallyNotes[id])||null}
     function noteHasContent(id){const n=getNoteObj(id);return n&&(n.tags.length>0||n.text.trim().length>0)}
