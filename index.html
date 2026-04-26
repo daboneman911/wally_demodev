@@ -307,10 +307,10 @@
         .note-card-text{font-size:13px;color:var(--text-sub);margin-top:4px;line-height:1.3}
         .note-new-btn{width:100%;padding:15px;background:var(--text-main);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:800;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:7px}
         .note-new-btn:active{background:#1f2937}
-        .onboard-note-card{background:#f8fafc;border:1.5px solid var(--text-main);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:14px;animation:slideDown 0.2s cubic-bezier(0.16,1,0.3,1)}
+        .onboard-note-card{background:#fffbeb;border:1.5px solid #f59e0b;border-radius:var(--radius-md);padding:13px 15px;margin-bottom:14px;animation:slideDown 0.2s cubic-bezier(0.16,1,0.3,1)}
         @keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         .onboard-note-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
-        .onboard-note-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-sub);display:flex;align-items:center;gap:4px}
+        .onboard-note-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#d97706;display:flex;align-items:center;gap:4px}
         .onboard-note-edit-btn{font-size:12px;font-weight:800;color:var(--text-main);background:none;border:1.5px solid var(--text-main);border-radius:7px;padding:3px 9px;cursor:pointer}
         .onboard-note-ghost{background:var(--border-light);border:1.5px dashed var(--border);border-radius:var(--radius-md);padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-sub);font-size:14px;font-weight:600}
         .onboard-note-ghost:active{background:var(--border)}
@@ -326,7 +326,7 @@
 
         /* Panel header */
         .ht-header{background:var(--surface-raised);border-bottom:1px solid var(--border-light);padding:16px 16px 14px;flex-shrink:0;position:sticky;top:0;z-index:10;}
-        .ht-header-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+        .ht-header-row1{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-bottom:12px;}
         .ht-back-btn{background:var(--border-light);border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:14px;font-weight:700;color:var(--text-main);cursor:pointer;display:flex;align-items:center;gap:6px;}
         .ht-back-btn:active{background:var(--border);}
         .ht-title{font-size:18px;font-weight:900;color:var(--text-main);letter-spacing:-0.5px;}
@@ -519,7 +519,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.39</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.40</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -694,13 +694,13 @@
   <!-- HEADER -->
   <div class="ht-header">
     <div class="ht-header-row1">
-      <div style="font-size:16px;font-weight:900;color:var(--text-main);letter-spacing:-0.3px;">Hours Tracker</div>
-      <div class="ht-live-pill" id="ht-live-pill">
-        <div class="ht-live-dot"></div>LIVE
-      </div>
       <div class="ht-dop-toggle">
         <button class="ht-dop-btn active" id="ht-dop6" onclick="htSetDOP(6)">6/2</button>
         <button class="ht-dop-btn"        id="ht-dop5" onclick="htSetDOP(5)">5/2</button>
+      </div>
+      <div style="font-size:16px;font-weight:900;color:var(--text-main);letter-spacing:-0.3px;text-align:center;">Hours Tracker</div>
+      <div class="ht-live-pill" id="ht-live-pill">
+        <div class="ht-live-dot"></div>LIVE
       </div>
     </div>
     <div class="ht-dop-bar state-none" id="ht-dop-bar" style="margin-top:8px;">
@@ -852,12 +852,35 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.39',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.40',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.40:
+- Hours tab: employees can now be added to the active roster before the shift
+  starts. Their hours clock begins when the global shift is triggered from the
+  Dashboard. Employees added pre-shift with a custom time will use that time
+  as their clock-in when the shift begins.
+- Hours tab: Robert W is no longer auto-selected when the shift starts. He is
+  started manually like any other employee but auto-receives Belt Tender once
+  activated (same as before).
+- Hours tab: active employee start times are now clearly editable -- the time
+  button shows a pencil indicator and opens the time picker for adjustment.
+- Hours tab: heading "Hours Tracker" stays centered at all times using a grid
+  layout; the LIVE pill and DOP toggle no longer push it off-center.
+- Notes: notes are now preserved when resetting shift data (Reset All Data no
+  longer wipes notes). Notes have always persisted in local storage across
+  reboots and app reloads; they are only cleared if website data is manually
+  deleted.
+- Notes: onboard note preview now shows with an amber highlight so existing
+  notes for a Wally are immediately visible when onboarding.
+- Sync: completions now cancel any pending arrival/update webhook for the same
+  door session before sending, preventing Sheets from ever seeing an active
+  record after the app has completed it.
+- Sync: queue breathe gap reduced from 600ms to 200ms for faster drain.
+
 v6.39:
 - Hours tab: shift start/begin buttons removed. Global "Start Shift" on Dashboard
   is now the sole shift trigger for the Hours tracker. Hours tab auto-syncs when
@@ -1257,15 +1280,16 @@ v5.06:
         if(config.noWebhook){console.log('[Webhook suppressed - demo mode]',payload);return;}
         let queue=[];
         try{queue=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
+        // When a completion arrives, remove any pending start/update for the same
+        // logId so Sheets never sees an active record after it has been completed
+        if(payload.stage==='end'&&payload.logId){
+            queue=queue.filter(p=>!(p.logId===payload.logId&&(p.stage==='start'||p.stage==='update')));
+        }
         if(queue.length>=500){console.warn('Webhook queue full, dropping oldest');
-            // Drop oldest non-completion payload first to protect completions
             const dropIdx=queue.findIndex(p=>p.stage==='start'||p.stage==='update');
             if(dropIdx>-1)queue.splice(dropIdx,1);else queue.shift();}
-        // Tag completions as high priority so they sort to front
         payload._priority=(payload.stage==='end'||payload.dataType==='SHIFT_END'||payload.dataType==='NEW_SHIFT')?0:1;
         queue.push(payload);
-        // Sort: completions (priority 0) ahead of arrivals/updates (priority 1)
-        // Stable sort -- preserve relative order within each priority tier
         queue.sort(function(a,b){return (a._priority||0)-(b._priority||0);});
         try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(queue));}catch(e){console.error('Queue storage failed:',e);}
         updateSyncBadge();
@@ -1296,8 +1320,7 @@ v5.06:
             try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(cq));}catch(e){}
             isSyncingWebhook=false;
             updateSyncBadge();
-            // 1.5s breathe gap -- measured from response received
-            setTimeout(processWebhookQueue,600);
+            setTimeout(processWebhookQueue,200);
         })
         .catch(function(err){
             isSyncingWebhook=false;
@@ -1567,9 +1590,11 @@ v5.06:
     function savePreferences(){localStorage.setItem('ps9_preferences',JSON.stringify({shareOnComplete:config.shareOnComplete}))}
     function saveDoors(){localStorage.setItem('ps9_doors',JSON.stringify(doors))}function saveHistory(){localStorage.setItem('ps9_history',JSON.stringify(historyLog))}function saveTeam(){localStorage.setItem('ps9_team',JSON.stringify(teamNames))}function saveData(){saveDoors();saveHistory();saveTeam()}function refreshTeamNamesSorted(){teamNamesSorted=[...teamNames].sort((a,b)=>a.localeCompare(b))}
     function resetData(){
-        if(confirm("Reset all data? This will clear all active trailers and logs.")){
+        if(confirm("Reset all data? This will clear all active trailers and logs. Notes are preserved.")){
+            const savedNotes=localStorage.getItem('ps9_wally_notes');
             localStorage.clear();
             localStorage.setItem('ps9_shift_start',"20:00");
+            if(savedNotes)localStorage.setItem('ps9_wally_notes',savedNotes);
             attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:"20:00"});
             setTimeout(function(){location.reload();},500);
         }
@@ -1814,7 +1839,7 @@ v5.06:
     function htFmtTime(date){return date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
     function htCalcHours(emp){
         if(emp.status==='cut')return emp.frozenHours;
-        if(emp.status!=='active')return 0;
+        if(emp.status!=='active'||!emp.startTime)return 0;
         return Math.max(0,Date.now()-emp.startTime.getTime())/3600000;
     }
     function htFmtHrs(h){return h.toFixed(2);}
@@ -1834,12 +1859,12 @@ v5.06:
         hoursState.shiftStarted=true;
         hoursState.shiftEnded=false;
         hoursState.overDopMuted=false;
-        // Activate Robert W automatically (he auto-assigns to Bulk Sweep by role engine)
-        const robertW=hoursState.employees.find(e=>e.name===HT_BELT_DEFAULT&&e.status==='inactive');
-        if(robertW){
-            robertW.status='active';
-            robertW.startTime=new Date(hoursState.shiftStartTime);
-        }
+        // Backfill startTime for any employees pre-activated before shift began
+        hoursState.employees.forEach(e=>{
+            if(e.status==='active'&&!e.startTime){
+                e.startTime=e.customStartStr?htParseHHMM(e.customStartStr):new Date(hoursState.shiftStartTime);
+            }
+        });
         htSaveState();
         htRenderAll();
     }
@@ -1923,16 +1948,16 @@ v5.06:
 
     // -- Employee actions ----------------------------------
     function htActivateEmployee(id){
-        if(!hoursState.shiftStarted){
-            // Auto-sync from global shift if it's already live; otherwise do nothing
-            const wallyLive=(typeof shiftState!=='undefined')&&(shiftState==='live'||shiftState==='demo');
-            if(wallyLive){htSyncFromWallyShift();}
-            else{return;}
-        }
         const emp=hoursState.employees.find(e=>e.id===id);
         if(!emp||emp.status!=='inactive')return;
         emp.status='active';
-        emp.startTime=emp.customStartStr?htParseHHMM(emp.customStartStr):new Date(hoursState.shiftStartTime);
+        if(hoursState.shiftStarted&&hoursState.shiftStartTime){
+            // Shift already live — clock starts now (or custom time)
+            emp.startTime=emp.customStartStr?htParseHHMM(emp.customStartStr):new Date(hoursState.shiftStartTime);
+        }else{
+            // Pre-shift — slot reserved, clock starts when global shift triggers
+            emp.startTime=null;
+        }
         htSaveState();htRenderAll();htCheckOverDOP();
     }
     function htCutEmployee(id){
@@ -2193,16 +2218,16 @@ v5.06:
         const rowClick=emp.status!=='inactive'?'onclick="htOpenRoleModal('+emp.id+',event)"':'';
         let actHTML='';
         if(emp.status==='inactive'){
-            const ctLbl=emp.customStartStr||'Set Time';
+            const ctLbl=emp.customStartStr?emp.customStartStr+' ✎':'Set Time';
             actHTML='<div class="ht-actions">'+
                 '<button class="ht-btn ht-btn-start" onclick="htActivateEmployee('+emp.id+');event.stopPropagation()">Start</button>'+
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()">'+ctLbl+'</button>'+
                 '</div>';
         }else if(emp.status==='active'){
-            const ts=emp.startTime?htFmtTime(emp.startTime):'Edit';
+            const ts=emp.startTime?htFmtTime(emp.startTime):'--';
             actHTML='<div class="ht-actions">'+
                 '<button class="ht-btn ht-btn-cut" onclick="htCutEmployee('+emp.id+');event.stopPropagation()">Cut</button>'+
-                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()">'+ts+'</button>'+
+                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
                 '</div>';
         }else{
             actHTML='<div class="ht-actions"><div class="ht-cut-label">CUT</div></div>';
