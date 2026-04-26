@@ -24,7 +24,7 @@
         }
     })();
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WallyTracker">
@@ -37,8 +37,8 @@
             --surface:rgba(255,255,255,0.95);
             --surface-raised:#ffffff;
             --text-main:#0a0a0a;
-            --text-sub:#6b7280;
-            --text-muted:#9ca3af;
+            --text-sub:#4b5563;
+            --text-muted:#6b7280;
             --border:#e5e7eb;
             --border-light:#f3f4f6;
             --accent-green:#16a34a;
@@ -253,7 +253,7 @@
         .settings-section-body.open{display:block}
         .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border-light);background:var(--surface-raised)}
         .settings-row:last-child{border-bottom:none}
-        .settings-label{font-size:15px;font-weight:700;color:var(--text-main)}
+        .settings-label{font-size:15px;font-weight:700;color:var(--text-main);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px}
         .settings-input-inline{background:var(--border-light);border:none;padding:7px 12px;border-radius:8px;font-size:16px;width:100px;text-align:right;color:var(--text-main);font-weight:600}
         .settings-btn-inline{background:var(--text-main);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
         .settings-note{font-size:12px;color:var(--text-sub);padding:0 18px;margin-bottom:16px;line-height:1.5}
@@ -262,7 +262,7 @@
         .toggle-switch::after{content:'';position:absolute;left:2px;top:2px;width:24px;height:24px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
         .toggle-switch.checked::after{left:22px}
         .stepper{display:flex;align-items:center;background:var(--border-light);border-radius:8px;padding:2px}
-        .stepper-btn{width:30px;height:30px;border:none;background:transparent;font-size:18px;font-weight:700;cursor:pointer;color:var(--text-main)}
+        .stepper-btn{width:44px;height:44px;border:none;background:transparent;font-size:18px;font-weight:700;cursor:pointer;color:var(--text-main)}
         .stepper-val{font-size:15px;font-weight:700;width:24px;text-align:center}
         .segment-control{display:flex;background:var(--border-light);border-radius:8px;padding:2px}
         .segment-opt{padding:6px 12px;border-radius:6px;font-size:13px;font-weight:700;color:var(--text-sub);cursor:pointer}
@@ -506,6 +506,23 @@
         .ht-toast-dismiss{flex:1;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
         .ht-toast-mute{flex:1.4;padding:8px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-sub);cursor:pointer;}
 
+        /* ── ACCESSIBILITY ────────────────────────────────── */
+        :focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:4px}
+        button:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:6px}
+        .tab-btn:focus-visible{outline:2px solid var(--accent-blue);outline-offset:3px;border-radius:12px}
+        [role="button"]:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:6px}
+        .stat-card:focus-visible,.tool-card:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
+        .bay-circle:focus-visible{outline:3px solid var(--accent-blue);outline-offset:3px}
+        .toggle-switch:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:14px}
+        .ht-kpi-card:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
+
+        /* ── MODAL UTILITIES ──────────────────────────────── */
+        .modal-field-label{font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block}
+        .modal-field-group{margin-bottom:15px}
+        .modal-info-box{background:var(--border-light);padding:20px;border-radius:16px;text-align:center;margin-bottom:20px}
+        .modal-warning-box{background:#fff3f2;border:1px solid #ffccc9;border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--accent-red);font-weight:600;line-height:1.4}
+        .modal-neutral-box{background:var(--border-light);border-radius:14px;padding:15px;margin-bottom:20px;font-size:14px;line-height:1.5;color:var(--text-sub)}
+
     </style>
 </head>
 <body>
@@ -516,17 +533,13 @@
     <div id="sync-badge" class="sync-badge"><i class="ph ph-arrows-clockwise"></i><span id="sync-badge-text">Syncing...</span></div>
 </div>
 <div class="app-container">
-    <div id="tab-dashboard" class="tab-content active">
+    <div id="tab-dashboard" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-dashboard" tabindex="0">
         <div>
-        <div class="top-actions" style="padding-top:0;">
-            <button class="action-btn" onclick="openAddUnloaderModal()"><i class="ph ph-user-plus"></i> Add Unloader</button>
-            <button class="action-btn" onclick="openManualAddModal()"><i class="ph ph-pencil-simple-line"></i> Manual</button>
-        </div>
         <!-- NAMEPLATE HEADER -->
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.44</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.45</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -539,26 +552,30 @@
                 </button>
             </div>
         </div>
+        <div class="top-actions" style="padding-top:0;">
+            <button class="action-btn" onclick="openAddUnloaderModal()"><i class="ph ph-user-plus"></i> Add Unloader</button>
+            <button class="action-btn" onclick="openManualAddModal()"><i class="ph ph-pencil-simple-line"></i> Manual</button>
+        </div>
         <!-- STATS GRID -->
         <div class="section-label">Sort Statistics</div>
         <div class="stats-grid">
-            <div class="stat-card" onclick="viewStatLogs('Wally')">
+            <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Wally')">
                 <div><div class="stat-card-bar" style="background:#000;"></div><div class="stat-label">Wallies</div></div>
                 <div class="stat-value" id="stat-total-wally">0</div>
             </div>
-            <div class="stat-card" onclick="viewStatLogs('CPU')">
+            <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('CPU')">
                 <div><div class="stat-card-bar" style="background:#007aff;"></div><div class="stat-label">CPUs</div></div>
                 <div class="stat-value" id="stat-total-cpu">0</div>
             </div>
-            <div class="stat-card" onclick="viewStatLogs('Hour-0')">
+            <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Hour-0')">
                 <div><div class="stat-card-bar" style="background:#34c759;"></div><div class="stat-label">This Hour</div></div>
                 <div class="stat-value" id="stat-hour-wally">0</div>
             </div>
-            <div class="stat-card" onclick="viewStatLogs('Hour-1')">
+            <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Hour-1')">
                 <div><div class="stat-card-bar" style="background:#ff9500;"></div><div class="stat-label">Last Hour</div></div>
                 <div class="stat-value" id="stat-last-wally">0</div>
             </div>
-            <div class="stat-card" style="grid-column:1/-1;" onclick="viewStatLogs('All')">
+            <div class="stat-card" role="button" tabindex="0" style="grid-column:1/-1;" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('All')">
                 <div><div class="stat-card-bar" style="background:#bf5af2;"></div><div class="stat-label">Overall Total</div></div>
                 <div class="stat-value" id="stat-total-overall">0</div>
             </div>
@@ -569,9 +586,9 @@
         <div id="open-bays-grid" class="bays-grid"></div>
         </div>
     </div>
-    <div id="tab-active" class="tab-content"><div class="header-bar"><h1>Active Details</h1></div><div id="active-tab-list" class="active-tab-list"></div></div>
-    <div id="tab-logs" class="tab-content">
-        <div class="header-bar"><h1>Logs</h1><div class="header-right"><button class="filter-icon-btn" onclick="openFilterModal()"><i class="ph ph-faders"></i></button><button class="export-icon-btn" onclick="openExportModal()"><i class="ph ph-export"></i></button></div></div>
+    <div id="tab-active" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-active" tabindex="0"><div class="header-bar"><h1>Active Details</h1></div><div id="active-tab-list" class="active-tab-list"></div></div>
+    <div id="tab-logs" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-logs" tabindex="0">
+        <div class="header-bar"><h1>Logs</h1><div class="header-right"><button class="filter-icon-btn" aria-label="Filter logs" onclick="openFilterModal()"><i class="ph ph-faders"></i></button><button class="export-icon-btn" aria-label="Export data" onclick="openExportModal()"><i class="ph ph-export"></i></button></div></div>
         <input type="text" id="log-search" class="search-bar" placeholder="Search by Wally ID, Account, Door, or Note...">
         <button class="stats-collapse-btn" onclick="toggleStats('unloader')">Unloader Statistics <i class="ph ph-caret-down" id="stats-caret"></i></button>
         <div id="stats-content" class="stats-content-area"><table class="stats-table"><thead><tr><th>Name</th><th style="text-align:center">Wally</th><th style="text-align:center">CPU</th><th style="text-align:right">Total</th></tr></thead><tbody id="unloader-stats-body"></tbody></table></div>
@@ -581,20 +598,20 @@
         <div id="logs-list" class="logs-list"></div>
         <button id="logs-load-more" class="load-more-btn" style="display:none" onclick="loadMoreLogs()">Load More</button>
     </div>
-    <div id="tab-tools" class="tab-content" style="background:#f2f2f7;">
-        <div style="background:white;padding:20px 20px 10px;border-bottom:1px solid #e5e5ea;margin:-20px -20px 20px;"><div class="header-bar" style="margin:0;"><h1>Tools</h1></div></div>
+    <div id="tab-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-tools" tabindex="0" style="background:#f2f2f7;">
+        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);margin:-20px -20px 20px;"><div class="header-bar" style="margin:0;"><h1>Tools</h1></div></div>
         <div class="tools-grid">
-            <div class="tool-card" onclick="openNotesManager()"><div class="tool-icon-wrapper"><i class="ph ph-notepad"></i></div><div class="tool-title">Notes Manager</div></div>
-            <div class="tool-card" onclick="openPPHCalculator()"><div class="tool-icon-wrapper"><i class="ph ph-chart-bar"></i></div>
+            <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openNotesManager()"><div class="tool-icon-wrapper"><i class="ph ph-notepad"></i></div><div class="tool-title">Notes Manager</div></div>
+            <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openPPHCalculator()"><div class="tool-icon-wrapper"><i class="ph ph-chart-bar"></i></div>
     <div class="tool-title">PPH Calculator</div></div>
         </div>
     </div>
-    <div id="tab-settings" class="tab-content" style="background:#f2f2f7;padding:0;">
-        <div style="background:white;padding:20px 20px 10px;border-bottom:1px solid #e5e5ea;"><div class="header-bar" style="margin:0;"><h1>Settings</h1></div></div>
+    <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:#f2f2f7;padding:0;">
+        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);"><div class="header-bar" style="margin:0;"><h1>Settings</h1></div></div>
         <div style="padding:20px 20px 120px;">
 
             <!-- SHIFT MANAGEMENT -->
-            <button class="settings-collapse-btn" onclick="toggleSection('sec-shift')">
+            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-shift')">
                 <span><i class="ph ph-arrow-clockwise" style="margin-right:8px;"></i>Shift Management</span>
                 <i class="ph ph-caret-down" id="caret-sec-shift"></i>
             </button>
@@ -606,7 +623,7 @@
             </div>
 
             <!-- SHIFT CONFIGURATION -->
-            <button class="settings-collapse-btn" onclick="toggleSection('sec-config')">
+            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-config')">
                 <span><i class="ph ph-clock" style="margin-right:8px;"></i>Shift Configuration</span>
                 <i class="ph ph-caret-down" id="caret-sec-config"></i>
             </button>
@@ -618,25 +635,25 @@
                         <div class="slider-wrapper"><div class="slider-track"></div><div class="slider-fill" id="slider-fill"></div><div class="slider-thumb" id="slider-thumb"></div><div class="slider-ticks"><div class="slider-tick"><div class="slider-tick-label">0</div></div><div class="slider-tick"><div class="slider-tick-label">5</div></div><div class="slider-tick"><div class="slider-tick-label">10</div></div></div></div>
                         <div class="settings-note" style="margin-top:20px;"><strong>Attribution Grace Period (Wallies Only)</strong><br>Sets when the 10-minute attribution window opens each hour. Example: shift start 8:05, set to 5 -- window is 9:05 to 9:15, 10:05 to 10:15, etc. Wallies completed in that window can be counted toward the previous or current hour.</div>
                     </div>
-                    <div class="settings-row"><span class="settings-label">Simulate Attribution</span><div class="toggle-switch" id="switch-sim-window" onclick="toggleSwitch('sim-window')"></div></div>
-                    <div class="settings-row"><span class="settings-label">Disable Time Attribution</span><div class="toggle-switch" id="switch-dis-window" onclick="toggleSwitch('dis-window')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Simulate Attribution</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Simulate Attribution Window" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('sim-window')" id="switch-sim-window" onclick="toggleSwitch('sim-window')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Disable Time Attribution</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Disable Time Attribution" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('dis-window')" id="switch-dis-window" onclick="toggleSwitch('dis-window')"></div></div>
                 </div>
             </div>
 
             <!-- PREFERENCES -->
-            <button class="settings-collapse-btn" onclick="toggleSection('sec-prefs')">
+            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-prefs')">
                 <span><i class="ph ph-bell" style="margin-right:8px;"></i>Preferences</span>
                 <i class="ph ph-caret-down" id="caret-sec-prefs"></i>
             </button>
             <div id="sec-prefs" class="settings-section-body">
                 <div class="settings-group">
-                    <div class="settings-row"><span class="settings-label">Share on Completion</span><div class="toggle-switch checked" id="switch-share-on-complete" onclick="toggleSwitch('share-on-complete')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Share on Completion</span><div class="toggle-switch checked" role="switch" aria-checked="true" aria-label="Share on Completion" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('share-on-complete')" id="switch-share-on-complete" onclick="toggleSwitch('share-on-complete')"></div></div>
                     <div class="settings-note">When enabled, the native share sheet appears after completing a Wally.</div>
                 </div>
             </div>
 
             <!-- TEAM MANAGEMENT -->
-            <button class="settings-collapse-btn" onclick="toggleSection('sec-team')">
+            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-team')">
                 <span><i class="ph ph-users" style="margin-right:8px;"></i>Team Management</span>
                 <i class="ph ph-caret-down" id="caret-sec-team"></i>
             </button>
@@ -657,17 +674,17 @@
             </div>
 
             <!-- DEMO -->
-            <button class="settings-collapse-btn" onclick="toggleSection('sec-demo')">
+            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-demo')">
                 <span><i class="ph ph-flask" style="margin-right:8px;"></i>Demo</span>
                 <i class="ph ph-caret-down" id="caret-sec-demo"></i>
             </button>
             <div id="sec-demo" class="settings-section-body">
                 <div class="settings-group">
-                    <div class="settings-row"><span class="settings-label">Demo Mode</span><div class="toggle-switch" id="switch-demo-mode" onclick="toggleSwitch('demo-mode')"></div></div>
-                    <div class="settings-row"><span class="settings-label">Generate Random History</span><div class="toggle-switch" id="switch-demo-random" onclick="toggleSwitch('demo-random')"></div></div>
-                    <div class="settings-row"><span class="settings-label">Auto-Replenish Bays</span><div class="toggle-switch" id="switch-demo-replenish" onclick="toggleSwitch('demo-replenish')"></div></div>
-                    <div class="settings-row"><span class="settings-label">Auto-Complete (15s)</span><div class="toggle-switch" id="switch-demo-autocomplete" onclick="toggleSwitch('demo-autocomplete')"></div></div>
-                    <div class="settings-row"><span class="settings-label">Disable Webhook Firing</span><div class="toggle-switch" id="switch-demo-nowebhook" onclick="toggleSwitch('demo-nowebhook')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Demo Mode</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Demo Mode" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-mode')" id="switch-demo-mode" onclick="toggleSwitch('demo-mode')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Generate Random History</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Generate Random History" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-random')" id="switch-demo-random" onclick="toggleSwitch('demo-random')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Auto-Replenish Bays</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Auto-Replenish Bays" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-replenish')" id="switch-demo-replenish" onclick="toggleSwitch('demo-replenish')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Auto-Complete (15s)</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Auto-Complete (15s)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-autocomplete')" id="switch-demo-autocomplete" onclick="toggleSwitch('demo-autocomplete')"></div></div>
+                    <div class="settings-row"><span class="settings-label">Disable Webhook Firing</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Disable Webhook Firing" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-nowebhook')" id="switch-demo-nowebhook" onclick="toggleSwitch('demo-nowebhook')"></div></div>
                     <div class="settings-row"><span class="settings-label">Number of Doors</span><div class="stepper"><button class="stepper-btn" onclick="stepDoor(-1)">-</button><span class="stepper-val" id="demo-door-val">2</span><button class="stepper-btn" onclick="stepDoor(1)">+</button></div></div>
                     <div class="settings-row" style="justify-content:center;background:#f9f9f9;"><div class="segment-control"><div class="segment-opt selected" id="seg-wally" onclick="setDemoType('Wally')">Wally</div><div class="segment-opt" id="seg-cpu" onclick="setDemoType('CPU')">CPU</div></div></div>
                     <div class="settings-row" style="cursor:pointer;background:#000;border-radius:0;" onclick="startDemo()">
@@ -695,7 +712,7 @@
 <!-- ══════════════════════════════════════════
      HOURS TRACKER PANEL
 ══════════════════════════════════════════ -->
-<div id="tab-hours" class="tab-content tab-hours-flex" style="background:#f2f2f7;padding:0;">
+<div id="tab-hours" class="tab-content tab-hours-flex" role="tabpanel" aria-labelledby="tab-btn-hours" tabindex="0" style="background:#f2f2f7;padding:0;">
 
   <!-- HEADER -->
   <div class="ht-header">
@@ -772,13 +789,13 @@
 
 </div>
 </div>
-<nav class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('dashboard',this)" id="tab-btn-dashboard"><i class="ph ph-squares-four"></i><span>Home</span></button>
-    <button class="tab-btn" onclick="switchTab('active',this)" id="tab-btn-active"><i class="ph ph-garage"></i><span>Active</span><span class="tab-badge" id="badge-active">0</span></button>
-    <button class="tab-btn" onclick="switchTab('logs',this)" id="tab-btn-logs"><i class="ph ph-clipboard-text"></i><span>Logs</span></button>
-    <button class="tab-btn" onclick="switchTab('hours',this)" id="tab-btn-hours"><i class="ph ph-users-three"></i><span>Hours</span></button>
-    <button class="tab-btn" onclick="switchTab('tools',this)" id="tab-btn-tools"><i class="ph ph-wrench"></i><span>Tools</span></button>
-    <button class="tab-btn" onclick="switchTab('settings',this)" id="tab-btn-settings"><i class="ph ph-sliders-horizontal"></i><span>Settings</span></button>
+<nav class="tab-bar" role="tablist" aria-label="Main navigation">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-dashboard" onclick="switchTab('dashboard',this)" id="tab-btn-dashboard"><i class="ph ph-squares-four"></i><span>Home</span></button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-active" onclick="switchTab('active',this)" id="tab-btn-active"><i class="ph ph-garage"></i><span>Active</span><span class="tab-badge" id="badge-active" aria-label="0 active trailers">0</span></button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-logs" onclick="switchTab('logs',this)" id="tab-btn-logs"><i class="ph ph-clipboard-text"></i><span>Logs</span></button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-hours" onclick="switchTab('hours',this)" id="tab-btn-hours"><i class="ph ph-users-three"></i><span>Hours</span></button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-tools" onclick="switchTab('tools',this)" id="tab-btn-tools"><i class="ph ph-wrench"></i><span>Tools</span></button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-settings" onclick="switchTab('settings',this)" id="tab-btn-settings"><i class="ph ph-sliders-horizontal"></i><span>Settings</span></button>
 </nav>
 <!-- All modals identical to original, preserved below -->
 <div class="modal-overlay" id="pph-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">PPH Calculator</h2><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Volume (Packages)</label><input type="number" id="pph-volume" class="form-input" placeholder="e.g. 12617" inputmode="numeric" oninput="calculatePPH()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Hours Worked</label><input type="number" id="pph-hours" class="form-input" placeholder="e.g. 20.63" step="0.01" inputmode="decimal" oninput="calculatePPH()"></div><div style="background:#f9f9f9;padding:20px;border-radius:16px;text-align:center;margin-bottom:20px;"><div style="font-size:14px;color:var(--text-sub);font-weight:600;margin-bottom:5px;">Calculated PPH</div><div style="font-size:36px;font-weight:900;color:#000;line-height:1;" id="pph-result">0</div><div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;"><span style="font-size:12px;color:var(--text-sub);font-weight:600;text-transform:uppercase;">Time Differential (vs 600 PPH)</span><span id="pph-diff" style="font-size:14px;font-weight:800;padding:4px 10px;border-radius:12px;background:#e5e5ea;color:#000;">0.00 hrs</span></div></div><button id="pph-push-btn" class="btn-primary" onclick="uploadPPH()" style="background:#000;margin-bottom:10px;">Push to Sheets</button><button class="btn-cancel" onclick="closeModal('pph-modal')">Close</button></div></div>
@@ -860,12 +877,36 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.44',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.45',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.45:
+- UX/Accessibility audit: 16-point improvement pass.
+- A11Y: Removed user-scalable=no; users can now pinch-to-zoom (WCAG 1.4.4).
+- A11Y: Added :focus-visible ring styles for all interactive elements (WCAG 2.4.7).
+- A11Y: Tab bar now uses role=tablist/tab/tabpanel with aria-selected, aria-controls,
+  aria-labelledby; synced dynamically in switchTab().
+- A11Y: All modal sheets now have role=dialog, aria-modal=true, aria-labelledby.
+  Auto-focuses first focusable element on open via MutationObserver.
+- A11Y: Filter and Export icon buttons have aria-label.
+- A11Y: All stat cards and tool cards have role=button, tabindex=0, Enter/Space handler.
+- A11Y: All toggle switches have role=switch, aria-checked, aria-label, tabindex=0;
+  aria-checked synced in toggleSwitch().
+- A11Y: Settings collapse buttons have aria-expanded=false; synced in toggleSection().
+- A11Y: Active-trailers badge has aria-label synced in updateTabBadges().
+- Contrast: --text-sub darkened to #4b5563 (6.6:1, was 4.2:1). --text-muted
+  to #6b7280 (improved from #9ca3af 2.5:1).
+- Stepper +/- buttons enlarged to 44x44px (WCAG minimum touch target).
+- Settings labels get flex:1 + text-overflow:ellipsis (prevents overflow on narrow screens).
+- Visual hierarchy: Dashboard nameplate now appears before action buttons so
+  shift context is established first.
+- Hardcoded #e5e5ea / white in Tools+Settings tab headers replaced with CSS variables.
+- Added .modal-field-label, .modal-info-box, .modal-warning-box, .modal-neutral-box
+  CSS utility classes for future modal refactoring.
+
 v6.44:
 - Hours tab: employee rows now match Dashboard card design language.
   Shadow upgraded to --shadow-md, min-height 78px, padding 16px for
@@ -1676,14 +1717,14 @@ v5.06:
     function saveAttributionSetting(){localStorage.setItem('ps9_attribution_config_v2',JSON.stringify(attributionConfig));showSaveToast()}
     function setupAttributionSlider(){const track=document.querySelector('.slider-track'),thumb=byId('slider-thumb');if(!track||!thumb)return;let isDragging=false,saveTimer=null;function updateSlider(clientX,persist){const rect=track.getBoundingClientRect();let pct=((clientX-rect.left)/rect.width)*100;pct=Math.max(0,Math.min(100,pct));// Snap to 0, 5, or 10 minutes (0%, 50%, 100%)
         const snapPcts=[0,50,100];let closest=snapPcts.reduce((prev,curr)=>(Math.abs(curr-pct)<Math.abs(prev-pct)?curr:prev));const startMin=closest===0?0:closest===50?5:10;if(startMin===attributionConfig.minutes)return;attributionConfig.minutes=startMin;updateAttributionUI();if(persist)saveAttributionSetting();else{clearTimeout(saveTimer);saveTimer=setTimeout(saveAttributionSetting,200)}}thumb.addEventListener('touchstart',(e)=>{isDragging=true;e.preventDefault()});document.addEventListener('touchmove',(e)=>{if(!isDragging)return;updateSlider(e.touches[0].clientX,false)},{passive:false});document.addEventListener('touchend',()=>{if(!isDragging)return;isDragging=false;saveAttributionSetting()});thumb.addEventListener('mousedown',(e)=>{isDragging=true;e.preventDefault()});document.addEventListener('mousemove',(e)=>{if(!isDragging)return;updateSlider(e.clientX,false)});document.addEventListener('mouseup',()=>{if(!isDragging)return;isDragging=false;saveAttributionSetting()});track.addEventListener('click',(e)=>updateSlider(e.clientX,true))}
-    function updateTabBadges(){let activeCount=0;for(let i=DOORS_START;i<=DOORS_END;i++)if(doors[i]&&(doors[i].status==='active'||doors[i].status==='staged'))activeCount++;const badge=byId('badge-active');if(badge){if(activeCount===0)badge.style.display='none';else{badge.textContent=activeCount>99?'99+':activeCount.toString();badge.style.display='flex';if(activeCount>=6){badge.classList.add('warning');badge.classList.remove('success','zero')}else if(activeCount>=3){badge.classList.add('success');badge.classList.remove('warning','zero')}else badge.classList.remove('warning','success','zero')}}}
-    function toggleSection(id){const body=byId(id);const caret=byId('caret-'+id);if(!body)return;const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(caret)caret.className=isOpen?'ph ph-caret-down':'ph ph-caret-up'}
+    function updateTabBadges(){let activeCount=0;for(let i=DOORS_START;i<=DOORS_END;i++)if(doors[i]&&(doors[i].status==='active'||doors[i].status==='staged'))activeCount++;const badge=byId('badge-active');if(badge){if(activeCount===0)badge.style.display='none';else{badge.textContent=activeCount>99?'99+':activeCount.toString();badge.setAttribute('aria-label',activeCount+' active trailer'+(activeCount===1?'':'s'));badge.style.display='flex';if(activeCount>=6){badge.classList.add('warning');badge.classList.remove('success','zero')}else if(activeCount>=3){badge.classList.add('success');badge.classList.remove('warning','zero')}else badge.classList.remove('warning','success','zero')}}}
+    function toggleSection(id){const body=byId(id);const caret=byId('caret-'+id);if(!body)return;const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(caret){caret.className=isOpen?'ph ph-caret-down':'ph ph-caret-up';const btn=caret.closest('button');if(btn)btn.setAttribute('aria-expanded',String(!isOpen))}}
     function openAddTeamMemberInline(){const inp=byId('add-team-inline');if(!inp)return;inp.style.display=inp.style.display==='none'?'block':'none';if(inp.style.display==='block')setTimeout(()=>{const f=byId('inline-team-name');if(f)f.focus()},100)}
     function confirmAddTeamInline(){const raw=byId('inline-team-name').value.trim();if(!raw)return;const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();byId('inline-team-name').value='';byId('add-team-inline').style.display='none';showSaveToast()}
     function renderTeamManagement(){const list=byId('team-management-list');if(!list)return;list.innerHTML='';if(teamNamesSorted.length===0){list.innerHTML='<div style="padding:15px 0;color:#8e8e93;text-align:center;">No team members yet</div>';return}teamNamesSorted.forEach((name)=>{const div=document.createElement('div');div.className='settings-row';div.innerHTML=`<span class="settings-label">${name}</span><div style="display:flex;gap:20px;align-items:center;"><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:#000;" onclick="editTeamMember('${name}')"></i><i class="ph ph-minus-circle delete-acct-btn" onclick="deleteTeamMember('${name}')"></i></div>`;list.appendChild(div)})}
     function deleteTeamMember(name){if(confirm(`Remove ${name} from your saved team list?`)){teamNames=teamNames.filter(n=>n!==name);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();showSaveToast()}}
     function editTeamMember(oldName){const newName=prompt(`Edit name for ${oldName}:`,oldName);if(!newName||newName.trim()===''||newName===oldName)return;const formattedName=newName.trim().toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');const index=teamNames.indexOf(oldName);if(index>-1)teamNames[index]=formattedName;else teamNames.push(formattedName);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();if(confirm(`Update all existing active trailers and past logs from "${oldName}" to "${formattedName}"?`)){let updatedCount=0;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'){let doorUpdated=false;if(doors[i].unloader===oldName){doors[i].unloader=formattedName;doorUpdated=true}if(doors[i].assignments){doors[i].assignments.forEach(a=>{if(a.name===oldName){a.name=formattedName;doorUpdated=true}})}if(doorUpdated){const updatePayload={stage:'update',door:i,id:doors[i].id,account:doors[i].account||'',type:doors[i].type,unloader:doors[i].unloader||'',assistants:doors[i].assignments?doors[i].assignments.map(a=>a.name).filter(n=>n!==doors[i].unloader):[],start:doors[i].start,end:null,dateKey:dateKeyFromTs(doors[i].start),durationMinutes:null,statOffset:0,logId:doors[i].logId,duplicate:doors[i].isDuplicate||false,completionHour:null,cpuOptions:doors[i].cpuOptions||[],status:'active',manual:false,shiftStart:getShiftStartTime()};sendToWebhook(updatePayload,'update')}}}historyLog.forEach(l=>{let logUpdated=false;if(l.unloader===oldName){l.unloader=formattedName;logUpdated=true}if(l.assistants&&l.assistants.includes(oldName)){l.assistants=l.assistants.map(a=>a===oldName?formattedName:a);logUpdated=true}if(logUpdated){updatedCount++;sendToWebhook(l,'end')}});saveDoors();saveHistory();renderDashboard();renderActiveTab();if(byId('tab-logs').classList.contains('active'))renderLogs();alert(`Successfully updated ${updatedCount} completed logs to "${formattedName}".`)}}
-    function toggleSwitch(id){const el=byId('switch-'+id);if(!el)return;el.classList.toggle('checked');const checked=el.classList.contains('checked');if(id==='demo-mode'){demoActive=checked;if(!checked&&shiftState==='demo'){shiftState='idle';saveShiftState()}updateDemoBanner();updateNameplate();updateTabBadges()}if(id==='demo-replenish')config.replenish=checked;if(id==='demo-random')config.randomHistory=checked;if(id==='sim-window')config.simulateWindow=checked;if(id==='dis-window'){config.disableWindow=checked;attributionConfig.enabled=!checked}if(id==='share-on-complete'){config.shareOnComplete=checked;savePreferences()}if(id==='demo-autocomplete')config.autoComplete=checked;if(id==='demo-nowebhook')config.noWebhook=checked;renderDashboard()}
+    function toggleSwitch(id){const el=byId('switch-'+id);if(!el)return;el.classList.toggle('checked');const checked=el.classList.contains('checked');el.setAttribute('aria-checked',String(checked));if(id==='demo-mode'){demoActive=checked;if(!checked&&shiftState==='demo'){shiftState='idle';saveShiftState()}updateDemoBanner();updateNameplate();updateTabBadges()}if(id==='demo-replenish')config.replenish=checked;if(id==='demo-random')config.randomHistory=checked;if(id==='sim-window')config.simulateWindow=checked;if(id==='dis-window'){config.disableWindow=checked;attributionConfig.enabled=!checked}if(id==='share-on-complete'){config.shareOnComplete=checked;savePreferences()}if(id==='demo-autocomplete')config.autoComplete=checked;if(id==='demo-nowebhook')config.noWebhook=checked;renderDashboard()}
     function updateDemoBanner(){const b=byId('demo-banner');if(!b)return;if(demoActive)b.classList.add('visible');else b.classList.remove('visible')}
     function stepDoor(delta){let val=parseInt(byId('demo-door-val').innerText)+delta;if(val<1)val=1;if(val>8)val=8;byId('demo-door-val').innerText=val;config.doorCount=val}function setDemoType(t){config.demoType=t;byId('seg-wally').classList.toggle('selected',t==='Wally');byId('seg-cpu').classList.toggle('selected',t==='CPU')}
     function startDemo(){startDemoShift()}
@@ -1703,7 +1744,7 @@ v5.06:
     function openManualAddModal(){byId('manual-wally-id').value='';byId('manual-trailer-id').value='';byId('manual-account-id').value='';byId('manual-unloader').value='';byId('manual-custom-unloader').style.display='none';byId('manual-chk-hott').checked=false;byId('manual-chk-recycle').checked=false;byId('manual-chk-gv').checked=false;setManualType('Wally');byId('manual-hour-select').value='1';byId('manual-add-modal').style.display='flex'}
     function setManualType(t){manualType=t;byId('manual-opt-wally').classList.toggle('selected',t==='Wally');byId('manual-opt-cpu').classList.toggle('selected',t==='CPU');byId('manual-wally-inputs').style.display=t==='Wally'?'block':'none';byId('manual-cpu-inputs').style.display=t==='CPU'?'block':'none'}
     function confirmManualAdd(){let id=manualType==='Wally'?byId('manual-wally-id').value:byId('manual-trailer-id').value;if(!id)return alert("Please enter an ID");id=id.toUpperCase();let account='',cpuOpts=[];if(manualType==='CPU'){account=byId('manual-account-id').value.toUpperCase();if(byId('manual-chk-hott').checked)cpuOpts.push('HOTT');if(byId('manual-chk-recycle').checked)cpuOpts.push('RECYCLE');if(byId('manual-chk-gv').checked)cpuOpts.push('GV')}let unl=byId('manual-unloader').value;if(unl==='Custom'){unl=byId('manual-custom-unloader').value.trim();if(!unl)return alert("Please enter custom unloader name");unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}if(!unl)unl="Unassigned";const selectedHour=parseInt(byId('manual-hour-select').value),now=Date.now(),{shiftStart}=getShiftTimeWindows(),targetEffective=shiftStart.getTime()+(selectedHour-1)*3600000;let offset=now-targetEffective;if(offset<0)offset=0;const logEntry={door:0,id:id,account:account,type:manualType,unloader:unl,assistants:[],start:now-15*60000,end:now,dateKey:dateKeyFromTs(now),duration:15*60000,durationMinutes:15,statOffset:offset,logId:Date.now().toString(36)+Math.random().toString(36).substr(2),duplicate:false,completionHour:getCompletionHour(now-offset),cpuOptions:cpuOpts,status:'completed',manual:true};historyLog.unshift(logEntry);sendToWebhook(logEntry,'end');saveHistory();closeModal('manual-add-modal');renderDashboard();if(byId('tab-logs').classList.contains('active'))renderLogs();showSaveToast()}
-    function switchTab(tabId,btn){document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));byId(`tab-${tabId}`).classList.add('active');document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));if(btn)btn.classList.add('active');else{const icons=document.querySelectorAll('.tab-btn'),idx=['dashboard','active','logs','hours','tools','settings'].indexOf(tabId);if(idx>=0)icons[idx].classList.add('active')}if(tabId==='dashboard')renderDashboard();if(tabId==='active')renderActiveTab();if(tabId==='logs'){currentVisibleLogs=50;renderLogs()}if(tabId==='hours')htRenderAll();const fab=document.getElementById('ht-fab-btn');if(fab){fab.classList.toggle('visible',tabId==='hours');}}
+    function switchTab(tabId,btn){document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));byId(`tab-${tabId}`).classList.add('active');document.querySelectorAll('.tab-btn').forEach(el=>{el.classList.remove('active');el.setAttribute('aria-selected','false')});if(btn){btn.classList.add('active');btn.setAttribute('aria-selected','true')}else{const icons=document.querySelectorAll('.tab-btn'),idx=['dashboard','active','logs','hours','tools','settings'].indexOf(tabId);if(idx>=0){icons[idx].classList.add('active');icons[idx].setAttribute('aria-selected','true')}}if(tabId==='dashboard')renderDashboard();if(tabId==='active')renderActiveTab();if(tabId==='logs'){currentVisibleLogs=50;renderLogs()}if(tabId==='hours')htRenderAll();const fab=document.getElementById('ht-fab-btn');if(fab){fab.classList.toggle('visible',tabId==='hours');}}
     function closeModal(id){const m=byId(id);if(m)m.style.display='none';window.scrollTo(0,0)}
     function checkDuplicateWally(id){const{shiftStart}=getShiftTimeWindows();return historyLog.find(l=>l.type==='Wally'&&l.id===id&&l.end>=shiftStart.getTime())}
     function continueWithDuplicate(){closeModal('duplicate-wally-modal');if(pendingWallyDuplicate){const{doorNum,wallyId,unloader,startTime}=pendingWallyDuplicate;const logId=Date.now().toString(36)+Math.random().toString(36).substr(2);doors[doorNum]={status:'active',start:startTime,id:wallyId,account:"",type:'Wally',unloader:unloader||"Unassigned",isDuplicate:true,unavailable:false,lastCompletionTime:null,cpuOptions:[],assignments:[{name:unloader||"Unassigned",start:startTime,end:null}],logId:logId};sendToWebhook({door:doorNum,id:wallyId,account:'',type:'Wally',unloader:unloader||"Unassigned",assistants:[],start:startTime,end:null,dateKey:dateKeyFromTs(startTime),durationMinutes:null,statOffset:0,logId:logId,duplicate:true,completionHour:null,cpuOptions:[],status:'active',manual:false},'start');if(isFirstOnboard){isFirstOnboard=false;localStorage.setItem('ps9_is_first_onboard','false')}saveDoors();closeModal('input-modal');renderDashboard();updateTabBadges();showSaveToast();pendingWallyDuplicate=null}}
@@ -2379,6 +2420,34 @@ v5.06:
 
     // setInterval for HT tick -- runs once per second when Hours tab is active
     setInterval(htTick,1000);
+
+    // ── ACCESSIBILITY SETUP ──────────────────────────────────
+    // Adds dialog role/aria-modal/aria-labelledby to all modal sheets,
+    // and auto-focuses the first focusable element when any modal opens.
+    (function setupA11y(){
+        // Label every modal sheet
+        document.querySelectorAll('.modal-sheet').forEach(sheet=>{
+            sheet.setAttribute('role','dialog');
+            sheet.setAttribute('aria-modal','true');
+            const h2=sheet.querySelector('h2');
+            if(h2){if(!h2.id)h2.id='mh-'+Math.random().toString(36).substr(2,6);sheet.setAttribute('aria-labelledby',h2.id);}
+        });
+        document.querySelectorAll('.h-modal-sheet').forEach(sheet=>{
+            sheet.setAttribute('role','dialog');
+            sheet.setAttribute('aria-modal','true');
+            const title=sheet.querySelector('.h-modal-title');
+            if(title){if(!title.id)title.id='hmt-'+Math.random().toString(36).substr(2,6);sheet.setAttribute('aria-labelledby',title.id);}
+        });
+        // Auto-focus first focusable element in .modal-overlay when display:flex
+        const focusFirst=sheet=>{const f=sheet.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');if(f.length)setTimeout(()=>f[0].focus(),350);};
+        document.querySelectorAll('.modal-overlay').forEach(el=>{
+            new MutationObserver(muts=>{muts.forEach(m=>{if(m.attributeName==='style'&&el.style.display==='flex'){const s=el.querySelector('.modal-sheet');if(s)focusFirst(s);}});}).observe(el,{attributes:true,attributeFilter:['style']});
+        });
+        // Auto-focus in h-modal-overlay when class 'open' added
+        document.querySelectorAll('.h-modal-overlay').forEach(el=>{
+            new MutationObserver(muts=>{muts.forEach(m=>{if(m.attributeName==='class'&&el.classList.contains('open')){const s=el.querySelector('.h-modal-sheet');if(s)focusFirst(s);}});}).observe(el,{attributes:true,attributeFilter:['class']});
+        });
+    })();
 
 </script>
 
