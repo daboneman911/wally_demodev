@@ -76,7 +76,7 @@
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
-        .nameplate{background:var(--surface-raised);border-radius:var(--radius-lg);padding:10px 14px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md);border:1px solid var(--border-light)}
+        .nameplate{background:var(--surface-raised);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md);border:1px solid var(--border-light)}
         .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
@@ -107,16 +107,16 @@
 
         /* ── STAT CARDS ───────────────────────────────────── */
         .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-        .stat-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;min-height:62px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.12s,box-shadow 0.12s;position:relative;overflow:hidden}
+        .stat-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.12s,box-shadow 0.12s;position:relative;overflow:hidden}
         .stat-card:active{transform:scale(0.97);box-shadow:var(--shadow-sm)}
         .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0}
         .stat-label{font-size:10px;color:var(--text-sub);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px}
-        .stat-value{font-size:34px;font-weight:800;color:var(--text-main);line-height:1;letter-spacing:-1.5px}
+        .stat-value{font-size:38px;font-weight:800;color:var(--text-main);line-height:1;letter-spacing:-1.5px}
 
         /* ── BAY CIRCLES ──────────────────────────────────── */
         .bays-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px;min-height:50px}
         .empty-state-text{color:var(--text-muted);font-size:13px;font-weight:500;text-align:center;width:100%;padding:10px 0}
-        .bay-circle{width:52px;height:52px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;cursor:pointer;transition:transform 0.1s;box-shadow:var(--shadow-md);position:relative}
+        .bay-circle{width:58px;height:58px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;cursor:pointer;transition:transform 0.1s;box-shadow:var(--shadow-md);position:relative}
         .bay-circle:active{transform:scale(0.9)}
         .bay-circle.unavailable{background:#9ca3af !important;opacity:0.45;color:#fff;border:none !important}
         .bay-9{background:linear-gradient(135deg,#34d399,#059669)}
@@ -342,7 +342,7 @@
         /* Shift time row */
         .ht-time-wrap{display:flex;align-items:center;gap:8px;flex:1;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:8px 14px;}
         .ht-time-lbl{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
-        .ht-time-input{background:transparent;border:none;color:var(--text-main);font-family:inherit;font-size:16px;font-weight:800;width:90px;outline:none;}
+        .ht-time-input{background:transparent;border:none;color:var(--text-main);font-family:inherit;font-size:15px;font-weight:800;width:90px;outline:none;}
         .ht-shift-btn{border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:0.3px;white-space:nowrap;transition:all 0.15s;}
         .ht-shift-btn.idle{background:var(--text-main);color:#fff;}
         .ht-shift-btn.live{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
@@ -366,7 +366,7 @@
         .ht-dop-bar.state-over{background:var(--accent-red-bg);border-color:rgba(220,38,38,0.25);}
         .ht-dop-bar.state-over::before{background:var(--accent-red);}
         .ht-dop-left{display:flex;align-items:center;gap:10px;}
-        .ht-dop-label{font-size:15px;font-weight:900;letter-spacing:0.3px;line-height:1;}
+        .ht-dop-label{font-size:13px;font-weight:900;letter-spacing:0.3px;line-height:1;}
         .state-none .ht-dop-label{color:var(--text-sub);}
         .state-met  .ht-dop-label{color:var(--accent-green);}
         .state-low  .ht-dop-label{color:var(--accent-orange);}
@@ -431,7 +431,7 @@
 
         /* Emp info */
         .ht-emp-info{flex:1;min-width:0;}
-        .ht-emp-name{font-size:16px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px;line-height:1.2;}
+        .ht-emp-name{font-size:14px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px;line-height:1.2;}
         .ht-emp-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;}
         .ht-role-tag{font-size:10px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding:2px 7px;border-radius:5px;}
         .ht-tag-belt{background:#fef3c7;color:#92400e;}
@@ -526,7 +526,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.42</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.43</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -860,12 +860,20 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.42',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.43',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.43:
+- Hours tab: employee name font reduced (16px→14px), DOP status label
+  reduced (15px→13px), and shift time input reduced (16px→15px) for
+  visual consistency with the rest of the app.
+- Dashboard: stat cards enlarged (min-height 62→76px, padding 10→13px,
+  value font 34→38px), bay circles enlarged (52→58px), and nameplate
+  padding increased (10→14px) for a more spacious feel.
+
 v6.42:
 - Dashboard: full single-screen layout for iPhone 16 Pro Max. All content
   (nameplate, 5 stat cards, active bays, open bays) now fits without
