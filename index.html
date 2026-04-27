@@ -506,6 +506,16 @@
         .ht-toast-dismiss{flex:1;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
         .ht-toast-mute{flex:1.4;padding:8px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-sub);cursor:pointer;}
 
+        /* ── LABOR THRESHOLD ALERT ───────────────────────── */
+        .ht-threshold-badge{position:absolute;top:-4px;right:-4px;background:var(--accent-red);color:white;font-size:9px;font-weight:900;padding:2px 5px;border-radius:8px;border:2px solid white;letter-spacing:0.2px;pointer-events:none;}
+        .ht-kpi-card.ht-threshold-exceeded{border:1.5px solid var(--accent-red);}
+        .ht-kpi-card.ht-threshold-exceeded .ht-kpi-bar{background:var(--accent-red)!important;}
+        .ht-labor-alert{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-130%);z-index:3000;width:calc(100% - 32px);max-width:420px;background:var(--surface-raised);border:1.5px solid var(--accent-red);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-lg);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;pointer-events:none;}
+        .ht-labor-alert.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}
+        .ht-labor-alert-title{font-size:14px;font-weight:900;color:var(--accent-red);margin-bottom:3px;}
+        .ht-labor-alert-msg{font-size:12px;color:var(--text-sub);line-height:1.4;}
+        .ht-labor-alert-dismiss{margin-top:10px;width:100%;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
+
         /* ── ACCESSIBILITY ────────────────────────────────── */
         :focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:4px}
         button:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:6px}
@@ -539,7 +549,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.46</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.47</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -607,7 +617,7 @@
         <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);"><div class="header-bar" style="margin:0;"><h1>Settings</h1></div></div>
         <div style="padding:20px 20px 120px;">
 
-            <!-- SHIFT MANAGEMENT -->
+            <!-- SHIFT MANAGEMENT & CONFIGURATION (unified) -->
             <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-shift')">
                 <span><i class="ph ph-arrow-clockwise" style="margin-right:8px;"></i>Shift Management</span>
                 <i class="ph ph-caret-down" id="caret-sec-shift"></i>
@@ -616,16 +626,6 @@
                 <div class="settings-group">
                     <div class="settings-row" onclick="handleShiftAction()" style="cursor:pointer;"><span class="settings-label">Start New Shift</span><i class="ph ph-arrow-clockwise" style="color:#000;font-size:20px;"></i></div>
                     <div class="settings-row" onclick="resetData()" style="cursor:pointer;"><span class="settings-label">Reset All Data</span><i class="ph ph-trash" style="color:#ff3b30;font-size:20px;"></i></div>
-                </div>
-            </div>
-
-            <!-- SHIFT CONFIGURATION -->
-            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-config')">
-                <span><i class="ph ph-clock" style="margin-right:8px;"></i>Shift Configuration</span>
-                <i class="ph ph-caret-down" id="caret-sec-config"></i>
-            </button>
-            <div id="sec-config" class="settings-section-body">
-                <div class="settings-group">
                     <div class="settings-row"><span class="settings-label">Shift Start Time</span><input type="time" id="setting-shift-start" class="settings-input-inline" onchange="saveShiftStart(this.value)" value="20:00"></div>
                     <div class="settings-slider-container" style="border-top:1px solid #f2f2f7;">
                         <div class="slider-header"><span class="settings-label">Attribution Window Start</span><span class="slider-value" id="attribution-value">0m</span></div>
@@ -634,18 +634,6 @@
                     </div>
                     <div class="settings-row"><span class="settings-label">Simulate Attribution</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Simulate Attribution Window" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('sim-window')" id="switch-sim-window" onclick="toggleSwitch('sim-window')"></div></div>
                     <div class="settings-row"><span class="settings-label">Disable Time Attribution</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Disable Time Attribution" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('dis-window')" id="switch-dis-window" onclick="toggleSwitch('dis-window')"></div></div>
-                </div>
-            </div>
-
-            <!-- PREFERENCES -->
-            <button class="settings-collapse-btn" aria-expanded="false" onclick="toggleSection('sec-prefs')">
-                <span><i class="ph ph-bell" style="margin-right:8px;"></i>Preferences</span>
-                <i class="ph ph-caret-down" id="caret-sec-prefs"></i>
-            </button>
-            <div id="sec-prefs" class="settings-section-body">
-                <div class="settings-group">
-                    <div class="settings-row"><span class="settings-label">Share on Completion</span><div class="toggle-switch checked" role="switch" aria-checked="true" aria-label="Share on Completion" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('share-on-complete')" id="switch-share-on-complete" onclick="toggleSwitch('share-on-complete')"></div></div>
-                    <div class="settings-note">When enabled, the native share sheet appears after completing a Wally.</div>
                 </div>
             </div>
 
@@ -853,7 +841,7 @@
     </label>
     <div style="font-size:12px;color:#8e8e93;margin-top:8px;">Team will be notified what is rolling to Door <span class="cpu-next-door-num-ref"></span> next.</div>
   </div>
-</div><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
+</div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
 <div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:#757575;margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><input type="time" id="edit-active-labor-time" class="form-input"></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
@@ -864,6 +852,7 @@
     <div style="background:#fff3f2;border:1px solid #ffccc9;border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#cc2200;font-weight:600;line-height:1.4;">
         <i class="ph ph-warning" style="font-size:16px;vertical-align:middle;margin-right:5px;"></i>All remaining active bays will be marked <strong>incomplete</strong> and synced to Sheets.
     </div>
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 0 16px;cursor:pointer;"><input type="checkbox" id="chk-share-total" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Share total wallies to team</span></label>
     <button class="btn-primary btn-danger" onclick="confirmEndShift(false)" style="margin-bottom:10px;">End &amp; Close Bays</button>
     <button class="btn-primary" onclick="confirmEndShift(true)" style="background:#f2f2f7;color:#000;margin-bottom:10px;">End &amp; Keep Bays Open</button>
     <button class="btn-cancel" onclick="closeModal('end-shift-modal')">Cancel</button>
@@ -874,12 +863,34 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.46',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.47',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.47:
+- Settings: Merged "Shift Management" and "Shift Configuration" into a single
+  unified "Shift Management" collapsible section. Removed the standalone
+  "Preferences" section entirely.
+- Completion Pop-up: Added "Skip share sheet" checkbox to the Active Detail
+  modal (above the Complete Unload button). When checked, the native share
+  sheet is bypassed for that single completion regardless of global preference.
+  Checkbox auto-resets each time the modal opens.
+- Shift End: Added "Share total wallies to team" checkbox to the End Shift
+  modal. When checked, fires a share sheet immediately after shift confirmation
+  with the text: "PS9 - [N] number of wallies" where N = completed Wallies + 1.
+- Shift End: Staffing (Hours) tab is now fully reset after every shift end,
+  clearing all employee clock-in state so the next shift starts clean.
+- Door Timer: Timer and warn/crit ring animations now only activate when an
+  unloader is actively assigned. Staged bays and bays with Unassigned status
+  show no escalation rings. laborStart is not set until a real unloader is
+  recorded, preventing phantom timer runaway before assignment.
+- Labor Alert: New threshold monitor on the Hours tab. When total Unloader
+  role hours cross 16.0h, the Unload KPI card highlights in red and a
+  dismissible alert banner appears. Alert auto-resets if hours drop below
+  threshold.
+
 v6.46:
 - Dashboard UI: Removed redundant "Add Unloader" button. The Manual button
   is now a compact icon button (pencil) in the nameplate actions row,
@@ -1627,6 +1638,7 @@ v5.06:
             <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:#8e8e93;font-weight:600;">CPUs completed</span><span style="font-weight:800;">${completedC}</span></div>
             <div style="display:flex;justify-content:space-between;font-size:14px;border-top:1px solid #f2f2f7;padding-top:8px;margin-top:2px;"><span style="color:#ff3b30;font-weight:600;">Active bays remaining</span><span style="font-weight:800;color:#ff3b30;">${activeCt+stagedCt}</span></div>
             `+(htBuildBreakdown()?`<div style="margin-top:8px;">${htBuildBreakdown()}</div>`:'');
+        const shareTotalChk=byId('chk-share-total');if(shareTotalChk)shareTotalChk.checked=false;
         byId('end-shift-modal').style.display='flex'}
 
     function confirmEndShift(keepBays){
@@ -1671,9 +1683,19 @@ v5.06:
         updateDemoBanner();
         if(!keepBays){saveDoors()}
         saveHistory();
+        // Share total wallies if requested
+        const shareTotal=!!(byId('chk-share-total')&&byId('chk-share-total').checked);
         closeModal('end-shift-modal');
         updateNameplate();renderDashboard();renderActiveTab();updateTabBadges();
-        showToast(keepBays?`Shift ended \u2014 ${completedW+completedC} completions synced`:`Shift ended \u2014 ${closedCount} bay${closedCount!==1?'s':''} closed`);htEndShift();}
+        showToast(keepBays?`Shift ended \u2014 ${completedW+completedC} completions synced`:`Shift ended \u2014 ${closedCount} bay${closedCount!==1?'s':''} closed`);
+        htEndShift();
+        // Fully reset the Hours/Staffing tab silently after shift ends
+        htSilentReset();
+        if(shareTotal&&navigator.share){
+            const wallyShareCount=completedW+1;
+            setTimeout(()=>{navigator.share({text:`PS9 - ${wallyShareCount} number of wallies`}).catch(err=>console.log('Share dismissed:',err));},400);
+        }
+    }
 
     function showToast(msg){const t=byId('save-toast');t.querySelector('span').textContent=msg;t.classList.add('visible');setTimeout(()=>{t.querySelector('span').textContent='Saved';t.classList.remove('visible')},2500)}
     // --------------------------------------------------------
@@ -1803,7 +1825,8 @@ v5.06:
         // Wally + cpuNext=true:  "Door X done\nDoor X CPU"  (both lines, single share)
         // CPU   + cpuNext=true:  "Door X CPU"
         // CPU   + cpuNext=false: no share
-        if(navigator.share&&!demoActive&&config.shareOnComplete){
+        const skipShare=!!(byId('chk-skip-share')&&byId('chk-skip-share').checked);
+        if(navigator.share&&!demoActive&&config.shareOnComplete&&!skipShare){
             let shareText='';
             if(d.type==='Wally'){
                 // Wally done: always share. If CPU next, append second line.
@@ -1822,8 +1845,8 @@ v5.06:
     function calculateAndRenderStats(){const stats={};historyLog.forEach(l=>{if(!l.completionHour)return;const n=l.unloader;if(!stats[n])stats[n]={w:0,c:0,t:0};if(l.type==='Wally')stats[n].w++;else if(l.type==='CPU')stats[n].c++;stats[n].t++});const tb=byId('unloader-stats-body');tb.innerHTML='';Object.entries(stats).sort((a,b)=>b[1].t-a[1].t).forEach(([n,d])=>tb.innerHTML+=`<tr><td>${n}</td><td style="text-align:center">${d.w}</td><td style="text-align:center">${d.c}</td><td style="text-align:right">${d.t}</td></tr>`)}
     function calculateAndRenderHourlyStats(){const{shiftStart}=getShiftTimeWindows();const h={};historyLog.forEach(l=>{if(!l.completionHour)return;const idx=Math.floor((l.end-(l.statOffset||0)-shiftStart.getTime())/3600000)+1;if(!h[idx])h[idx]=0;h[idx]++});const tb=byId('hourly-stats-body');tb.innerHTML='';Object.keys(h).sort((a,b)=>a-b).forEach(k=>tb.innerHTML+=`<tr><td>${getHourText(parseInt(k))}</td><td style="text-align:center">${h[k]}</td></tr>`)}
     function nowOrFrozen(){return(shiftState==='idle'&&shiftEndTime)?shiftEndTime:Date.now();}
-    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const laborRef=d.laborStart||d.start;const min=(nowOrFrozen()-laborRef)/60000;let statusClass='status-ok';if(min>60)statusClass='status-crit';else if(min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
-    function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const laborRef=d.laborStart||d.start;const min=(nowOrFrozen()-laborRef)/60000;let urgencyClass=d.status==='staged'?'':'';if(d.status==='active'){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:#007aff;" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:#999;margin-top:40px;">No active trailers</div>'}
+    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
+    function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let urgencyClass='';if(d.status==='active'&&hasUnloader){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:#007aff;" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:#999;margin-top:40px;">No active trailers</div>'}
     function openActiveDetails(doorNum){detailDoor=doorNum;const d=doors[doorNum];byId('detail-door-num').innerText=doorNum;byId('detail-type').innerText=d.type;byId('detail-id').innerText=d.id;byId('detail-unloader').innerText=d.unloader||"Unassigned";byId('detail-time').innerText=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const now=Date.now();byId('detail-duration').innerText=Math.floor((now-d.start)/60000)+"m";const ar=byId('row-account');if(d.account){ar.style.display='flex';byId('detail-account').innerText=d.account}else ar.style.display='none';const rowOpts=byId('row-cpu-opts');if(d.type==='CPU'&&d.cpuOptions&&d.cpuOptions.length>0){rowOpts.style.display='flex';byId('detail-cpu-opts').innerText=d.cpuOptions.join(', ')}else rowOpts.style.display='none';const laborStart=d.laborStart||d.start;const dwell=Math.round((laborStart-d.start)/60000);if(d.laborStart&&d.laborStart>d.start){byId('row-labor-start').style.display='flex';byId('detail-labor-time').innerText=new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('row-unload-time').style.display='flex';byId('detail-unload-duration').innerText=Math.floor((now-d.laborStart)/60000)+"m";byId('row-dwell').style.display='flex';byId('detail-dwell').innerText=dwell+"m"}else{byId('row-labor-start').style.display='none';byId('row-unload-time').style.display='none';byId('row-dwell').style.display='none'}
         // Show CPU-next checkbox for both Wally and CPU doors, always reset it
         const cpuNextRow=byId('row-cpu-next');
@@ -1848,6 +1871,7 @@ v5.06:
             if(wallyRow)wallyRow.style.display='none';
             if(cpuRow)cpuRow.style.display='block';
         }
+        const skipShareChk=byId('chk-skip-share');if(skipShareChk)skipShareChk.checked=false;
         byId('active-detail-modal').style.display='flex'}
     function openEditActiveModalFromDetail(){closeModal('active-detail-modal');openEditActiveModal(detailDoor)}
     function openEditActiveModal(doorNum){const d=doors[doorNum];byId('edit-active-original-door').value=doorNum;byId('edit-active-id').value=d.id;byId('edit-active-account').value=d.account||"";const us=byId('edit-active-unloader');us.value=d.unloader||"";if(us.selectedIndex===-1){us.value='Custom';checkActiveCustomUnloader(us);byId('edit-active-custom-unloader').value=d.unloader}else checkActiveCustomUnloader(us);setEditActiveType(d.type);const opts=d.cpuOptions||[];byId('edit-active-chk-hott').checked=opts.includes('HOTT');byId('edit-active-chk-recycle').checked=opts.includes('RECYCLE');byId('edit-active-chk-gv').checked=opts.includes('GV');const arrDate=new Date(d.start);byId('edit-active-arrival-time').value=`${arrDate.getHours().toString().padStart(2,'0')}:${arrDate.getMinutes().toString().padStart(2,'0')}`;const laborSrc=d.laborStart||d.start;const labDate=new Date(laborSrc);byId('edit-active-labor-time').value=`${labDate.getHours().toString().padStart(2,'0')}:${labDate.getMinutes().toString().padStart(2,'0')}`;const sel=byId('edit-active-door-select');sel.innerHTML='';for(let i=DOORS_START;i<=DOORS_END;i++){if(i===doorNum||doors[i].status==='empty'){const opt=document.createElement('option');opt.value=i;opt.innerText=`Bay ${i}`;if(i===doorNum)opt.selected=true;sel.appendChild(opt)}}byId('edit-active-modal').style.display='flex'}
@@ -1855,7 +1879,7 @@ v5.06:
     function checkActiveCustomUnloader(s){byId('edit-active-custom-unloader').style.display=s.value==='Custom'?'block':'none'}
     function saveActiveEdit(){const orig=parseInt(byId('edit-active-original-door').value),dest=parseInt(byId('edit-active-door-select').value);let unl=byId('edit-active-unloader').value;if(unl==='Custom')unl=byId('edit-active-custom-unloader').value.trim();if(!unl)unl="Unassigned";else if(unl!=="Unassigned"&&unl===byId('edit-active-custom-unloader').value.trim())unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');const type=byId('edit-active-modal').dataset.type;let cpuOpts=[];if(type==='CPU'){if(byId('edit-active-chk-hott').checked)cpuOpts.push('HOTT');if(byId('edit-active-chk-recycle').checked)cpuOpts.push('RECYCLE');if(byId('edit-active-chk-gv').checked)cpuOpts.push('GV')}function parseTimeToTs(inputId,refTs){const val=byId(inputId).value;if(!val)return refTs;const[h,m]=val.split(':').map(Number);const ref=new Date(refTs);let d=new Date(ref);d.setHours(h,m,0,0);let diff=d.getTime()-ref.getTime();if(diff>12*3600000)d.setDate(d.getDate()-1);else if(diff<-12*3600000)d.setDate(d.getDate()+1);return d.getTime()}const newArrival=parseTimeToTs('edit-active-arrival-time',doors[orig].start);const newLaborRaw=parseTimeToTs('edit-active-labor-time',doors[orig].laborStart||doors[orig].start);const newLabor=newLaborRaw<newArrival?newArrival:newLaborRaw;const d=doors[orig],now=Date.now();let newAssignments=[...(d.assignments||[])];if(newArrival!==doors[orig].start&&newAssignments.length>0)newAssignments[0].start=newLabor;if(d.unloader!==unl){if(newAssignments.length>0)newAssignments[newAssignments.length-1].end=now;newAssignments.push({name:unl,start:now,end:null})}const newStatus=(unl==='Unassigned')?'staged':'active';const data={status:newStatus,start:newArrival,laborStart:newLabor,id:byId('edit-active-id').value.trim().toUpperCase(),account:byId('edit-active-account').value.trim().toUpperCase(),type:type,unloader:unl,unavailable:false,lastCompletionTime:doors[orig].lastCompletionTime,cpuOptions:cpuOpts,assignments:newStatus==='staged'?[]:newAssignments,logId:d.logId};if(dest!==orig){doors[dest]=data;doors[orig]={status:'empty',start:0,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:doors[orig].lastCompletionTime,assignments:[]}}else doors[orig]=data;saveDoors();sendToWebhook({stage:'update',door:dest,id:data.id,account:data.account||'',type:data.type,unloader:data.unloader||'',assistants:data.assignments?data.assignments.map(a=>a.name).filter(n=>n!==data.unloader):[],start:data.start,laborStart:data.laborStart,end:null,dateKey:dateKeyFromTs(data.start),durationMinutes:null,statOffset:0,logId:data.logId,duplicate:data.isDuplicate||false,completionHour:null,cpuOptions:data.cpuOptions||[],status:newStatus,manual:false,shiftStart:getShiftStartTime()},'update');closeModal('edit-active-modal');renderActiveTab();renderDashboard();updateTabBadges();showSaveToast()}
     function checkCustomUnloader(s){byId('input-custom-unloader').style.display=s.value==='Custom'?'block':'none'}
-    function confirmArrival(stageOnly=false){const idVal=currentType==='Wally'?byId('input-wally-id').value:byId('input-trailer-id').value;if(!idVal)return alert("Missing ID");const fId=idVal.toUpperCase(),fAcc=(currentType==='CPU'?byId('input-account-id').value:'').toUpperCase();let unl=byId('select-unloader').value;if(unl==='Custom'){unl=byId('input-custom-unloader').value;if(unl)unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}if(!stageOnly&&currentType==='Wally'){const dup=checkDuplicateWally(fId);if(dup){pendingWallyDuplicate={doorNum:currentDoor,wallyId:fId,unloader:unl||"Unassigned",startTime:Date.now(),stageOnly:false};byId('dup-wally-id').textContent=fId;byId('dup-door').textContent=`Door ${dup.door}`;byId('dup-time').textContent=new Date(dup.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('dup-unloader').textContent=dup.unloader;byId('duplicate-wally-modal').style.display='flex';return}}let cpuOpts=[];if(currentType==='CPU'){if(byId('chk-hott').checked)cpuOpts.push('HOTT');if(byId('chk-recycle').checked)cpuOpts.push('RECYCLE');if(byId('chk-gv').checked)cpuOpts.push('GV')}let arrivalTime=Date.now(),cTime=byId('input-onboard-time').value;if(cTime){const now=new Date(),[h,m]=cTime.split(':').map(Number);const d=new Date(now);d.setHours(h,m,0,0);if(d>now)d.setDate(d.getDate()-1);arrivalTime=d.getTime()}const laborStart=stageOnly?null:arrivalTime;const effectiveStatus=stageOnly?'staged':'active';const logId=Date.now().toString(36)+Math.random().toString(36).substr(2);doors[currentDoor]={status:effectiveStatus,start:arrivalTime,laborStart:laborStart,id:fId,account:fAcc,type:currentType,unloader:stageOnly?'Unassigned':(unl||"Unassigned"),isDuplicate:false,unavailable:false,lastCompletionTime:null,cpuOptions:cpuOpts,assignments:stageOnly?[]:[{name:unl||"Unassigned",start:arrivalTime,end:null}],logId:logId};sendToWebhook({door:currentDoor,id:fId,account:fAcc,type:currentType,unloader:stageOnly?'Unassigned':(unl||"Unassigned"),assistants:[],start:arrivalTime,laborStart:laborStart,end:null,dateKey:dateKeyFromTs(arrivalTime),durationMinutes:null,statOffset:0,logId:logId,duplicate:false,completionHour:null,cpuOptions:cpuOpts,status:effectiveStatus,manual:false},'start');if(isFirstOnboard){isFirstOnboard=false;localStorage.setItem('ps9_is_first_onboard','false')}saveDoors();closeModal('input-modal');renderDashboard();updateTabBadges();showSaveToast()}
+    function confirmArrival(stageOnly=false){const idVal=currentType==='Wally'?byId('input-wally-id').value:byId('input-trailer-id').value;if(!idVal)return alert("Missing ID");const fId=idVal.toUpperCase(),fAcc=(currentType==='CPU'?byId('input-account-id').value:'').toUpperCase();let unl=byId('select-unloader').value;if(unl==='Custom'){unl=byId('input-custom-unloader').value;if(unl)unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}if(!stageOnly&&currentType==='Wally'){const dup=checkDuplicateWally(fId);if(dup){pendingWallyDuplicate={doorNum:currentDoor,wallyId:fId,unloader:unl||"Unassigned",startTime:Date.now(),stageOnly:false};byId('dup-wally-id').textContent=fId;byId('dup-door').textContent=`Door ${dup.door}`;byId('dup-time').textContent=new Date(dup.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('dup-unloader').textContent=dup.unloader;byId('duplicate-wally-modal').style.display='flex';return}}let cpuOpts=[];if(currentType==='CPU'){if(byId('chk-hott').checked)cpuOpts.push('HOTT');if(byId('chk-recycle').checked)cpuOpts.push('RECYCLE');if(byId('chk-gv').checked)cpuOpts.push('GV')}let arrivalTime=Date.now(),cTime=byId('input-onboard-time').value;if(cTime){const now=new Date(),[h,m]=cTime.split(':').map(Number);const d=new Date(now);d.setHours(h,m,0,0);if(d>now)d.setDate(d.getDate()-1);arrivalTime=d.getTime()}const effectiveUnloader=stageOnly?'Unassigned':(unl||"Unassigned");const hasRealUnloader=effectiveUnloader!=='Unassigned';const laborStart=(stageOnly||!hasRealUnloader)?null:arrivalTime;const effectiveStatus=stageOnly?'staged':'active';const logId=Date.now().toString(36)+Math.random().toString(36).substr(2);doors[currentDoor]={status:effectiveStatus,start:arrivalTime,laborStart:laborStart,id:fId,account:fAcc,type:currentType,unloader:effectiveUnloader,isDuplicate:false,unavailable:false,lastCompletionTime:null,cpuOptions:cpuOpts,assignments:(stageOnly||!hasRealUnloader)?[]:[{name:effectiveUnloader,start:arrivalTime,end:null}],logId:logId};sendToWebhook({door:currentDoor,id:fId,account:fAcc,type:currentType,unloader:effectiveUnloader,assistants:[],start:arrivalTime,laborStart:laborStart,end:null,dateKey:dateKeyFromTs(arrivalTime),durationMinutes:null,statOffset:0,logId:logId,duplicate:false,completionHour:null,cpuOptions:cpuOpts,status:effectiveStatus,manual:false},'start');if(isFirstOnboard){isFirstOnboard=false;localStorage.setItem('ps9_is_first_onboard','false')}saveDoors();closeModal('input-modal');renderDashboard();updateTabBadges();showSaveToast()}
     function openArrivalModal(specificDoor=null){if(specificDoor)currentDoor=specificDoor;else{currentDoor=null;for(let i=DOORS_START;i<=DOORS_END;i++)if(doors[i].status==='empty'&&!doors[i].unavailable){currentDoor=i;break}}if(!currentDoor)return alert("No bays available!");byId('modal-door-num').innerText=currentDoor;byId('input-wally-id').value='';byId('input-trailer-id').value='';byId('input-account-id').value='';byId('select-unloader').value="";byId('input-custom-unloader').style.display='none';byId('chk-hott').checked=false;byId('chk-recycle').checked=false;byId('chk-gv').checked=false;const tIn=byId('input-onboard-time');if(historyLog.length===0)tIn.value=getShiftStartTime();else{const now=new Date();tIn.value=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`}const form=byId('onboard-form-container'),msg=byId('unavailable-msg'),btn=byId('btn-toggle-availability');if(doors[currentDoor].unavailable){form.style.display='none';msg.style.display='block';btn.innerText="Mark Available";btn.style.background="#34c759";btn.style.color="white";btn.style.border="none"}else{form.style.display='block';msg.style.display='none';btn.innerText="Mark Unavailable";btn.style.background="white";btn.style.color="#ff3b30";btn.style.border="2px solid #e5e5ea"}setType('Wally');byId('input-modal').style.display='flex';if(!doors[currentDoor].unavailable)setTimeout(()=>{const f=byId('input-wally-id');if(f)f.focus()},100);updateOnboardingNotePreview('')}
     function handleAvailabilityToggle(){doors[currentDoor].unavailable=!doors[currentDoor].unavailable;saveDoors();renderDashboard();showSaveToast();closeModal('input-modal')}
     function setType(t){currentType=t;byId('opt-wally').classList.toggle('selected',t==='Wally');byId('opt-cpu').classList.toggle('selected',t==='CPU');byId('wally-inputs').style.display=t==='Wally'?'block':'none';byId('cpu-inputs').style.display=t==='CPU'?'block':'none'}
@@ -2068,6 +2092,15 @@ v5.06:
             shiftStartStr:'20:00',dopConfig:6,employees:[],nextId:1,
             overDopMuted:false,pendingTimeId:null,pendingRoleId:null};
         htInitEmployees();htSaveState();htRenderAll();
+    }
+    function htSilentReset(){
+        localStorage.removeItem('ps9_v4');
+        const prevDop=hoursState.dopConfig||6;
+        hoursState={shiftStarted:false,shiftEnded:false,shiftStartTime:null,
+            shiftStartStr:'20:00',dopConfig:prevDop,employees:[],nextId:1,
+            overDopMuted:false,pendingTimeId:null,pendingRoleId:null};
+        htInitEmployees();htSaveState();
+        if(byId('tab-hours')&&byId('tab-hours').classList.contains('active'))htRenderAll();
     }
 
     // -- DOP config ----------------------------------------
@@ -2305,6 +2338,38 @@ v5.06:
         if(mute){hoursState.overDopMuted=true;htSaveState();}
     }
 
+    // -- Labor threshold alert (16.0 unloader hours) -------
+    const HT_LABOR_THRESHOLD=16.0;
+    let htLaborAlertFired=false;
+    function htCheckLaborThreshold(unloadHrs){
+        const card=document.querySelector('.ht-kpi-unload');
+        if(!card)return;
+        if(unloadHrs>=HT_LABOR_THRESHOLD){
+            card.classList.add('ht-threshold-exceeded');
+            if(!card.querySelector('.ht-threshold-badge')){
+                const badge=document.createElement('div');
+                badge.className='ht-threshold-badge';badge.textContent='16h+';
+                card.appendChild(badge);
+            }
+            if(!htLaborAlertFired){
+                htLaborAlertFired=true;
+                const msgEl=document.getElementById('ht-labor-alert-msg');
+                if(msgEl)msgEl.textContent=`Unloader hours have reached ${unloadHrs.toFixed(2)}h (threshold: ${HT_LABOR_THRESHOLD}h).`;
+                const alert=document.getElementById('ht-labor-alert');
+                if(alert)alert.classList.add('show');
+            }
+        }else{
+            card.classList.remove('ht-threshold-exceeded');
+            const badge=card.querySelector('.ht-threshold-badge');
+            if(badge)badge.remove();
+            htLaborAlertFired=false;
+        }
+    }
+    function htDismissLaborAlert(){
+        const alert=document.getElementById('ht-labor-alert');
+        if(alert)alert.classList.remove('show');
+    }
+
     // -- Render DOP bar ------------------------------------
     function htRenderDOPBar(d){
         const bar=document.getElementById('ht-dop-bar');
@@ -2335,9 +2400,11 @@ v5.06:
         const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
         setEl('ht-kpi-belt',htFmtHrs(sumHrs(belt)));
         setEl('ht-kpi-bulk',htFmtHrs(sumHrs(bulk)));
-        setEl('ht-kpi-unload',htFmtHrs(sumHrs(unload)));
+        const unloadHrs=sumHrs(unload);
+        setEl('ht-kpi-unload',htFmtHrs(unloadHrs));
         setEl('ht-kpi-bulk-sub','hrs \u00b7 '+bulk.length+' people');
         setEl('ht-kpi-unload-sub','hrs \u00b7 '+unload.length+' people');
+        htCheckLaborThreshold(unloadHrs);
     }
 
     // -- Render employee row -------------------------------
@@ -2544,6 +2611,18 @@ v5.06:
       <button class="h-modal-cancel" onclick="htCloseModal('ht-role-modal')">Cancel</button>
     </div>
   </div>
+</div>
+
+<!-- Labor Threshold Alert -->
+<div class="ht-labor-alert" id="ht-labor-alert">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="font-size:20px;flex-shrink:0;">⚠️</div>
+    <div>
+      <div class="ht-labor-alert-title">Unloader Hours Threshold Reached</div>
+      <div class="ht-labor-alert-msg" id="ht-labor-alert-msg">Total unloader hours have exceeded 16.0 hours.</div>
+    </div>
+  </div>
+  <button class="ht-labor-alert-dismiss" onclick="htDismissLaborAlert()">Dismiss</button>
 </div>
 
 <!-- Over-DOP Toast -->
