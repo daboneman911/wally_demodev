@@ -31,6 +31,7 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Wally Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root{
             --bg:#f2f2f7;
@@ -61,14 +62,14 @@
             --radius-md:16px;
             --radius-lg:22px;
             --radius-xl:28px;
-            --shadow-sm:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.05);
-            --shadow-lg:0 10px 32px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.06);
+            --shadow-sm:0 4px 12px rgba(0,0,0,0.03),0 1px 3px rgba(0,0,0,0.02);
+            --shadow-md:0 12px 24px rgba(0,0,0,0.04),0 4px 8px rgba(0,0,0,0.02);
+            --shadow-lg:0 24px 48px rgba(0,0,0,0.06),0 8px 16px rgba(0,0,0,0.03);
         }
 
         /* ── BASE ─────────────────────────────────────────── */
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-        html{height:100%}body{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
+        html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
         .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden}
         .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
         .tab-content.active{display:block}
@@ -107,8 +108,8 @@
 
         /* ── STAT CARDS ───────────────────────────────────── */
         .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-        .stat-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.12s,box-shadow 0.12s;position:relative;overflow:hidden}
-        .stat-card:active{transform:scale(0.97);box-shadow:var(--shadow-sm)}
+        .stat-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+        .stat-card:active{transform:scale(0.96);box-shadow:0 2px 8px rgba(0,0,0,0.02)}
         .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0}
         .stat-label{font-size:10px;color:var(--text-sub);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px}
         .stat-value{font-size:38px;font-weight:800;color:var(--text-main);line-height:1;letter-spacing:-1.5px}
@@ -116,8 +117,8 @@
         /* ── BAY CIRCLES ──────────────────────────────────── */
         .bays-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px;min-height:50px}
         .empty-state-text{color:var(--text-muted);font-size:13px;font-weight:500;text-align:center;width:100%;padding:10px 0}
-        .bay-circle{width:58px;height:58px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;cursor:pointer;transition:transform 0.1s;box-shadow:var(--shadow-md);position:relative}
-        .bay-circle:active{transform:scale(0.9)}
+        .bay-circle{width:58px;height:58px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);box-shadow:var(--shadow-md);position:relative}
+        .bay-circle:active{transform:scale(0.94);box-shadow:0 2px 8px rgba(0,0,0,0.02)}
         .bay-circle.unavailable{background:#9ca3af !important;opacity:0.45;color:#fff;border:none !important}
         .bay-9{background:linear-gradient(135deg,#34d399,#059669)}
         .bay-10{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
@@ -136,7 +137,7 @@
 
         /* ── ACTIVE CARDS ─────────────────────────────────── */
         .active-tab-list{display:flex;flex-direction:column;gap:12px}
-        .active-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:flex-start;border-left:4px solid var(--text-main);transition:box-shadow 0.15s}
+        .active-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:flex-start;border-left:4px solid var(--text-main);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1)}
         .active-card.type-cpu{border-left-color:var(--accent-blue)}
         .active-card.status-warn-card{border-left-color:var(--accent-orange)}
         .active-card.status-crit-card{border-left-color:var(--accent-red)}
@@ -194,13 +195,13 @@
 
         /* ── TOOLS ────────────────────────────────────────── */
         .tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 0}
-        .tool-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:24px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;aspect-ratio:1/1;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.1s;border:1px solid var(--border-light)}
-        .tool-card:active{transform:scale(0.96);background:var(--border-light)}
+        .tool-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:24px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;aspect-ratio:1/1;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid var(--border-light)}
+        .tool-card:active{transform:scale(0.96);box-shadow:0 2px 8px rgba(0,0,0,0.02);background:var(--border-light)}
         .tool-icon-wrapper{width:52px;height:52px;background:var(--text-main);border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;margin-bottom:12px}
         .tool-title{font-size:15px;font-weight:800;color:var(--text-main)}
 
         /* ── TAB BAR ──────────────────────────────────────── */
-        .tab-bar{position:fixed;bottom:calc(var(--safe-bottom) + 20px);left:16px;right:16px;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:36px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-around;align-items:center;height:68px;z-index:1000;border:1px solid rgba(255,255,255,0.8)}
+        .tab-bar{position:fixed;bottom:calc(var(--safe-bottom) + 20px);left:16px;right:16px;background:rgba(255,255,255,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:36px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-around;align-items:center;height:68px;z-index:1000;border:1px solid rgba(255,255,255,0.6)}
         .tab-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;color:#c0c0c8;font-size:10px;font-weight:700;flex:1;min-width:0;cursor:pointer;gap:3px;position:relative;letter-spacing:0.2px;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:8px 0;}
         .tab-btn i{font-size:24px;transition:transform 0.15s}
         .tab-btn.active{color:var(--text-main)}
@@ -549,7 +550,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.50</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.51</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -877,7 +878,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.50',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.51',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);

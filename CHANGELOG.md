@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.51] - 2026-04-28
+
+- **Design:** Enhanced Light Mode — premium Soft UI aesthetic applied globally. No layout, DOM, or functional changes.
+  - **Typography:** Inter font (Google Fonts, 400–900 weights) replaces SF Pro Display as the primary typeface.
+  - **Shadows:** All three shadow variables softened to highly diffused, low-opacity values for a floating card feel.
+  - **Tab bar:** Glassmorphism refined — background opacity reduced to 0.85, backdrop-filter increased to blur(24px), border tightened to rgba(255,255,255,0.6).
+  - **Micro-interactions:** Stat cards, bay circles, tool cards, and active cards upgraded to `cubic-bezier(0.16,1,0.3,1)` spring transitions (0.2s). `:active` press scales tightened (bay circles 0.9→0.94, stat cards 0.97→0.96) with compressed shadow for tactile feedback.
+
 ### [6.50] - 2026-04-28
 
 - **Fix:** Share sheet now fires reliably on every Wally completion. Removed the `config.shareOnComplete` gate — the Settings "Preferences" section that controlled it was removed in v6.47, leaving no way to re-enable it if it had been toggled off. The "Skip share sheet" checkbox on the completion modal is the sole per-completion override.
