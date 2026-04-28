@@ -1737,7 +1737,7 @@ v5.06:
         htSilentReset();
         if(shareTotal&&navigator.share){
             const wallyShareCount=completedW+1;
-            setTimeout(()=>{navigator.share({text:`PS9 - ${wallyShareCount} number of wallies`}).catch(err=>console.log('Share dismissed:',err));},400);
+            navigator.share({text:`PS9 - ${wallyShareCount} number of wallies`}).catch(err=>console.log('Share dismissed:',err));
         }
     }
 
