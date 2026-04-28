@@ -1837,7 +1837,7 @@ v5.06:
                 else if(cpuNext==='CPU')shareText=`Door ${doorNum} CPU`;
             }
             if(shareText){
-                setTimeout(()=>{navigator.share({text:shareText}).catch(err=>console.log('Share dismissed:',err));},100);
+                navigator.share({text:shareText}).catch(err=>console.log('Share dismissed:',err));
             }
         }
         saveHistory();doors[doorNum]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:endTime,assignments:[]};saveDoors();renderDashboard();renderActiveTab();updateTabBadges();showSaveToast();if(demoActive&&config.replenish){const replenishDelay=config.autoComplete?(Math.floor(Math.random()*2000)+2000):10000;setTimeout(()=>{if(doors[doorNum]&&doors[doorNum].status==='empty')randomArrival(doorNum)},replenishDelay)}}
