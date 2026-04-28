@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.52] - 2026-04-28
+
+- **Fix:** Enhanced Light Mode not visually rendering after v6.51. Two root causes corrected:
+  1. Inter font added as CSS `@import` inside `<style>` in addition to the `<link>` tag — PWA WebViews sometimes skip `<link>` preloads but honor `@import`.
+  2. Shadow values from v6.51 spec (0.03 opacity) were too close to invisible on white surfaces, making cards look *flatter* than before. Boosted to `sm:0.07/0.04`, `md:0.09/0.05`, `lg:0.12/0.06` — large blur radii preserved for the soft/diffused floating-card effect.
+
 ### [6.51] - 2026-04-28
 
 - **Design:** Enhanced Light Mode — premium Soft UI aesthetic applied globally. No layout, DOM, or functional changes.
