@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.50] - 2026-04-28
+
+- **Fix:** Share sheet now fires reliably on every Wally completion. Removed the `config.shareOnComplete` gate — the Settings "Preferences" section that controlled it was removed in v6.47, leaving no way to re-enable it if it had been toggled off. The "Skip share sheet" checkbox on the completion modal is the sole per-completion override.
+- Share text: Wally done → `Door X done`. Wally done + CPU checkbox → `Door X done\nDoor X CPU`. Skip checked → no share.
+
 ### [6.49] - 2026-04-28
 
 - **Fix:** Google Sheets sync CORS preflight failure — changed fetch `Content-Type` from `application/json` to `text/plain;charset=utf-8`. This converts the POST to a CORS "simple request", bypassing the OPTIONS preflight that Google Apps Script does not handle. Apps Script still receives and parses the JSON body via `e.postData.contents`; `{ok:true}` response check is unaffected.
