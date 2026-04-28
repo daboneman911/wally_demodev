@@ -842,6 +842,20 @@
     <div style="font-size:12px;color:#8e8e93;margin-top:8px;">Team will be notified what is rolling to Door <span class="cpu-next-door-num-ref"></span> next.</div>
   </div>
 </div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
+<div class="modal-overlay z-high" id="start-shift-bays-modal"><div class="modal-sheet">
+  <h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Trailers Still Onboard</h2>
+  <p style="text-align:center;color:#757575;margin-bottom:6px;font-size:15px;">
+    There are <strong id="start-shift-bay-count"></strong> trailer(s) currently active.
+    What should happen to them?
+  </p>
+  <button class="btn-primary" style="margin-bottom:12px;" onclick="confirmStartShift(true)">
+    Add to New Shift
+  </button>
+  <button class="btn-primary btn-danger" style="margin-bottom:12px;" onclick="confirmStartShift(false)">
+    Remove All &amp; Start Fresh
+  </button>
+  <button class="btn-cancel" onclick="closeModal('start-shift-bays-modal')">Cancel</button>
+</div></div>
 <div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:#757575;margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><input type="time" id="edit-active-labor-time" class="form-input"></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
@@ -1595,21 +1609,37 @@ v5.06:
         else openEndShiftModal()}
 
     function openStartShiftConfirm(){
-        // If demo mode is currently toggled on, start a demo shift, not a live shift
         if(demoActive){startDemoShift();return}
-        // live shift -- same clear logic as newShift but state-aware
-        if(!confirm('Start a new shift? This will clear all active trailers and logs, but keep your notes and team names.'))return;
-        for(let i=DOORS_START;i<=DOORS_END;i++)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};
+        let activeBayCount=0;
+        for(let i=DOORS_START;i<=DOORS_END;i++){
+            if(doors[i].status==='active'||doors[i].status==='staged')activeBayCount++;
+        }
+        if(activeBayCount>0){
+            byId('start-shift-bay-count').textContent=activeBayCount;
+            byId('start-shift-bays-modal').style.display='flex';
+            return;
+        }
+        if(!confirm('Start a new shift? This will clear all logs, but keep your notes and team names.'))return;
+        confirmStartShift(false);
+    }
+
+    function confirmStartShift(keepBays){
+        closeModal('start-shift-bays-modal');
+        if(!keepBays){
+            for(let i=DOORS_START;i<=DOORS_END;i++)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};
+        }
         historyLog=[];attributionConfig={minutes:0,enabled:true};updateAttributionUI();
         lastSortStartTime=null;isFirstOnboard=false;
         saveDoors();saveHistory();saveData();
         shiftState='live';saveShiftState();
-        shiftEndTime=null; // unfreeze timers
+        shiftEndTime=null;
         localStorage.removeItem('ps9_shift_end_time');
-        startDashboardRefresh(); // restart auto-refresh
+        startDashboardRefresh();
         updateNameplate();renderDashboard();renderActiveTab();updateTabBadges();
         attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime()});
-        showToast('Shift started');htSyncFromWallyShift();}
+        showToast(keepBays?'New shift started — bays carried over':'Shift started');
+        htSyncFromWallyShift();
+    }
 
     function startDemoShift(){
         // Demo path -- does NOT clear data, just activates demo and marks state
