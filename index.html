@@ -73,7 +73,7 @@
 
         /* ── BASE ─────────────────────────────────────────── */
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-        html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(145deg,#eef1fa 0%,#f3eefa 55%,#edf5ee 100%) fixed;color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
+        html{height:100%;background:linear-gradient(145deg,#eef1fa 0%,#f3eefa 55%,#edf5ee 100%)}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:transparent;color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
         .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden}
         .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
         .tab-content.active{display:block}
@@ -610,7 +610,7 @@
         <div id="logs-list" class="logs-list"></div>
         <button id="logs-load-more" class="load-more-btn" style="display:none" onclick="loadMoreLogs()">Load More</button>
     </div>
-    <div id="tab-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-tools" tabindex="0" style="background:#f2f2f7;">
+    <div id="tab-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-tools" tabindex="0" style="background:transparent;">
         <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);margin:-20px -20px 20px;"><div class="header-bar" style="margin:0;"><h1>Tools</h1></div></div>
         <div class="tools-grid">
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openNotesManager()"><div class="tool-icon-wrapper"><i class="ph ph-notepad"></i></div><div class="tool-title">Notes Manager</div></div>
@@ -618,7 +618,7 @@
     <div class="tool-title">PPH Calculator</div></div>
         </div>
     </div>
-    <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:#f2f2f7;padding:0;">
+    <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:transparent;padding:0;">
         <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);"><div class="header-bar" style="margin:0;"><h1>Settings</h1></div></div>
         <div style="padding:20px 20px 120px;">
 
@@ -702,7 +702,7 @@
 <!-- ══════════════════════════════════════════
      HOURS TRACKER PANEL
 ══════════════════════════════════════════ -->
-<div id="tab-hours" class="tab-content tab-hours-flex" role="tabpanel" aria-labelledby="tab-btn-hours" tabindex="0" style="background:#f2f2f7;padding:0;">
+<div id="tab-hours" class="tab-content tab-hours-flex" role="tabpanel" aria-labelledby="tab-btn-hours" tabindex="0" style="background:transparent;padding:0;">
 
   <!-- HEADER -->
   <div class="ht-header">
