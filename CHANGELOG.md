@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.53] - 2026-05-02
+
+- **Feature:** Dynamic system start times. Default shift start now auto-sets by day of week: Mon/Tue/Fri = 8:00 PM, Wed/Thu = 8:15 PM. The Settings "Shift Start Time" field overrides the default when manually set. Dashboard nameplate now shows the effective start time (e.g. "Start 8:00 PM") in the sub-line below the version.
+- **Feature (Hours tab):** Cut Time editing. Employees in the "cut" state now show an editable Cut Time button alongside the existing Start Time button. Tapping it opens the same time-picker modal; changing the cut time immediately recalculates frozen hours as (new cut time − start time).
+- **Feature:** "Now" button in Edit Active Bay modal. A "Now" button next to the Labor Start Time field instantly populates it with the current clock time, eliminating manual time entry.
+- **Design:** UI/UX modernization — glassmorphism applied across nameplate, stat cards, active cards, log cards, employee rows, hours header, modals, and settings groups. Body background updated to a subtle purple-blue gradient. Shadow tones warmed with a slight indigo hue. Button active states deepened for tactile haptic feedback. All existing functionality unaffected.
+
 ### [6.52] - 2026-04-28
 
 - **Fix:** Enhanced Light Mode not visually rendering after v6.51. Two root causes corrected:

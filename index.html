@@ -63,14 +63,17 @@
             --radius-md:16px;
             --radius-lg:22px;
             --radius-xl:28px;
-            --shadow-sm:0 4px 16px rgba(0,0,0,0.07),0 1px 4px rgba(0,0,0,0.04);
-            --shadow-md:0 12px 32px rgba(0,0,0,0.09),0 4px 8px rgba(0,0,0,0.05);
-            --shadow-lg:0 24px 48px rgba(0,0,0,0.12),0 8px 16px rgba(0,0,0,0.06);
+            --shadow-sm:0 4px 20px rgba(80,80,160,0.07),0 1px 4px rgba(0,0,0,0.04);
+            --shadow-md:0 12px 36px rgba(80,80,160,0.09),0 4px 10px rgba(0,0,0,0.05);
+            --shadow-lg:0 24px 52px rgba(80,80,160,0.11),0 8px 18px rgba(0,0,0,0.06);
+            --glass-bg:rgba(255,255,255,0.78);
+            --glass-border:rgba(255,255,255,0.85);
+            --glass-blur:blur(18px);
         }
 
         /* ── BASE ─────────────────────────────────────────── */
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-        html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
+        html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(145deg,#eef1fa 0%,#f3eefa 55%,#edf5ee 100%) fixed;color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
         .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden}
         .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
         .tab-content.active{display:block}
@@ -78,7 +81,7 @@
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
-        .nameplate{background:var(--surface-raised);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md);border:1px solid var(--border-light)}
+        .nameplate{background:rgba(255,255,255,0.82);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,0.9);border:1px solid var(--glass-border)}
         .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
@@ -93,10 +96,10 @@
         .shift-state-dot.demo{background:var(--accent-orange);box-shadow:0 0 0 3px rgba(234,88,12,0.2);animation:dot-pulse 1.5s ease-in-out infinite}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
         .btn-shift{border:none;border-radius:10px;padding:9px 15px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s;letter-spacing:0.1px}
-        .btn-shift.start{background:var(--text-main);color:#fff}
-        .btn-shift.start:active{background:#1f2937;transform:scale(0.96)}
-        .btn-shift.end{background:var(--accent-red);color:#fff}
-        .btn-shift.end:active{background:#b91c1c;transform:scale(0.96)}
+        .btn-shift.start{background:var(--text-main);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.18)}
+        .btn-shift.start:active{background:#111827;transform:scale(0.93);box-shadow:inset 0 2px 6px rgba(0,0,0,0.25)}
+        .btn-shift.end{background:var(--accent-red);color:#fff;box-shadow:0 2px 10px rgba(220,38,38,0.3)}
+        .btn-shift.end:active{background:#991b1b;transform:scale(0.93);box-shadow:inset 0 2px 6px rgba(0,0,0,0.25)}
 
         /* ── TOP ACTION BUTTONS ───────────────────────────── */
         .top-actions{display:flex;gap:8px;padding:2px 0 8px;justify-content:center}
@@ -109,7 +112,7 @@
 
         /* ── STAT CARDS ───────────────────────────────────── */
         .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-        .stat-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+        .stat-card{background:rgba(255,255,255,0.80);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--glass-border);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
         .stat-card:active{transform:scale(0.96);box-shadow:0 2px 8px rgba(0,0,0,0.02)}
         .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0}
         .stat-label{font-size:10px;color:var(--text-sub);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px}
@@ -138,7 +141,7 @@
 
         /* ── ACTIVE CARDS ─────────────────────────────────── */
         .active-tab-list{display:flex;flex-direction:column;gap:12px}
-        .active-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:flex-start;border-left:4px solid var(--text-main);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1)}
+        .active-card{background:rgba(255,255,255,0.80);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:flex-start;border-left:4px solid var(--text-main);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1)}
         .active-card.type-cpu{border-left-color:var(--accent-blue)}
         .active-card.status-warn-card{border-left-color:var(--accent-orange)}
         .active-card.status-crit-card{border-left-color:var(--accent-red)}
@@ -165,7 +168,7 @@
         .search-bar{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--surface-raised);font-size:16px;margin-bottom:16px;outline:none;color:var(--text-main)}
         .search-bar:focus{border-color:var(--text-main)}
         .logs-list{display:flex;flex-direction:column;gap:10px}
-        .log-card{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .log-card{background:rgba(255,255,255,0.80);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);display:flex;justify-content:space-between;align-items:center;gap:12px}
         .log-info{display:flex;flex-direction:column;gap:7px;flex-grow:1;min-width:0}
         .log-header-row{display:flex;align-items:center;gap:8px}
         .log-door-pill{background:var(--text-main);color:#fff;font-size:10px;font-weight:900;padding:5px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;letter-spacing:0.5px;text-transform:uppercase}
@@ -218,7 +221,7 @@
 
         /* ── MODALS ───────────────────────────────────────── */
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;justify-content:center;align-items:flex-end;backdrop-filter:blur(6px)}
-        .modal-sheet{background:white;width:100%;max-width:600px;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:92vh;overflow-y:auto}
+        .modal-sheet{background:rgba(255,255,255,0.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);width:100%;max-width:600px;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:92vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.8)}
         @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
         .z-high{z-index:3000 !important}
         .form-input{width:100%;padding:16px 18px;background:var(--border-light);border:none;border-radius:var(--radius-md);font-size:17px;margin-bottom:14px;outline:none;appearance:none;color:var(--text-main);font-weight:500}
@@ -248,9 +251,9 @@
         .option-toggle:active span{transform:scale(0.96)}
 
         /* ── SETTINGS ─────────────────────────────────────── */
-        .settings-group{background:var(--surface-raised);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px;border:1px solid var(--border-light);box-shadow:var(--shadow-sm)}
-        .settings-collapse-btn{width:100%;background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:15px 18px;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--text-main);cursor:pointer;margin-bottom:8px;text-align:left;transition:background 0.1s}
-        .settings-collapse-btn:active{background:var(--border-light)}
+        .settings-group{background:rgba(255,255,255,0.80);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px;border:1px solid var(--glass-border);box-shadow:var(--shadow-sm)}
+        .settings-collapse-btn{width:100%;background:rgba(255,255,255,0.80);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:15px 18px;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--text-main);cursor:pointer;margin-bottom:8px;text-align:left;transition:background 0.1s}
+        .settings-collapse-btn:active{background:rgba(240,240,248,0.9)}
         .settings-section-body{display:none;margin-bottom:12px}
         .settings-section-body.open{display:block}
         .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border-light);background:var(--surface-raised)}
@@ -336,7 +339,7 @@
         /* hours tab is now a standard tab-content div -- no fixed positioning needed */
 
         /* Panel header */
-        .ht-header{background:var(--surface-raised);border-bottom:1px solid var(--border-light);padding:14px 16px 12px;flex-shrink:0;z-index:10;}
+        .ht-header{background:rgba(255,255,255,0.82);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-bottom:1px solid rgba(255,255,255,0.6);padding:14px 16px 12px;flex-shrink:0;z-index:10;}
         .ht-header-title-row{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:8px;min-height:28px;}
         .ht-header-title{font-size:17px;font-weight:900;color:var(--text-main);letter-spacing:-0.4px;text-align:center;}
         .ht-header-dop-row{display:flex;justify-content:center;margin-bottom:10px;}
@@ -413,7 +416,7 @@
         .ht-emp-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
 
         /* Employee row */
-        .ht-emp-row{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px 16px;min-height:78px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);transition:all 0.2s;position:relative;overflow:hidden;border-left:4px solid transparent;}
+        .ht-emp-row{background:rgba(255,255,255,0.80);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:16px 16px;min-height:78px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);transition:all 0.2s;position:relative;overflow:hidden;border-left:4px solid transparent;}
         .ht-emp-row.ht-active.ht-role-belt{border-left-color:#f59e0b;background:#fffbeb;}
         .ht-emp-row.ht-active.ht-role-bulk{border-left-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-emp-row.ht-active.ht-role-unload{border-left-color:var(--border);background:var(--surface-raised);}
@@ -551,7 +554,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.52</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.53</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -860,7 +863,7 @@
 </div></div>
 <div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:#757575;margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
-<div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><input type="time" id="edit-active-labor-time" class="form-input"></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
+<div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="edit-active-labor-time" class="form-input" style="margin-bottom:0;flex:1;"><button type="button" onclick="setLaborTimeNow()" style="padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--text-main);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:0.2px;">Now</button></div></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
 <div class="modal-overlay z-high" id="end-shift-modal"><div class="modal-sheet">
     <h2 style="margin:0 0 6px;font-size:24px;font-weight:900;">End Shift</h2>
     <p style="color:#8e8e93;font-size:14px;margin:0 0 20px;line-height:1.4;">Review what will happen before confirming.</p>
@@ -879,7 +882,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.52',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.53',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1598,7 +1601,7 @@ v5.06:
         const pill=byId('shift-state-pill'),dot=byId('shift-state-dot'),label=byId('shift-state-label');
         const btn=byId('btn-shift-action'),btnIcon=byId('btn-shift-icon'),btnLabel=byId('btn-shift-label');
         const sub=byId('nameplate-sub');
-        // reset classes
+        const eff=getShiftStartTime();const[sh,sm]=eff.split(':').map(Number);const ampm=sh>=12?'PM':'AM';const sh12=sh===0?12:(sh>12?sh-12:sh);const startDisp=' \u00b7 Start '+sh12+':'+String(sm).padStart(2,'0')+' '+ampm;
         pill.className='shift-state-pill '+shiftState;
         dot.className='shift-state-dot '+shiftState;
         if(shiftState==='idle'){
@@ -1606,19 +1609,19 @@ v5.06:
             btn.className='btn-shift start';
             btnIcon.className='ph ph-play-circle';
             btnLabel.textContent='Start Shift';
-            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION}
+            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION+startDisp}
         else if(shiftState==='live'){
             label.textContent='Shift Live';
             btn.className='btn-shift end';
             btnIcon.className='ph ph-stop-circle';
             btnLabel.textContent='End Shift';
-            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION}
+            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION+startDisp}
         else if(shiftState==='demo'){
             label.textContent='Demo Mode';
             btn.className='btn-shift end';
             btnIcon.className='ph ph-stop-circle';
             btnLabel.textContent='End Demo';
-            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION+' \u00b7 DEMO'}}
+            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION+' \u00b7 DEMO'+startDisp}}
 
     function handleShiftAction(){
         if(shiftState==='idle')openStartShiftConfirm();
@@ -1763,7 +1766,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));initAttributionSettings();loadNotes();loadPreferences();loadShiftState();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=shiftStart;populateUnloaderSelect();renderTeamManagement();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));initAttributionSettings();loadNotes();loadPreferences();loadShiftState();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -1816,7 +1819,9 @@ v5.06:
             setTimeout(()=>{if(demoActive&&doors[doorNum]&&doors[doorNum].logId===logId&&doors[doorNum].status==='active'){finalizeCompletion(doorNum,Date.now(),0)}},15000+randomExtra);
         }
     }
-    function getShiftStartTime(){return localStorage.getItem('ps9_shift_start')||"20:00"}function saveShiftStart(val){localStorage.setItem('ps9_shift_start',val);renderDashboard()}
+    function getDefaultShiftStartByDay(){const dow=new Date().getDay();return(dow===3||dow===4)?'20:15':'20:00';}
+    function getShiftStartTime(){return localStorage.getItem('ps9_shift_start')||getDefaultShiftStartByDay();}
+    function saveShiftStart(val){localStorage.setItem('ps9_shift_start',val);renderDashboard();updateNameplate();}
     function getShiftTimeWindows(){const[h,m]=getShiftStartTime().split(':').map(Number);const now=new Date();let start=new Date(now);start.setHours(h,m,0,0);if(now<start)start.setDate(start.getDate()-1);const hoursElapsed=Math.floor((now-start)/3600000),thisHourStart=new Date(start.getTime()+(hoursElapsed*3600000));return{thisHourStart,thisHourEnd:new Date(thisHourStart.getTime()+3600000),lastHourStart:new Date(thisHourStart.getTime()-3600000),lastHourEnd:thisHourStart,shiftStart:start}}
     function getCompletionHour(ts){const{shiftStart}=getShiftTimeWindows();return Math.max(1,Math.floor((ts-shiftStart.getTime())/3600000)+1)}
     function populateUnloaderSelect(){const ids=['select-unloader','edit-select-unloader','edit-active-unloader','filter-unloader-select','req-unloader-select','manual-unloader'];ids.forEach(id=>{const el=byId(id);if(!el)return;const isFilter=id==='filter-unloader-select';el.innerHTML=isFilter?'<option value="All">All Unloaders</option>':'<option value="" selected>Unassigned</option>';teamNamesSorted.forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.innerText=name;el.appendChild(opt)});if(!isFilter)el.innerHTML+='<option value="Custom">Custom / Other</option>'})}
@@ -1947,6 +1952,7 @@ v5.06:
     function exportLogsCSV(){closeModal('export-modal');let csv="Type,ID,Account,Door,Unloader,Duration(mins),StartTime,EndTime,StartHour,EndHour,Duplicate,Hour,Options,Status,Manual,MoveDest\n";historyLog.forEach(l=>{const opts=(l.cpuOptions||[]).join(';');csv+=`${l.type},${l.id},${l.account||''},${l.door},${l.unloader},${Math.round(l.duration/60000)},${new Date(l.start).toLocaleString()},${new Date(l.end).toLocaleString()},${new Date(l.start).getHours()},${new Date(l.end).getHours()},${l.duplicate?'Yes':'No'},${l.completionHour||''},${opts},${l.status||'completed'},${l.manual?'Yes':'No'},${l.moveDest||''}\n`});const a=document.createElement('a');a.href=window.URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='wally-logs.csv';a.click()}
     function exportLogsPDF(){closeModal('export-modal');if(!window.jspdf)return alert("PDF library loading.");const doc=new window.jspdf.jsPDF(),now=new Date();doc.setFontSize(18);doc.text(`PS9 Wally Tracker Report - ${now.toLocaleDateString()}`,14,20);doc.setFontSize(12);doc.text(`Generated: ${now.toLocaleTimeString()}`,14,30);const stats={};historyLog.forEach(l=>{if(!l.completionHour)return;const n=l.unloader;if(!stats[n])stats[n]={w:0,c:0,t:0};if(l.type==='Wally')stats[n].w++;else if(l.type==='CPU')stats[n].c++;stats[n].t++});doc.autoTable({startY:45,head:[['Name','Wally','CPU','Total']],body:Object.entries(stats).sort((a,b)=>b[1].t-a[1].t).map(([n,d])=>[n,d.w,d.c,d.t])});const logsBody=historyLog.map(l=>{let typeStr=l.type+(l.duplicate?' (DUP)':'');if(l.status==='moved')typeStr=`MOVED: ${l.moveDest}`;else if(l.status==='incomplete')typeStr='INCOMPLETE';else if(l.type==='CPU'&&l.cpuOptions&&l.cpuOptions.length>0)typeStr+=`\n${l.cpuOptions.join(',')}`;return[new Date(l.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),l.door,typeStr,l.id,l.unloader,Math.round(l.duration/60000)+"m",l.completionHour?getHourText(l.completionHour):'--']});doc.autoTable({startY:doc.lastAutoTable.finalY+15,head:[['Time','Door','Type','ID','Unloader','Duration','Hour']],body:logsBody});doc.save(`wally-report-${now.toISOString().split('T')[0]}.pdf`)}
     function setEditType(t){byId('edit-opt-wally').classList.toggle('selected',t==='Wally');byId('edit-opt-cpu').classList.toggle('selected',t==='CPU');byId('edit-log-modal').dataset.type=t;const c=byId('edit-log-options-container');if(c)c.style.display=(t==='CPU')?'block':'none'}
+    function setLaborTimeNow(){const n=new Date();byId('edit-active-labor-time').value=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}
     function openMoveMenu(){closeModal('active-detail-modal');byId('move-menu-modal').style.display='flex'}
     // -- Boot: wrapped in DOMContentLoaded for reliable cross-browser execution --
     // Guarantees full DOM is parsed before init() runs, regardless of CDN timing.
@@ -1984,7 +1990,7 @@ v5.06:
     let hoursState={
         shiftStarted:false,shiftEnded:false,shiftStartTime:null,
         shiftStartStr:'20:00',dopConfig:6,employees:[],nextId:1,
-        overDopMuted:false,pendingTimeId:null,pendingRoleId:null
+        overDopMuted:false,pendingTimeId:null,pendingRoleId:null,pendingCutTimeId:null
     };
 
     // -- Employee factory ----------------------------------
@@ -2201,16 +2207,35 @@ v5.06:
         document.getElementById('ht-custom-time').value=emp.customStartStr||hoursState.shiftStartStr||'20:00';
         htOpenModal('ht-time-modal');
     }
+    function htOpenCutTime(id){
+        hoursState.pendingCutTimeId=id;
+        const emp=hoursState.employees.find(e=>e.id===id);
+        const cutDate=emp.cutTime?new Date(emp.cutTime):new Date();
+        document.getElementById('ht-time-modal-title').textContent=emp.name+' — Cut Time';
+        document.getElementById('ht-custom-time').value=htFmtTime(cutDate);
+        htOpenModal('ht-time-modal');
+    }
     function htApplyCustomTime(){
         const val=document.getElementById('ht-custom-time').value;
         if(!val)return;
+        if(hoursState.pendingCutTimeId!==null){
+            const emp=hoursState.employees.find(e=>e.id===hoursState.pendingCutTimeId);
+            if(emp&&emp.status==='cut'){
+                const newCutMs=htParseHHMM(val).getTime();
+                emp.cutTime=newCutMs;
+                const startMs=emp.startTime?emp.startTime.getTime():(hoursState.shiftStartTime?hoursState.shiftStartTime.getTime():newCutMs);
+                emp.frozenHours=Math.max(0,(newCutMs-startMs)/3600000);
+                htSaveState();
+            }
+            htCloseModal('ht-time-modal');hoursState.pendingCutTimeId=null;htRenderAll();
+            return;
+        }
         const emp=hoursState.employees.find(e=>e.id===hoursState.pendingTimeId);
         if(emp){
             emp.customStartStr=val;
             if(emp.status==='active'){
                 emp.startTime=htParseHHMM(val);
             }else if(emp.status==='cut'){
-                // Recalculate frozen hours from new start time to stored cut time
                 const startMs=htParseHHMM(val).getTime();
                 const endMs=emp.cutTime||Date.now();
                 emp.startTime=htParseHHMM(val);
@@ -2488,11 +2513,11 @@ v5.06:
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
                 '</div>';
         }else{
-            // Cut: show CUT label + editable time button so frozen hours remain adjustable
             const ts=emp.customStartStr?emp.customStartStr:(emp.startTime?htFmtTime(emp.startTime):'--');
+            const cutTs=emp.cutTime?htFmtTime(new Date(emp.cutTime)):'--';
             actHTML='<div class="ht-actions">'+
-                '<div class="ht-cut-label">CUT</div>'+
-                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
+                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time" style="font-size:10px;">'+ts+' ✎</button>'+
+                '<button class="ht-btn ht-btn-cut" onclick="htOpenCutTime('+emp.id+');event.stopPropagation()" title="Edit cut time" style="font-size:10px;padding:9px 8px;">Cut '+cutTs+' ✎</button>'+
                 '</div>';
         }
         return'<div class="'+rowCls+'" id="ht-row-'+emp.id+'" '+rowClick+'>'+
