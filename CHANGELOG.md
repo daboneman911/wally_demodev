@@ -1,5 +1,19 @@
 # Changelog
 
+### [6.59] - 2026-05-15
+
+- **Design:** UI/UX modernization pass across CSS.
+  - Bay circles enlarged from 58px to 72px; font-size increased from 16px to 20px, font-weight to 900.
+  - Active card left border thickened from 4px to 5px; `position:relative;overflow:hidden` added; `.active-card-progress` CSS rule added (3px tall static bar, ready for JS fill).
+  - Modal sheets (`.modal-sheet`) updated to `border-radius: 32px 32px 0 0` and `::before` drag handle pseudo-element added (36×4px, `var(--border)` background).
+  - Toggle switches widened from 48px to 52px; checked thumb position updated to `left:26px`.
+  - Log card duration numbers increased from 26px to 30px font-size.
+  - `.btn-primary` vertical padding increased to 19px (from 15px) for ~56px total height.
+  - `.stat-value` font-size increased from 38px to 42px.
+  - All `scale(0.96)` active-state transforms changed to `scale(0.97)`.
+  - `.wally-id` monospace CSS class added for future use.
+  - `transition: background 0.15s` added to `.settings-row`.
+
 ### [6.58] - 2026-05-15
 
 - **Fix:** Webhook queue size cap removed. Queue no longer drops payloads under load. Console warning fires if queue exceeds 200 items (informational only).
