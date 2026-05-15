@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.62] - 2026-05-15
+
+- **UI:** Onboard modal Wally/CPU type selector now has `border:1.5px solid var(--border)` and white background — matches the visible-border style of all form inputs, no longer washes out.
+- **UI:** Active door modal CPU replacement section — removed the filled `#f2f2f7` background box and `16px` horizontal padding. Content now aligns flush with the modal's content edge (same as detail rows and buttons). A `border-top` separator replaces the box.
+- **UI:** "Skip share sheet" row gets a matching `border-top` separator for consistent vertical rhythm.
+- **UI:** Hardcoded `#000` and `#8e8e93` colors in the CPU next section replaced with `var(--text-main)` and `var(--text-sub)`.
+
 ### [6.61] - 2026-05-15
 
 - **Fix:** Completion records no longer silently dropped when a `start` payload was in-flight at the time of completion. Root cause: `queuePayload` dedup correctly removed the in-flight `start` from localStorage and added the `end`, but `processWebhookQueue`'s `.then()` handler blindly called `cq.shift()` — which removed the newly-added `end` instead. Each payload now receives a unique `_queueId` on enqueue. The success handler removes the specific sent item by `_queueId`; if not found (item was deduped out), nothing is removed and the replacement `end` payload remains in the queue for the next processing cycle.
