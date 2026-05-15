@@ -288,7 +288,7 @@
         .status-bar-tray{position:fixed;bottom:calc(var(--tab-height) + var(--safe-bottom) + 34px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:8px;z-index:999;pointer-events:none}
         .sync-badge{background:var(--accent-blue);color:white;font-size:11px;font-weight:800;padding:5px 12px;border-radius:20px;display:none;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(37,99,235,0.35);animation:pulse-badge 1.5s ease-in-out infinite;pointer-events:none}
         .sync-badge.visible{display:flex}
-        .sync-badge.error{background:var(--accent-red);animation:none}
+        .sync-badge.error{background:var(--accent-red);animation:none;pointer-events:auto;cursor:pointer}
         @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:0.55}}
         .demo-banner{background:var(--accent-orange);color:white;font-size:11px;font-weight:800;padding:5px 12px;border-radius:20px;display:none;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(234,88,12,0.35);animation:demo-flash 2s ease-in-out infinite;pointer-events:none}
         .demo-banner.visible{display:flex}
@@ -554,7 +554,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.57</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.58</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -878,13 +878,18 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.57',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.58',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.58:
+- Fix: Webhook queue size cap removed. Queue no longer drops payloads under
+  load. Console warning fires if queue exceeds 200 items (informational only).
+- New: Sync error badge is now tappable. Shows "Tap to retry (N)" in error
+  state. Tapping clears error class and immediately retries processWebhookQueue().
 v6.57:
 - Fix: Hours Tracker and main shift state now stay in sync across page reloads.
   htLoadState() reconciles hoursState against ps9_shift_state on every load.
@@ -1469,9 +1474,7 @@ v5.06:
         if(payload.stage==='end'&&payload.logId){
             queue=queue.filter(p=>!(p.logId===payload.logId&&(p.stage==='start'||p.stage==='update')));
         }
-        if(queue.length>=500){console.warn('Webhook queue full, dropping oldest');
-            const dropIdx=queue.findIndex(p=>p.stage==='start'||p.stage==='update');
-            if(dropIdx>-1)queue.splice(dropIdx,1);else queue.shift();}
+        if(queue.length>200){console.warn('Webhook queue has '+queue.length+' pending items');}
         payload._priority=(payload.stage==='end'||payload.dataType==='SHIFT_END'||payload.dataType==='NEW_SHIFT')?0:1;
         queue.push(payload);
         queue.sort(function(a,b){return (a._priority||0)-(b._priority||0);});
@@ -1484,9 +1487,10 @@ v5.06:
         if(!badge)return;
         let queue=[];
         try{queue=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
-        if(queue.length===0){badge.classList.remove('visible','error');return;}
-        badge.classList.add('visible');badge.classList.remove('error');
-        text.textContent=queue.length===1?'Syncing...':`Syncing (${queue.length})...`;
+        if(queue.length===0){badge.classList.remove('visible','error');badge.onclick=null;return;}
+        if(badge.classList.contains('error')){badge.onclick=null;return;}
+        badge.classList.add('visible');badge.classList.remove('error');badge.onclick=null;
+        text.textContent=queue.length===1?'Syncing...':'Syncing ('+queue.length+')...';
     }
     function processWebhookQueue(){
         if(isSyncingWebhook||!navigator.onLine){updateSyncBadge();return;}
@@ -1512,8 +1516,15 @@ v5.06:
             console.warn('[Sync failed]',err.message);
             isSyncingWebhook=false;
             const badge=byId('sync-badge');
-            if(badge){badge.classList.add('visible','error');const t=byId('sync-badge-text');if(t)t.textContent='Sync failed';}
-            setTimeout(function(){updateSyncBadge();processWebhookQueue();},5000);
+            if(badge){
+                let eq=[];
+                try{eq=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
+                badge.classList.add('visible','error');
+                const t=byId('sync-badge-text');
+                if(t)t.textContent='Tap to retry ('+eq.length+')';
+                badge.onclick=function(){badge.classList.remove('error');badge.onclick=null;processWebhookQueue();};
+            }
+            setTimeout(function(){if(!isSyncingWebhook&&badge&&badge.classList.contains('error')){badge.classList.remove('error');badge.onclick=null;updateSyncBadge();processWebhookQueue();}},5000);
         });
     }
     function openPPHCalculator(){byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='#e5e5ea';byId('pph-diff').style.color='#000';byId('pph-modal').style.display='flex'}

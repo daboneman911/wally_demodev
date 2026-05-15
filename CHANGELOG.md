@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.58] - 2026-05-15
+
+- **Fix:** Webhook queue size cap removed. Queue no longer drops payloads under load. Console warning fires if queue exceeds 200 items (informational only).
+- **New:** Sync error badge is now tappable. Shows "Tap to retry (N)" in error state. Tapping clears the error class and immediately retries `processWebhookQueue()`. Auto-retry after 5 seconds unchanged.
+
 ### [6.57] - 2026-05-15
 
 - **Fix:** Hours Tracker and main shift state now stay in sync across page reloads. `htLoadState()` reconciles `hoursState` against `ps9_shift_state` on every load — if Wally shift is live but `hoursState.shiftStarted` is false, `htSyncFromWallyShift()` is called automatically; if Wally shift is idle but Hours Tracker still thinks it's live, the shift is marked ended.
