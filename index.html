@@ -226,8 +226,8 @@
         .modal-sheet::before{content:'';display:block;width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 12px}
         @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
         .z-high{z-index:3000 !important}
-        .form-input{width:100%;padding:16px 18px;background:var(--border-light);border:none;border-radius:var(--radius-md);font-size:17px;margin-bottom:14px;outline:none;appearance:none;color:var(--text-main);font-weight:500}
-        .form-input:focus{background:#ececf0}
+        .form-input{width:100%;padding:16px 18px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:17px;margin-bottom:14px;outline:none;appearance:none;color:var(--text-main);font-weight:500}
+        .form-input:focus{background:#fff;border-color:#007aff;box-shadow:0 0 0 3px rgba(0,122,255,0.12)}
         .type-selector{display:flex;background:var(--border-light);padding:3px;border-radius:12px;margin-bottom:20px}
         .type-opt{flex:1;text-align:center;padding:10px;border-radius:9px;font-weight:600;font-size:14px;color:var(--text-sub);cursor:pointer;transition:all 0.15s}
         .type-opt.selected{background:white;color:var(--text-main);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
@@ -560,7 +560,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.59</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.60</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -884,13 +884,17 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.59',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.60',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.60:
+- Fix: Form input fields (Wally Number, Unloader, Start Time, etc.) now have a
+  visible 1.5px border and white background so they are clearly defined against
+  the modal background. Focus state adds a blue border + subtle glow ring.
 v6.59:
 - Design: UI/UX modernization pass. Bay circles enlarged to 72px. Active card
   left border thickened to 5px. Modal sheets get 32px top radius + drag handle.

@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.60] - 2026-05-15
+
+- **Fix:** Form input fields (`form-input` class — Wally Number, Unloader select, Start Time, and all other modal inputs) now have a visible `1.5px solid var(--border)` border and white background, making them clearly defined against the modal sheet. Focus state highlights the border blue (`#007aff`) with a soft glow ring.
+
 ### [6.59] - 2026-05-15
 
 - **Design:** UI/UX modernization pass across CSS.
