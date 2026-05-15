@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.56] - 2026-05-15
+
+- **Fix:** Renamed "Attribution Window" to "Grace Period" throughout all UI text. JS variable names (`attributionConfig`, `statOffset`, `initAttributionSettings`, etc.) and the `ps9_attribution_config_v2` localStorage key are unchanged.
+- **Fix:** Grace period window simplified to a fixed :00-:10 window each hour. The offset slider has been removed from Settings. The `minutes` field is no longer stored or read from `attributionConfig`.
+- **UI:** Settings toggle renamed to "Enable Grace Period" (positive framing — on = enabled). "Simulate Attribution" removed from Settings and added to Demo section as "Simulate Grace Period".
+- **UI:** Grace period modal heading changed from "Attribute Completion" to "Grace Period" with subheading "Completed in the first 10 minutes of the hour."
+
 ### [6.55] - 2026-05-15
 
 - **Fix:** Wally/Trailer ID field in the Edit Log modal is now editable. The corrected ID is saved to `historyLog`, triggers a webhook resync to Google Sheets via `sendToWebhook(historyLog[i], 'end')`, and any note attached to the old ID is automatically migrated to the new ID (old key deleted).
