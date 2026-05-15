@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.55] - 2026-05-15
+
+- **Fix:** Wally/Trailer ID field in the Edit Log modal is now editable. The corrected ID is saved to `historyLog`, triggers a webhook resync to Google Sheets via `sendToWebhook(historyLog[i], 'end')`, and any note attached to the old ID is automatically migrated to the new ID (old key deleted).
+- **Fix:** ID field in the Edit Active Bay modal is also editable. Both fields enforce uppercase on save via `.toUpperCase()`.
+
 ### [6.54] - 2026-05-15
 
 - **Fix:** CPU door completion no longer blocks when no replacement type is selected. The `alert()` and early `return` in `confirmCompleteDoor()` have been removed. Replacement selection (CPU or Wally) is now optional — if neither checkbox is checked, `cpuNext` is `false` and no share sheet fires. Selecting a checkbox still fires the correct share text as before.
