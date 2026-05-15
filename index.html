@@ -560,7 +560,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.60</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.61</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -884,13 +884,18 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.60',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.61',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.61:
+- Fix: Completion payloads no longer silently dropped when a start payload was
+  in-flight during completion. Each queued payload now gets a unique _queueId.
+  The success handler removes by _queueId instead of cq.shift(), so a deduped
+  start no longer accidentally removes the end payload that replaced it.
 v6.60:
 - Fix: Form input fields (Wally Number, Unloader, Start Time, etc.) now have a
   visible 1.5px border and white background so they are clearly defined against
@@ -1492,6 +1497,7 @@ v5.06:
         }
         if(queue.length>200){console.warn('Webhook queue has '+queue.length+' pending items');}
         payload._priority=(payload.stage==='end'||payload.dataType==='SHIFT_END'||payload.dataType==='NEW_SHIFT')?0:1;
+        if(!payload._queueId)payload._queueId=Date.now().toString(36)+Math.random().toString(36).substr(2,5);
         queue.push(payload);
         queue.sort(function(a,b){return (a._priority||0)-(b._priority||0);});
         try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(queue));}catch(e){console.error('Queue storage failed:',e);}
@@ -1522,7 +1528,11 @@ v5.06:
             if(!data.ok){throw new Error(data.error||'Apps Script reported failure');}
             let cq=[];
             try{cq=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
-            cq.shift();
+            // Remove the specific sent item by _queueId to avoid dequeuing the wrong
+            // payload when dedup replaced a start with an end while the start was in-flight
+            const sentId=payload._queueId;
+            const idx=sentId?cq.findIndex(function(p){return p._queueId===sentId;}):0;
+            if(idx>-1)cq.splice(idx,1);else if(!sentId)cq.shift();
             try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(cq));}catch(e){}
             isSyncingWebhook=false;
             updateSyncBadge();

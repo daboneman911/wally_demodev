@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.61] - 2026-05-15
+
+- **Fix:** Completion records no longer silently dropped when a `start` payload was in-flight at the time of completion. Root cause: `queuePayload` dedup correctly removed the in-flight `start` from localStorage and added the `end`, but `processWebhookQueue`'s `.then()` handler blindly called `cq.shift()` — which removed the newly-added `end` instead. Each payload now receives a unique `_queueId` on enqueue. The success handler removes the specific sent item by `_queueId`; if not found (item was deduped out), nothing is removed and the replacement `end` payload remains in the queue for the next processing cycle.
+
 ### [6.60] - 2026-05-15
 
 - **Fix:** Form input fields (`form-input` class — Wally Number, Unloader select, Start Time, and all other modal inputs) now have a visible `1.5px solid var(--border)` border and white background, making them clearly defined against the modal sheet. Focus state highlights the border blue (`#007aff`) with a soft glow ring.
