@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.54] - 2026-05-15
+
+- **Fix:** CPU door completion no longer blocks when no replacement type is selected. The `alert()` and early `return` in `confirmCompleteDoor()` have been removed. Replacement selection (CPU or Wally) is now optional — if neither checkbox is checked, `cpuNext` is `false` and no share sheet fires. Selecting a checkbox still fires the correct share text as before.
+- **UI:** CPU replacement section heading changed from "What is replacing this CPU?" to "What's replacing this CPU? (optional)" to communicate the optional nature clearly.
+
 ### [6.53] - 2026-05-02
 
 - **Feature:** Dynamic system start times. Default shift start now auto-sets by day of week: Mon/Tue/Fri = 8:00 PM, Wed/Thu = 8:15 PM. The Settings "Shift Start Time" field overrides the default when manually set. Dashboard nameplate now shows the effective start time (e.g. "Start 8:00 PM") in the sub-line below the version.

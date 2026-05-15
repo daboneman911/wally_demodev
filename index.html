@@ -554,7 +554,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.53</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.54</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -835,7 +835,7 @@
     <div style="font-size:12px;color:#8e8e93;margin-top:6px;margin-left:32px;">Team will be notified Door <span id="cpu-next-door-num"></span> is going CPU next.</div>
   </div>
   <div id="cpu-next-cpu-row" style="display:none;">
-    <div style="font-size:13px;font-weight:800;color:#000;margin-bottom:10px;">What is replacing this CPU?</div>
+    <div style="font-size:13px;font-weight:800;color:#000;margin-bottom:10px;">What's replacing this CPU? (optional)</div>
     <label style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:10px;" onclick="setCpuReplacement('CPU')">
       <input type="checkbox" id="chk-replace-cpu" style="width:20px;height:20px;accent-color:#000;cursor:pointer;" onclick="setCpuReplacement('CPU')">
       <span style="font-size:15px;font-weight:700;color:#000;">CPU -- another CPU is coming</span>
@@ -882,13 +882,20 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.53',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.54',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.54:
+- Fix: CPU door completion no longer requires selecting a replacement type. Alert and
+  early return removed from confirmCompleteDoor(). Replacement is now optional -- if
+  neither checkbox is checked, cpuNext=false and no share sheet fires (existing behavior).
+  If CPU or Wally is checked, share sheet fires as before.
+- UI: Heading on CPU replacement section changed from "What is replacing this CPU?" to
+  "What's replacing this CPU? (optional)" to reflect the optional nature.
 v6.48:
 - Fix: Share sheet now fires reliably on iOS. Root cause was a setTimeout(100) wrapper
   around navigator.share() that broke iOS user-gesture requirement. Removed the delay;
@@ -1848,14 +1855,10 @@ v5.06:
             // Wally: single optional checkbox
             cpuNext=!!(byId('chk-cpu-next')&&byId('chk-cpu-next').checked);
         }else{
-            // CPU: must choose replacement type (required)
+            // CPU: replacement selection is optional
             const replaceCpu=byId('chk-replace-cpu')&&byId('chk-replace-cpu').checked;
             const replaceWally=byId('chk-replace-wally')&&byId('chk-replace-wally').checked;
-            if(!replaceCpu&&!replaceWally){
-                alert('Please select what is replacing this CPU: CPU or Wally.');
-                return;
-            }
-            cpuNext=replaceCpu?'CPU':'Wally';
+            cpuNext=replaceCpu?'CPU':replaceWally?'Wally':false;
         }
         completeDoor(detailDoor,false,cpuNext);
     }
