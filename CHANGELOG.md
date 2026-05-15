@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.57] - 2026-05-15
+
+- **Fix:** Hours Tracker and main shift state now stay in sync across page reloads. `htLoadState()` reconciles `hoursState` against `ps9_shift_state` on every load — if Wally shift is live but `hoursState.shiftStarted` is false, `htSyncFromWallyShift()` is called automatically; if Wally shift is idle but Hours Tracker still thinks it's live, the shift is marked ended.
+- **Fix:** `confirmEndShift()` now wraps `htEndShift()` in a `try/finally` block so `htSilentReset()` is guaranteed to run even if `htEndShift()` throws (e.g. no active employees).
+- **Fix:** `resetData()` now explicitly calls `localStorage.removeItem('ps9_v4')` so Hours Tracker state is cleared along with everything else on a full data reset.
+
 ### [6.56] - 2026-05-15
 
 - **Fix:** Renamed "Attribution Window" to "Grace Period" throughout all UI text. JS variable names (`attributionConfig`, `statOffset`, `initAttributionSettings`, etc.) and the `ps9_attribution_config_v2` localStorage key are unchanged.

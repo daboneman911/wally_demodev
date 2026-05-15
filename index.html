@@ -554,7 +554,7 @@
         <div class="nameplate">
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
-                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.56</div>
+                <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.57</div>
             </div>
             <div class="nameplate-actions">
                 <div class="shift-state-pill idle" id="shift-state-pill">
@@ -878,13 +878,18 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.56',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.57',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.57:
+- Fix: Hours Tracker and main shift state now stay in sync across page reloads.
+  htLoadState() reconciles hoursState against ps9_shift_state on every load.
+- Fix: confirmEndShift() guards ensure htSilentReset() always runs on shift end.
+- Fix: resetData() now removes ps9_v4 so Hours Tracker resets with everything else.
 v6.56:
 - Fix: Renamed "Attribution Window" to "Grace Period" throughout all UI text.
   JS variable names and localStorage key (ps9_attribution_config_v2) unchanged.
@@ -1751,9 +1756,8 @@ v5.06:
         closeModal('end-shift-modal');
         updateNameplate();renderDashboard();renderActiveTab();updateTabBadges();
         showToast(keepBays?`Shift ended \u2014 ${completedW+completedC} completions synced`:`Shift ended \u2014 ${closedCount} bay${closedCount!==1?'s':''} closed`);
-        htEndShift();
-        // Fully reset the Hours/Staffing tab silently after shift ends
-        htSilentReset();
+        try{htEndShift();}catch(e){console.error('htEndShift error:',e);}finally{htSilentReset();}
+        // htSilentReset() always runs via finally block above
         if(shareTotal&&navigator.share){
             const wallyShareCount=completedW+1;
             navigator.share({text:`PS9 - ${wallyShareCount} number of wallies`}).catch(err=>console.log('Share dismissed:',err));
@@ -1802,6 +1806,7 @@ v5.06:
         if(confirm("Reset all data? This will clear all active trailers and logs. Notes are preserved.")){
             const savedNotes=localStorage.getItem('ps9_wally_notes');
             localStorage.clear();
+            localStorage.removeItem('ps9_v4');
             localStorage.setItem('ps9_shift_start',"20:00");
             if(savedNotes)localStorage.setItem('ps9_wally_notes',savedNotes);
             attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:"20:00"});
@@ -2037,6 +2042,16 @@ v5.06:
                 if(!existingNames.has(name))hoursState.employees.push(htMakeEmployee(name));
             });
         }catch(e){htInitEmployees();}
+        // Reconcile hoursState against ps9_shift_state on every load
+        const wallyShiftLive=localStorage.getItem('ps9_shift_state')==='live'||
+                             localStorage.getItem('ps9_shift_state')==='demo';
+        if(wallyShiftLive&&!hoursState.shiftStarted){
+            htSyncFromWallyShift();
+        }
+        if(!wallyShiftLive&&hoursState.shiftStarted&&!hoursState.shiftEnded){
+            hoursState.shiftEnded=true;
+            htSaveState();
+        }
     }
 
     // -- Time helpers --------------------------------------
