@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.63] - 2026-05-15
+
+- **UI:** Active door modal data section wrapped in a glassmorphism card (`linear-gradient` + `glass-border`) matching the visual language of stat-cards and log-cards. Detail value font-size raised to 15px, rows now have horizontal padding (12px 14px) and `align-items:center`. Last row has no bottom border.
+- **UI:** Onboard modal "Bay Unavailable" message and "Mark Unavailable" button colors replaced — `#000`/`#8e8e93`/`#e5e5ea` → `var(--text-main)`/`var(--text-sub)`/`var(--border)`.
+- **Fix:** Hours tab "Add Employee" — name is now Title-Cased before saving (matching all other add-name flows). `populateUnloaderSelect()` is called after `saveTeam()` so the new employee immediately appears in the unloader dropdowns on the onboard and edit-active modals.
+
 ### [6.62] - 2026-05-15
 
 - **UI:** Onboard modal Wally/CPU type selector now has `border:1.5px solid var(--border)` and white background — matches the visible-border style of all form inputs, no longer washes out.
