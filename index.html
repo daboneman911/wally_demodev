@@ -885,13 +885,19 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.63',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.64',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.64:
+- Fix: Hours Tracker no longer zeroes employee hours after midnight. htParseHHMM
+  built every HH:MM time on today's date, so after midnight a start time like
+  "23:50" or a shift-start re-sync of "20:00" landed in the future and hours
+  read 0.00 for the rest of the night. Times more than 6 hours in the future
+  now roll back to yesterday, matching the main tracker's overnight handling.
 v6.63:
 - UI: Active door modal detail section wrapped in glassmorphism card matching
   stat-cards and log-cards. detail-value font-size 14px->15px, padding added.
@@ -2109,7 +2115,13 @@ v5.06:
     // -- Time helpers --------------------------------------
     function htParseHHMM(str){
         const[h,m]=str.split(':').map(Number);
-        const d=new Date();d.setHours(h,m,0,0);return d;
+        const d=new Date();d.setHours(h,m,0,0);
+        // Overnight shift wrap: after midnight, times like "20:00" or "23:50"
+        // refer to yesterday evening. A result far in the future (>6h) can only
+        // be a wrapped time, so roll it back one day. Near-future times (<6h,
+        // e.g. a pre-shift custom start) are left on today intentionally.
+        if(d.getTime()-Date.now()>6*3600000)d.setDate(d.getDate()-1);
+        return d;
     }
     function htFmtTime(date){return date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
     function htCalcHours(emp){

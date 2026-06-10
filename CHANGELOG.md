@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.64] - 2026-06-10
+
+- **Fix:** Hours Tracker no longer zeroes employee hours after midnight on overnight shifts. Root cause: `htParseHHMM()` always built HH:MM times on *today's* date, so after midnight a start time like "23:50" (or a `htSyncFromWallyShift()` re-sync of the "20:00" shift start) produced a timestamp ~20+ hours in the future, and `htCalcHours()` clamped the result to 0.00 for the rest of the night. `htParseHHMM()` now rolls any time more than 6 hours in the future back one day, mirroring the main tracker's overnight handling in `getShiftTimeWindows()`. Near-future times (under 6h, e.g. a pre-shift custom start time) are intentionally left on today. Fix applies to all Hours Tracker time paths: shift-start sync, employee activation with a custom start, and start/cut time edits.
+
 ### [6.63] - 2026-05-15
 
 - **UI:** Active door modal data section wrapped in a glassmorphism card (`linear-gradient` + `glass-border`) matching the visual language of stat-cards and log-cards. Detail value font-size raised to 15px, rows now have horizontal padding (12px 14px) and `align-items:center`. Last row has no bottom border.
