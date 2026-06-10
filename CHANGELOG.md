@@ -1,5 +1,16 @@
 # Changelog
 
+### [6.65] - 2026-06-10
+
+- **Fix:** `SHIFT_END` and `NOTE` webhook payloads now send immediately. `confirmEndShift()` and `sendNoteWebhook()` queued the payload but never called `processWebhookQueue()`, so ending a shift with no open bays (the common case) left the SHIFT_END summary stuck in localStorage with the badge showing "Syncing (1)..." until some unrelated send or a page reload.
+- **Fix (Hours):** The first start-time edit after every shift reset was silently swallowed. `htSilentReset()`/`htConfirmReset()` rebuilt `hoursState` without the `pendingCutTimeId` field, and `htApplyCustomTime()`'s `!== null` check treated `undefined` as an active cut-time edit, matching no employee and discarding the input. The field is now included in reset state and the check uses `!= null`.
+- **Fix (Hours):** Cancelling a cut-time edit no longer contaminates the next start-time edit (which could apply the new value as a *cut time to the previous employee*). Opening either time modal now clears the other modal's pending id.
+- **Fix:** Tapping Revert on a manually-added log entry threw a TypeError (`doors[0]` doesn't exist) — manual entries have no bay to revert to. The Revert button is no longer rendered for manual entries and `revertLog()` guards against missing doors.
+- **Fix:** Grace Period no longer silently re-enables on every shift start. `confirmStartShift()` (and the legacy `newShift()`) hard-reset `attributionConfig={enabled:true}`, overriding the user's saved Settings toggle; the saved value is now respected.
+- **Fix:** Sync error badge — queuing a new payload during the 5-second error window removed the badge's tap-to-retry `onclick`. The handler now stays installed and the "Tap to retry (N)" count refreshes live.
+- **Fix:** Onboarding a duplicate Wally now uses the arrival time typed in the form (previously it always recorded "now") and sets `laborStart` consistently with the normal onboard path.
+- **Cleanup:** Corrected a stale comment in `htAssignRoles()` (Robert W auto-receives Belt Tender, not Bulk Sweep).
+
 ### [6.64] - 2026-06-10
 
 - **Fix:** Hours Tracker no longer zeroes employee hours after midnight on overnight shifts. Root cause: `htParseHHMM()` always built HH:MM times on *today's* date, so after midnight a start time like "23:50" (or a `htSyncFromWallyShift()` re-sync of the "20:00" shift start) produced a timestamp ~20+ hours in the future, and `htCalcHours()` clamped the result to 0.00 for the rest of the night. `htParseHHMM()` now rolls any time more than 6 hours in the future back one day, mirroring the main tracker's overnight handling in `getShiftTimeWindows()`. Near-future times (under 6h, e.g. a pre-shift custom start time) are intentionally left on today. Fix applies to all Hours Tracker time paths: shift-start sync, employee activation with a custom start, and start/cut time edits.
