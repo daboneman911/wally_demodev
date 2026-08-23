@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.67] - 2026-08-23
+
+- **Fix (iOS):** Modal sheets no longer crowd the Dynamic Island. `.modal-sheet` and `.h-modal-sheet` capped height at `92vh`/`90vh`, so top clearance was a *percentage* of screen height and shrank on smaller devices — measured at 16px on iPhone 16 Pro Max but only 11px on 16 Pro and 9px on 15/14 Pro, against a 59px island inset. Height is now `calc(100dvh - var(--safe-top) - 24px)`, giving a constant 24px clearance on every device regardless of screen size. Most visible on the onboarding sheet, which grew tall enough in 6.66 (inline Notes tag picker) to actually hit the cap.
+- **Fix (iOS):** Bottom tab bar drifting/lagging during momentum scroll. Removed the deprecated `-webkit-overflow-scrolling:touch` from the two vertical scroll containers (`.tab-content`, `.ht-body`) — a no-op since iOS 13 that is a known cause of `position:fixed` repaint drift — and promoted `.tab-bar` to its own compositor layer with `translateZ(0)` so its `backdrop-filter` blur stops sampling stale pixels behind the scroll. Visual appearance unchanged.
+
 ### [6.66] - 2026-08-23
 
 - **New:** Onboarding Notes. The onboard-a-Wally form now has an inline Notes section — pick predefined tags (the existing 12-tag list) and/or type freeform custom tags, plus optional text, right at onboarding. Saving appends a new timestamped entry to that Wally's note history rather than overwriting it.

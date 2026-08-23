@@ -75,7 +75,7 @@
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
         html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:transparent;color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
         .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden;background:linear-gradient(145deg,#d8e6ff 0%,#e8d6ff 52%,#d6eede 100%)}
-        .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+        .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);overscroll-behavior-y:contain}
         .tab-content.active{display:block}
         .tab-content.tab-hours-flex{overflow:hidden;padding:0;padding-bottom:0;}
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
@@ -206,7 +206,7 @@
         .tool-title{font-size:15px;font-weight:800;color:var(--text-main)}
 
         /* ── TAB BAR ──────────────────────────────────────── */
-        .tab-bar{position:fixed;bottom:calc(var(--safe-bottom) + 20px);left:16px;right:16px;background:rgba(255,255,255,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:36px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-around;align-items:center;height:68px;z-index:1000;border:1px solid rgba(255,255,255,0.6)}
+        .tab-bar{position:fixed;bottom:calc(var(--safe-bottom) + 20px);left:16px;right:16px;background:rgba(255,255,255,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:36px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-around;align-items:center;height:68px;z-index:1000;border:1px solid rgba(255,255,255,0.6);transform:translateZ(0);-webkit-transform:translateZ(0)}
         .tab-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;color:#c0c0c8;font-size:10px;font-weight:700;flex:1;min-width:0;cursor:pointer;gap:3px;position:relative;letter-spacing:0.2px;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:8px 0;}
         .tab-btn i{font-size:24px;transition:transform 0.15s}
         .tab-btn.active{color:var(--text-main)}
@@ -222,7 +222,7 @@
 
         /* ── MODALS ───────────────────────────────────────── */
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;justify-content:center;align-items:flex-end;backdrop-filter:blur(6px)}
-        .modal-sheet{background:rgba(255,255,255,0.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);width:100%;max-width:600px;border-radius:32px 32px 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:92vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.8)}
+        .modal-sheet{background:rgba(255,255,255,0.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);width:100%;max-width:600px;border-radius:32px 32px 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:calc(100dvh - var(--safe-top) - 24px);overflow-y:auto;border-top:1px solid rgba(255,255,255,0.8)}
         .modal-sheet::before{content:'';display:block;width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 12px}
         @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
         .z-high{z-index:3000 !important}
@@ -394,7 +394,7 @@
         .ht-count-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--border-light);color:var(--text-sub);white-space:nowrap;border:1px solid var(--border);}
 
         /* Scroll body */
-        .ht-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 40px);}
+        .ht-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 40px);}
 
         /* KPI strip */
         .ht-kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border-light);}
@@ -489,7 +489,7 @@
         /* Hours modals (scoped .h-modal-* to avoid Wally's .modal-* collision) */
         .h-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2500;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(6px);}
         .h-modal-overlay.open{opacity:1;pointer-events:all;}
-        .h-modal-sheet{background:var(--surface-raised);width:100%;max-width:600px;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);max-height:90vh;overflow-y:auto;border:1px solid var(--border-light);border-bottom:none;}
+        .h-modal-sheet{background:var(--surface-raised);width:100%;max-width:600px;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);max-height:calc(100dvh - var(--safe-top) - 24px);overflow-y:auto;border:1px solid var(--border-light);border-bottom:none;}
         .h-modal-overlay.open .h-modal-sheet{transform:translateY(0);}
         .h-modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
         .h-modal-title{font-size:20px;font-weight:900;color:var(--text-main);margin-bottom:16px;letter-spacing:-0.5px;}
@@ -899,13 +899,22 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.66',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.67',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.67:
+- Fix (iOS): Modal sheets no longer crowd the Dynamic Island. The old
+  92vh/90vh height cap made top clearance a percentage of screen height,
+  so it shrank on smaller phones (16px on 16 Pro Max, 9px on 15/14 Pro).
+  Sheets now leave a constant 24px gap below the island on every device.
+- Fix (iOS): Bottom tab bar no longer drifts or lags during momentum
+  scrolling. Removed the deprecated -webkit-overflow-scrolling:touch from
+  the scroll containers and gave the tab bar its own compositor layer so
+  its blur stops trailing the scroll. Look is unchanged.
 v6.66:
 - New: Onboarding form has an inline Notes section -- pick predefined tags
   and/or type custom tags plus optional text right at onboarding. Saving
