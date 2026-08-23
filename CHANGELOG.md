@@ -1,5 +1,15 @@
 # Changelog
 
+### [6.66] - 2026-08-23
+
+- **New:** Onboarding Notes. The onboard-a-Wally form now has an inline Notes section — pick predefined tags (the existing 12-tag list) and/or type freeform custom tags, plus optional text, right at onboarding. Saving appends a new timestamped entry to that Wally's note history rather than overwriting it.
+- **New:** Duplicate-note detection at onboarding. Typing a Wally number that already has notes on file shows a banner with its most recent tags/text and an entry count ("N prior notes on file"), with a "Use These" shortcut to copy them into the current form. Non-blocking — onboarding proceeds normally either way.
+- **New:** Notes Manager now shows an "N entries" badge on Wally IDs with more than one note, and opening a note now shows its full chronological history (timestamped) below the editable current tags.
+- **New:** Notes Manager's editor supports custom tags (not just the 12 predefined ones) — add/remove freeform tag chips alongside predefined ones, distinguished with an amber style throughout the app.
+- **New:** Active Door detail view has a note-edit shortcut (next to the existing edit/move icons) so tags can be corrected on an already-onboarded, still-active Wally — e.g. if the volume mix turns out different than what was tagged at onboarding. Editing here (and from Notes Manager) updates the *current* note entry in place; it does not rewrite prior history.
+- **Data model:** `wallyNotes[id]` changed from a single overwritten `{tags,text,updated}` record to an append-only array of `{tags,text,timestamp}` entries, where each tag is `{value,type:'predefined'|'custom'}`. Legacy single-record and raw-string notes migrate automatically on read.
+- **Backend:** `apps-script/Code.gs`'s NOTE webhook handler updated to serialize the new tag object shape (predefined tags unchanged; custom tags suffixed " (custom)") when appending rows to the Notes sheet.
+
 ### [6.65] - 2026-06-10
 
 - **Fix:** `SHIFT_END` and `NOTE` webhook payloads now send immediately. `confirmEndShift()` and `sendNoteWebhook()` queued the payload but never called `processWebhookQueue()`, so ending a shift with no open bays (the common case) left the SHIFT_END summary stuck in localStorage with the badge showing "Syncing (1)..." until some unrelated send or a page reload.

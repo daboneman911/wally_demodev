@@ -206,7 +206,13 @@ function doPost(e) {
         noteTime,
         payload.wallyId,
         payload.action || "upsert",
-        Array.isArray(payload.tags) ? payload.tags.join(", ") : "",
+        Array.isArray(payload.tags)
+          ? payload.tags.map(function(t) {
+              return (t && typeof t === "object")
+                ? t.value + (t.type === "custom" ? " (custom)" : "")
+                : t;
+            }).join(", ")
+          : "",
         payload.text || "",
         payload.dateKey || ""
       ]);
