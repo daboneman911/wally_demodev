@@ -75,7 +75,7 @@
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
         html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:transparent;color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
         .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden;background:linear-gradient(145deg,#d8e6ff 0%,#e8d6ff 52%,#d6eede 100%)}
-        .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);overscroll-behavior-y:contain}
+        .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--safe-bottom) + 100px);overscroll-behavior-y:contain}
         .tab-content.active{display:block}
         .tab-content.tab-hours-flex{overflow:hidden;padding:0;padding-bottom:0;}
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
@@ -112,6 +112,9 @@
 
         /* ── STAT CARDS ───────────────────────────────────── */
         .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+        .stats-grid-3{grid-template-columns:repeat(3,1fr)}
+        .stats-grid-3 .stat-value{font-size:34px;letter-spacing:-1.2px}
+        .stats-grid-3 .stat-label{letter-spacing:0.3px}
         .stat-card{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--glass-border);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative}
         .stat-card:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,0,0,0.02)}
         .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0}
@@ -265,7 +268,7 @@
         .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border-light);background:var(--surface-raised);transition:background 0.15s}
         .settings-row:last-child{border-bottom:none}
         .settings-label{font-size:15px;font-weight:700;color:var(--text-main);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px}
-        .settings-input-inline{background:var(--border-light);border:none;padding:7px 12px;border-radius:8px;font-size:16px;width:100px;text-align:right;color:var(--text-main);font-weight:600}
+        .settings-input-inline{background:var(--border-light);border:none;padding:7px 10px;border-radius:8px;font-size:16px;width:140px;text-align:right;color:var(--text-main);font-weight:600}
         .settings-btn-inline{background:var(--text-main);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
         .settings-note{font-size:12px;color:var(--text-sub);padding:0 18px;margin-bottom:16px;line-height:1.5}
         .toggle-switch{width:52px;height:28px;background:#d1d5db;border-radius:14px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0}
@@ -601,6 +604,8 @@
                 <div><div class="stat-card-bar" style="background:#007aff;"></div><div class="stat-label">CPUs</div></div>
                 <div class="stat-value" id="stat-total-cpu">0</div>
             </div>
+        </div>
+        <div class="stats-grid stats-grid-3">
             <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Hour-0')">
                 <div><div class="stat-card-bar" style="background:#34c759;"></div><div class="stat-label">This Hour</div></div>
                 <div class="stat-value" id="stat-hour-wally">0</div>
@@ -609,7 +614,7 @@
                 <div><div class="stat-card-bar" style="background:#ff9500;"></div><div class="stat-label">Last Hour</div></div>
                 <div class="stat-value" id="stat-last-wally">0</div>
             </div>
-            <div class="stat-card" role="button" tabindex="0" style="grid-column:1/-1;" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('All')">
+            <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('All')">
                 <div><div class="stat-card-bar" style="background:#bf5af2;"></div><div class="stat-label">Overall Total</div></div>
                 <div class="stat-value" id="stat-total-overall">0</div>
             </div>
@@ -657,6 +662,8 @@
                     <div class="settings-row"><span class="settings-label">Enable Grace Period</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Enable Grace Period" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('en-window')" id="switch-en-window" onclick="toggleSwitch('en-window')"></div></div>
                     <div class="settings-note" style="border-top:1px solid #f2f2f7;padding-top:14px;">When enabled, Wallies completed in the first 10 minutes of a new hour can be counted toward the previous hour.</div>
                 </div>
+                <div class="settings-note" style="padding-top:4px;">Weekly start times. The dashboard picks tonight's automatically. Changing a day updates the start time above too, unless a shift is already running.</div>
+                <div class="settings-group" id="shift-schedule-group"></div>
             </div>
 
             <!-- TEAM MANAGEMENT -->
@@ -904,13 +911,28 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.68',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.69',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.69:
+- Fix: Dashboard no longer scrolls in its default view -- all stats and
+  every bay door are visible at once, down to a 5.4-inch iPhone. The
+  bottom padding reserved 160px for a tab bar that only needs ~100px,
+  and the bottom row of bays was actually sitting behind the tab bar on
+  smaller phones. Stats are now two rows (Wallies/CPUs, then This Hour /
+  Last Hour / Overall Total) instead of three.
+- New: Shift start times are now scheduled per weekday and applied
+  automatically when the app opens -- Mon/Tue 8:00 PM, Wed/Thu 8:15 PM,
+  Fri 7:30 PM. Because shifts run past midnight, the time is chosen from
+  the day the shift STARTED, so opening the app at 2 AM Tuesday still
+  shows Monday's 8:00 PM.
+- New: Settings > Shift Management lists all seven days with editable
+  start times, marking tonight's. A running shift keeps the time it
+  started with, so edits never move a live shift's stats.
 v6.68:
 - New: Onboarding sheet now has a close (X) button at the top right,
   aligned with the title, so you can back out without scrolling to the
@@ -1963,7 +1985,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));initAttributionSettings();loadNotes();loadPreferences();loadShiftState();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));initAttributionSettings();loadNotes();loadPreferences();loadShiftState();syncShiftStartToSchedule();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -1984,11 +2006,14 @@ v5.06:
     function resetData(){
         if(confirm("Reset all data? This will clear all active trailers and logs. Notes are preserved.")){
             const savedNotes=localStorage.getItem('ps9_wally_notes');
+            const savedSchedule=localStorage.getItem('ps9_shift_schedule');
             localStorage.clear();
             localStorage.removeItem('ps9_v4');
-            localStorage.setItem('ps9_shift_start',"20:00");
+            if(savedSchedule)localStorage.setItem('ps9_shift_schedule',savedSchedule);
+            const resetStart=getScheduledShiftStart();
+            localStorage.setItem('ps9_shift_start',resetStart);
             if(savedNotes)localStorage.setItem('ps9_wally_notes',savedNotes);
-            attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:"20:00"});
+            attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:resetStart});
             setTimeout(function(){location.reload();},500);
         }
     }
@@ -2016,9 +2041,42 @@ v5.06:
             setTimeout(()=>{if(demoActive&&doors[doorNum]&&doors[doorNum].logId===logId&&doors[doorNum].status==='active'){finalizeCompletion(doorNum,Date.now(),0)}},15000+randomExtra);
         }
     }
-    function getDefaultShiftStartByDay(){const dow=new Date().getDay();return(dow===3||dow===4)?'20:15':'20:00';}
-    function getShiftStartTime(){return localStorage.getItem('ps9_shift_start')||getDefaultShiftStartByDay();}
+    // -- WEEKLY SHIFT SCHEDULE -------------------------------
+    // Mon/Tue 20:00, Wed/Thu 20:15, Fri 19:30. Sat/Sun are unused but kept
+    // editable so the schedule stays complete if weekend shifts ever start.
+    const SHIFT_SCHEDULE_DEFAULT={0:'20:00',1:'20:00',2:'20:00',3:'20:15',4:'20:15',5:'19:30',6:'20:00'};
+    const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    function getShiftSchedule(){
+        let s={};try{s=JSON.parse(localStorage.getItem('ps9_shift_schedule'))||{}}catch(e){s={}}
+        const out={};for(let d=0;d<7;d++)out[d]=/^\d{2}:\d{2}$/.test(s[d])?s[d]:SHIFT_SCHEDULE_DEFAULT[d];
+        return out}
+    function saveShiftSchedule(sched){localStorage.setItem('ps9_shift_schedule',JSON.stringify(sched))}
+    // Shifts start in the evening and run past midnight, so the "shift day" is the day
+    // the shift STARTED. Before noon we are still in the tail of the previous day's shift.
+    function getShiftDayIndex(ref){const d=ref?new Date(ref):new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);return d.getDay()}
+    function getScheduledShiftStart(){return getShiftSchedule()[getShiftDayIndex()]}
+    function getDefaultShiftStartByDay(){return getScheduledShiftStart()}
+    function getShiftStartTime(){return localStorage.getItem('ps9_shift_start')||getScheduledShiftStart();}
     function saveShiftStart(val){localStorage.setItem('ps9_shift_start',val);renderDashboard();updateNameplate();}
+    // While idle, the dashboard follows the weekly schedule. A live shift keeps whatever
+    // time it started with so stats and Hours math never shift underneath a running shift.
+    function syncShiftStartToSchedule(){
+        if(shiftState!=='idle')return false;
+        const s=getScheduledShiftStart();
+        if(localStorage.getItem('ps9_shift_start')===s)return false;
+        localStorage.setItem('ps9_shift_start',s);
+        const inp=byId('setting-shift-start');if(inp)inp.value=s;
+        return true}
+    function renderShiftSchedule(){
+        const g=byId('shift-schedule-group');if(!g)return;
+        const sched=getShiftSchedule(),today=getShiftDayIndex();
+        g.innerHTML=[1,2,3,4,5,6,0].map(d=>{
+            const tag=d===today?' <span style="font-size:9px;font-weight:900;color:var(--accent-green);letter-spacing:0.6px;">TONIGHT</span>':'';
+            return`<div class="settings-row"><span class="settings-label">${DAY_NAMES[d]}${tag}</span><input type="time" class="settings-input-inline" value="${sched[d]}" onchange="updateShiftScheduleDay(${d},this.value)"></div>`}).join('')}
+    function updateShiftScheduleDay(day,val){
+        if(!/^\d{2}:\d{2}$/.test(val)){renderShiftSchedule();return}
+        const s=getShiftSchedule();s[day]=val;saveShiftSchedule(s);
+        syncShiftStartToSchedule();renderShiftSchedule();renderDashboard();updateNameplate();showSaveToast()}
     function getShiftTimeWindows(){const[h,m]=getShiftStartTime().split(':').map(Number);const now=new Date();let start=new Date(now);start.setHours(h,m,0,0);if(now<start)start.setDate(start.getDate()-1);const hoursElapsed=Math.floor((now-start)/3600000),thisHourStart=new Date(start.getTime()+(hoursElapsed*3600000));return{thisHourStart,thisHourEnd:new Date(thisHourStart.getTime()+3600000),lastHourStart:new Date(thisHourStart.getTime()-3600000),lastHourEnd:thisHourStart,shiftStart:start}}
     function getCompletionHour(ts){const{shiftStart}=getShiftTimeWindows();return Math.max(1,Math.floor((ts-shiftStart.getTime())/3600000)+1)}
     function populateUnloaderSelect(){const ids=['select-unloader','edit-select-unloader','edit-active-unloader','filter-unloader-select','req-unloader-select','manual-unloader'];ids.forEach(id=>{const el=byId(id);if(!el)return;const isFilter=id==='filter-unloader-select';el.innerHTML=isFilter?'<option value="All">All Unloaders</option>':'<option value="" selected>Unassigned</option>';teamNamesSorted.forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.innerText=name;el.appendChild(opt)});if(!isFilter)el.innerHTML+='<option value="Custom">Custom / Other</option>'})}

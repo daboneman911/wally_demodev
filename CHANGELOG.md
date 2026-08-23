@@ -1,5 +1,15 @@
 # Changelog
 
+### [6.69] - 2026-08-23
+
+- **Fix:** Dashboard no longer scrolls in its default view — all stats and every bay door fit on screen, verified down to 375×812 (iPhone 13 mini). Two causes: `.tab-content` reserved `--tab-height + --safe-bottom + 80px` (≈160px) of bottom padding when the floating tab bar only occupies `--safe-bottom + 88px`, and the stats grid used three rows. Padding is now `calc(var(--safe-bottom) + 100px)` — which also removes ~60px of dead space at the bottom of every other scrolling tab.
+- **Fix:** The bottom row of bay circles was rendering *behind* the tab bar on 6.1" and smaller devices. Bay content ended at y≈735 while the bar's top edge sits at ≈730 once the home-indicator inset is applied. Bays now clear the bar by 43–175px depending on device.
+- **UI:** Sort Statistics regrouped from three rows into two — Wallies / CPUs, then This Hour / Last Hour / Overall Total in a 3-up row. All five cards remain, at full size; bay circles and their volume-type colors are unchanged.
+- **New:** Weekly shift-start schedule. Start time is now derived from the weekday and applied automatically on app open: Mon/Tue 20:00, Wed/Thu 20:15, Fri 19:30 (Sat/Sun default to 20:00, unused). Stored in `ps9_shift_schedule` and preserved across a data reset.
+- **New:** Because shifts run overnight, the schedule resolves against the day the shift *started*, not the wall-clock day — `getShiftDayIndex()` rolls back to the previous day before noon, so 2 AM Tuesday correctly uses Monday's 20:00 rather than Tuesday's. Verified across all weekday and past-midnight boundaries.
+- **New:** Settings → Shift Management lists all seven days with editable start times and marks tonight's. A live shift is never re-synced (`syncShiftStartToSchedule()` no-ops unless idle), so editing the schedule can't move a running shift's stats or Hours math. The existing "Shift Start Time" row still works as a one-off override for the current shift.
+- **UI:** Widened `.settings-input-inline` (100px → 140px) — time values were clipping their "PM" suffix.
+
 ### [6.68] - 2026-08-23
 
 - **New:** Onboarding sheet has a close (X) button at the top right, vertically centered against the title, so the sheet can be dismissed without scrolling down to the Cancel button. Added as reusable `.modal-header-row` / `.modal-close-btn` classes so the same treatment can be rolled out to other modals.
