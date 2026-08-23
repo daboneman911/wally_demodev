@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.68] - 2026-08-23
+
+- **New:** Onboarding sheet has a close (X) button at the top right, vertically centered against the title, so the sheet can be dismissed without scrolling down to the Cancel button. Added as reusable `.modal-header-row` / `.modal-close-btn` classes so the same treatment can be rolled out to other modals.
+- **UI:** Note tag chips had `border:2px solid transparent` over a `--border-light` fill, leaving them with no visible edge against the near-white modal sheet. Chips now use a white fill with a `1.5px solid var(--border)` border, matching `.form-input` in the same sheet. Selected chips stay solid `--text-main`; custom tags keep their amber fill/border, now at the same 1.5px weight.
+- **UI:** `.note-text-input` (free-text notes box) had no border and a gray fill, and `.note-custom-tag-input` had a gray fill — both now white with a matching `1.5px` border, a `--radius-md` corner, and the same blue focus ring as other form fields, so every input in the sheet reads consistently. Applies to both the onboarding sheet and the shared Notes editor.
+
 ### [6.67] - 2026-08-23
 
 - **Fix (iOS):** Modal sheets no longer crowd the Dynamic Island. `.modal-sheet` and `.h-modal-sheet` capped height at `92vh`/`90vh`, so top clearance was a *percentage* of screen height and shrank on smaller devices — measured at 16px on iPhone 16 Pro Max but only 11px on 16 Pro and 9px on 15/14 Pro, against a 59px island inset. Height is now `calc(100dvh - var(--safe-top) - 24px)`, giving a constant 24px clearance on every device regardless of screen size. Most visible on the onboarding sheet, which grew tall enough in 6.66 (inline Notes tag picker) to actually hit the cap.
