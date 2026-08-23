@@ -33,16 +33,16 @@
     <title>Wally Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         :root{
-            --bg:#f2f2f7;
-            --surface:rgba(255,255,255,0.95);
+            --bg:#ffffff;
+            --surface:#ffffff;
             --surface-raised:#ffffff;
-            --text-main:#0a0a0a;
-            --text-sub:#4b5563;
-            --text-muted:#6b7280;
-            --border:#e5e7eb;
-            --border-light:#f3f4f6;
+            --surface-alt:#f5f5f5;
+            --text-main:#111111;
+            --text-sub:#555555;
+            --text-muted:#767676;
+            --border:#e5e5e5;
+            --border-light:#f0f0f0;
             --accent-green:#16a34a;
             --accent-green-bg:#dcfce7;
             --accent-blue:#2563eb;
@@ -53,35 +53,28 @@
             --accent-red-bg:#fee2e2;
             --accent-purple:#7c3aed;
             --accent-purple-bg:#ede9fe;
-            --bay-green:#4ade80;
-            --bay-purple:#a78bfa;
-            --bay-orange:#fb923c;
+            --accent-amber:#f59e0b;
+            --accent-amber-dark:#d97706;
+            --accent-amber-bg:#fffbeb;
+            --accent-amber-border:#fde68a;
             --safe-top:max(env(safe-area-inset-top),59px);
             --safe-bottom:env(safe-area-inset-bottom);
             --tab-height:80px;
-            --radius-sm:10px;
-            --radius-md:16px;
-            --radius-lg:22px;
-            --radius-xl:28px;
-            --shadow-sm:0 4px 20px rgba(80,80,160,0.07),0 1px 4px rgba(0,0,0,0.04);
-            --shadow-md:0 12px 36px rgba(80,80,160,0.09),0 4px 10px rgba(0,0,0,0.05);
-            --shadow-lg:0 24px 52px rgba(80,80,160,0.11),0 8px 18px rgba(0,0,0,0.06);
-            --glass-bg:rgba(255,255,255,0.78);
-            --glass-border:rgba(160,175,235,0.45);
-            --glass-blur:blur(18px);
+            --radius:4px;
+            --shadow-modal:0 -4px 24px rgba(0,0,0,0.16);
         }
 
         /* ── BASE ─────────────────────────────────────────── */
         *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
         html{height:100%}body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:transparent;color:var(--text-main);margin:0;padding:0;height:100dvh;width:100vw;-webkit-font-smoothing:antialiased;overflow:hidden}
-        .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden;background:linear-gradient(145deg,#d8e6ff 0%,#e8d6ff 52%,#d6eede 100%)}
+        .app-container{display:flex;flex-direction:column;height:100%;padding-top:calc(var(--safe-top) + 8px);overflow:hidden;background:var(--bg)}
         .tab-content{flex:1;min-height:0;overflow-y:auto;display:none;padding:0 16px;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 80px);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
         .tab-content.active{display:block}
         .tab-content.tab-hours-flex{overflow:hidden;padding:0;padding-bottom:0;}
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
-        .nameplate{background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,0.9);border:1px solid var(--glass-border)}
+        .nameplate{background:var(--surface-raised);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:none;border:1px solid var(--border)}
         .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
@@ -95,7 +88,7 @@
         .shift-state-dot.live{background:var(--accent-green);box-shadow:0 0 0 3px rgba(22,163,74,0.2);animation:dot-pulse 2s ease-in-out infinite}
         .shift-state-dot.demo{background:var(--accent-orange);box-shadow:0 0 0 3px rgba(234,88,12,0.2);animation:dot-pulse 1.5s ease-in-out infinite}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-        .btn-shift{border:none;border-radius:10px;padding:9px 15px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s;letter-spacing:0.1px}
+        .btn-shift{border:none;border-radius:var(--radius);padding:10px 16px;font-size:12px;font-weight:800;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s;letter-spacing:0.5px}
         .btn-shift.start{background:var(--text-main);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.18)}
         .btn-shift.start:active{background:#111827;transform:scale(0.93);box-shadow:inset 0 2px 6px rgba(0,0,0,0.25)}
         .btn-shift.end{background:var(--accent-red);color:#fff;box-shadow:0 2px 10px rgba(220,38,38,0.3)}
@@ -103,46 +96,41 @@
 
         /* ── TOP ACTION BUTTONS ───────────────────────────── */
         .top-actions{display:flex;gap:8px;padding:2px 0 8px;justify-content:center}
-        .action-btn{background:var(--text-main);color:white;border:none;border-radius:30px;padding:8px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform 0.1s}
+        .action-btn{background:var(--text-main);color:white;border:none;border-radius:var(--radius);padding:8px 16px;font-size:12px;font-weight:800;letter-spacing:0.4px;text-transform:uppercase;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:none;transition:transform 0.1s}
         .action-btn:active{transform:scale(0.97)}
         .action-btn i{font-size:15px}
 
         /* ── SECTION LABELS ───────────────────────────────── */
-        .section-label{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;margin-top:2px;padding-left:4px}
+        .section-label{font-size:11px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;margin-top:24px;padding-left:0}
 
         /* ── STAT CARDS ───────────────────────────────────── */
         .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-        .stat-card{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-md);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:var(--shadow-sm);border:1px solid var(--glass-border);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative}
+        .stat-card{background:var(--surface-raised);border-radius:var(--radius);padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:76px;cursor:pointer;box-shadow:none;border:1px solid var(--border);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative}
         .stat-card:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,0,0,0.02)}
-        .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0}
+        .stat-card-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius) var(--radius) 0 0}
         .stat-label{font-size:10px;color:var(--text-sub);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px}
         .stat-value{font-size:42px;font-weight:800;color:var(--text-main);line-height:1;letter-spacing:-1.5px}
 
         /* ── BAY CIRCLES ──────────────────────────────────── */
         .bays-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px;min-height:50px}
         .empty-state-text{color:var(--text-muted);font-size:13px;font-weight:500;text-align:center;width:100%;padding:10px 0}
-        .bay-circle{width:72px;height:72px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);box-shadow:var(--shadow-md);position:relative}
-        .bay-circle:active{transform:scale(0.94);box-shadow:0 2px 8px rgba(0,0,0,0.02)}
-        .bay-circle.unavailable{background:#9ca3af !important;opacity:0.45;color:#fff;border:none !important}
-        .bay-9{background:linear-gradient(135deg,#34d399,#059669)}
-        .bay-10{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
-        .bay-11{background:linear-gradient(135deg,#fb923c,#ea580c)}
-        .bay-12{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
-        .bay-13,.bay-14,.bay-15,.bay-16{background:linear-gradient(135deg,#fb923c,#ea580c)}
-        .bay-circle.status-ok{border:2px solid #16a34a}
+        .bay-circle{width:72px;height:72px;border-radius:50%;background:var(--text-main);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;cursor:pointer;transition:transform 0.15s;box-shadow:none;position:relative}
+        .bay-circle:active{transform:scale(0.94)}
+        .bay-circle.unavailable{background:var(--border) !important;opacity:0.6;color:var(--text-muted);border:none !important}
+        .bay-circle.status-ok{border:2px solid var(--accent-green)}
         .bay-circle.status-staged{border:2px solid var(--accent-blue)}
-        @keyframes ring-warn{0%,100%{box-shadow:var(--shadow-md),0 0 0 0 rgba(234,88,12,0.5)}70%{box-shadow:var(--shadow-md),0 0 0 7px rgba(234,88,12,0)}}
-        @keyframes ring-crit{0%,100%{box-shadow:var(--shadow-md),0 0 0 0 rgba(220,38,38,0.6)}70%{box-shadow:var(--shadow-md),0 0 0 9px rgba(220,38,38,0)}}
+        @keyframes ring-warn{0%,100%{box-shadow:0 0 0 0 rgba(234,88,12,0.5)}70%{box-shadow:0 0 0 7px rgba(234,88,12,0)}}
+        @keyframes ring-crit{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0.6)}70%{box-shadow:0 0 0 9px rgba(220,38,38,0)}}
         .bay-circle.status-warn{border:2px solid var(--accent-orange);animation:ring-warn 1.8s ease-out infinite}
         .bay-circle.status-crit{border:2px solid var(--accent-red);animation:ring-crit 1.2s ease-out infinite}
-        .type-badge{position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:white;background:#0a0a0a;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
-        .bay-timer{position:absolute;bottom:-7px;font-size:8px;font-weight:800;color:var(--text-sub);background:white;padding:1px 4px;border-radius:4px;min-width:20px;text-align:center;box-shadow:var(--shadow-sm)}
-        .bay-note-dot{position:absolute;top:-1px;left:-1px;width:9px;height:9px;background:#0a0a0a;border-radius:50%;border:2px solid white;z-index:2}
+        .type-badge{position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:white;background:var(--text-main);border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+        .bay-timer{position:absolute;bottom:-7px;font-size:8px;font-weight:800;color:var(--text-sub);background:white;padding:1px 4px;border-radius:4px;min-width:20px;text-align:center;box-shadow:none}
+        .bay-note-dot{position:absolute;top:-1px;left:-1px;width:9px;height:9px;background:var(--text-main);border-radius:50%;border:2px solid white;z-index:2}
 
         /* ── ACTIVE CARDS ─────────────────────────────────── */
         .active-tab-list{display:flex;flex-direction:column;gap:12px}
-        .active-card{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);border:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:flex-start;border-left:5px solid var(--text-main);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
-        .active-card-progress{position:absolute;bottom:0;left:0;width:100%;height:3px;background:var(--border);border-radius:0 0 var(--radius-sm) var(--radius-sm)}
+        .active-card{background:var(--surface-raised);border-radius:var(--radius);padding:16px 18px;box-shadow:none;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;border-left:5px solid var(--text-main);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+        .active-card-progress{position:absolute;bottom:0;left:0;width:100%;height:3px;background:var(--border);border-radius:0 0 var(--radius) var(--radius)}
         .active-card.type-cpu{border-left-color:var(--accent-blue)}
         .active-card.status-warn-card{border-left-color:var(--accent-orange)}
         .active-card.status-crit-card{border-left-color:var(--accent-red)}
@@ -160,16 +148,16 @@
         .tag-blue{background:var(--accent-blue);color:white}
 
         /* ── LOGS ─────────────────────────────────────────── */
-        .header-bar{position:relative;display:flex;justify-content:center;align-items:center;height:50px;margin:16px 0 12px}
-        .header-bar h1{font-size:22px;font-weight:900;margin:0;letter-spacing:-0.5px}
+        .header-bar{position:relative;display:flex;justify-content:flex-start;align-items:center;height:56px;margin:20px 0 24px;border-bottom:1px solid var(--border)}
+        .header-bar h1{font-size:28px;font-weight:900;margin:0;letter-spacing:-0.8px;text-transform:uppercase}
         .header-right{position:absolute;right:0;display:flex;gap:8px}
         .filter-icon-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:2px solid var(--text-main);background:transparent;color:var(--text-main)}
         .filter-icon-btn:active{background:var(--border-light)}
         .export-icon-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--border-light);color:var(--text-main);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}
-        .search-bar{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--surface-raised);font-size:16px;margin-bottom:16px;outline:none;color:var(--text-main)}
+        .search-bar{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface-raised);font-size:16px;margin-bottom:16px;outline:none;color:var(--text-main)}
         .search-bar:focus{border-color:var(--text-main)}
         .logs-list{display:flex;flex-direction:column;gap:10px}
-        .log-card{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .log-card{background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
         .log-info{display:flex;flex-direction:column;gap:7px;flex-grow:1;min-width:0}
         .log-header-row{display:flex;align-items:center;gap:8px}
         .log-door-pill{background:var(--text-main);color:#fff;font-size:10px;font-weight:900;padding:5px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;letter-spacing:0.5px;text-transform:uppercase}
@@ -187,12 +175,12 @@
         .log-duration{font-size:30px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-1px}
         .log-duration-label{font-size:10px;text-transform:uppercase;color:var(--text-muted);font-weight:700}
         .log-actions-row{display:flex;gap:6px}
-        .log-mini-btn{width:34px;height:34px;border-radius:var(--radius-sm);border:1px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-main);cursor:pointer}
+        .log-mini-btn{width:34px;height:34px;border-radius:var(--radius);border:1px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-main);cursor:pointer}
         .log-mini-btn:active{background:var(--border-light);transform:scale(0.95)}
-        .load-more-btn{width:100%;padding:14px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-md);font-weight:700;cursor:pointer;margin-top:8px;color:var(--text-sub)}
-        .active-filter-display{display:flex;align-items:center;justify-content:space-between;background:var(--text-main);color:white;padding:11px 16px;border-radius:var(--radius-md);margin-bottom:16px;font-weight:700;font-size:14px}
-        .stats-collapse-btn{width:100%;background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:16px 18px;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--text-main);cursor:pointer;margin-bottom:12px}
-        .stats-content-area{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:16px;margin-bottom:18px;display:none;box-shadow:var(--shadow-sm)}
+        .load-more-btn{width:100%;padding:14px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);font-weight:700;cursor:pointer;margin-top:8px;color:var(--text-sub)}
+        .active-filter-display{display:flex;align-items:center;justify-content:space-between;background:var(--text-main);color:white;padding:11px 16px;border-radius:var(--radius);margin-bottom:16px;font-weight:700;font-size:14px}
+        .stats-collapse-btn{width:100%;background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius);padding:16px 18px;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--text-main);cursor:pointer;margin-bottom:12px}
+        .stats-content-area{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius);padding:16px;margin-bottom:18px;display:none;box-shadow:none}
         .stats-table{width:100%;border-collapse:collapse;font-size:14px}
         .stats-table th{text-align:left;color:var(--text-sub);font-weight:700;padding-bottom:10px;border-bottom:1px solid var(--border)}
         .stats-table td{padding:10px 0;border-bottom:1px solid var(--border-light);color:var(--text-main);font-weight:500}
@@ -200,38 +188,37 @@
 
         /* ── TOOLS ────────────────────────────────────────── */
         .tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 0}
-        .tool-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:24px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;aspect-ratio:1/1;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid var(--border-light)}
+        .tool-card{background:var(--surface-raised);border-radius:var(--radius);padding:24px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;aspect-ratio:1/1;box-shadow:none;cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid var(--border-light)}
         .tool-card:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,0,0,0.02);background:var(--border-light)}
-        .tool-icon-wrapper{width:52px;height:52px;background:var(--text-main);border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;margin-bottom:12px}
+        .tool-icon-wrapper{width:52px;height:52px;background:var(--text-main);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;margin-bottom:12px}
         .tool-title{font-size:15px;font-weight:800;color:var(--text-main)}
 
         /* ── TAB BAR ──────────────────────────────────────── */
-        .tab-bar{position:fixed;bottom:calc(var(--safe-bottom) + 20px);left:16px;right:16px;background:rgba(255,255,255,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:36px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-around;align-items:center;height:68px;z-index:1000;border:1px solid rgba(255,255,255,0.6)}
-        .tab-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;color:#c0c0c8;font-size:10px;font-weight:700;flex:1;min-width:0;cursor:pointer;gap:3px;position:relative;letter-spacing:0.2px;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:8px 0;}
+        .tab-bar{position:fixed;bottom:0;left:0;right:0;padding-bottom:var(--safe-bottom);background:var(--surface-raised);border-radius:0;box-shadow:none;display:flex;justify-content:space-around;align-items:center;height:68px;z-index:1000;border:none;border-top:1px solid var(--border)}
+        .tab-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;color:var(--text-muted);font-size:10px;font-weight:700;flex:1;min-width:0;cursor:pointer;gap:3px;position:relative;letter-spacing:0.2px;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:8px 0;}
         .tab-btn i{font-size:24px;transition:transform 0.15s}
         .tab-btn.active{color:var(--text-main)}
         .tab-btn.active i{transform:scale(1.1)}
         .tab-badge{position:absolute;top:-3px;right:2px;background:var(--accent-red);color:white;font-size:10px;font-weight:900;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid white}
-        .tab-badge.zero{background:#e5e7eb;color:#9ca3af}
+        .tab-badge.zero{background:#e5e7eb;color:var(--text-muted)}
         .tab-badge.warning{background:var(--accent-orange)}
         .tab-badge.success{background:var(--accent-green)}
 
         /* ── GLOBAL TYPOGRAPHY STANDARDS ─────────────────── */
-        .modal-sheet h2{font-size:22px!important;font-weight:800!important;letter-spacing:-0.3px;}
-        .header-bar h1{font-size:22px;font-weight:800;letter-spacing:-0.4px;}
+        .modal-sheet h2{font-size:22px!important;font-weight:900!important;letter-spacing:-0.4px;text-transform:uppercase;}
 
         /* ── MODALS ───────────────────────────────────────── */
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;justify-content:center;align-items:flex-end;backdrop-filter:blur(6px)}
-        .modal-sheet{background:rgba(255,255,255,0.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);width:100%;max-width:600px;border-radius:32px 32px 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:92vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.8)}
+        .modal-sheet{background:var(--surface-raised);width:100%;max-width:600px;border-radius:var(--radius) var(--radius) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);max-height:92vh;overflow-y:auto;border-top:1px solid var(--border);box-shadow:var(--shadow-modal)}
         .modal-sheet::before{content:'';display:block;width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 12px}
         @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
         .z-high{z-index:3000 !important}
-        .form-input{width:100%;padding:16px 18px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:17px;margin-bottom:14px;outline:none;appearance:none;color:var(--text-main);font-weight:500}
-        .form-input:focus{background:#fff;border-color:#007aff;box-shadow:0 0 0 3px rgba(0,122,255,0.12)}
-        .type-selector{display:flex;background:var(--surface-raised);border:1.5px solid var(--border);padding:3px;border-radius:12px;margin-bottom:20px}
-        .type-opt{flex:1;text-align:center;padding:10px;border-radius:9px;font-weight:600;font-size:14px;color:var(--text-sub);cursor:pointer;transition:all 0.15s}
+        .form-input{width:100%;padding:16px 18px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);font-size:17px;margin-bottom:14px;outline:none;appearance:none;color:var(--text-main);font-weight:500}
+        .form-input:focus{background:#fff;border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(0,122,255,0.12)}
+        .type-selector{display:flex;background:var(--surface-raised);border:1.5px solid var(--border);padding:3px;border-radius:var(--radius);margin-bottom:20px}
+        .type-opt{flex:1;text-align:center;padding:10px;border-radius:2px;font-weight:600;font-size:14px;color:var(--text-sub);cursor:pointer;transition:all 0.15s}
         .type-opt.selected{background:white;color:var(--text-main);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
-        .btn-primary{width:100%;padding:19px 15px;border-radius:14px;border:none;font-size:15px;font-weight:700;background:var(--text-main);color:white;margin-top:10px;cursor:pointer;letter-spacing:0.1px;transition:background 0.15s}
+        .btn-primary{width:100%;padding:19px 15px;border-radius:var(--radius);border:none;font-size:14px;font-weight:800;background:var(--text-main);color:white;margin-top:10px;cursor:pointer;letter-spacing:0.6px;text-transform:uppercase;transition:background 0.15s}
         .btn-primary:active{background:#1f2937}
         .btn-danger{background:var(--accent-red)}
         .btn-danger:active{background:#b91c1c}
@@ -242,42 +229,42 @@
         .detail-label{color:var(--text-sub);font-weight:600;font-size:13px}
         .detail-value{font-weight:800;color:var(--text-main);font-size:15px}
         .modal-actions-row{display:flex;gap:12px;margin-top:10px}
-        .modal-icon-btn{background:var(--border-light);border:none;width:54px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text-main)}
+        .modal-icon-btn{background:var(--border-light);border:none;width:54px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text-main)}
         .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
-        .filter-btn{background:var(--border-light);padding:13px 0;border-radius:var(--radius-sm);text-align:center;font-weight:800;font-size:15px;cursor:pointer;color:var(--text-sub)}
+        .filter-btn{background:var(--border-light);padding:13px 0;border-radius:var(--radius);text-align:center;font-weight:800;font-size:15px;cursor:pointer;color:var(--text-sub)}
         .filter-btn.active{background:var(--text-main);color:white}
         .options-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}
         .option-toggle{flex:1;position:relative;cursor:pointer;min-width:75px}
         .option-toggle input{position:absolute;opacity:0;width:0;height:0}
-        .option-toggle span{display:flex;align-items:center;justify-content:center;width:100%;padding:12px;background:var(--border-light);color:var(--text-sub);border-radius:var(--radius-sm);font-weight:800;font-size:14px;transition:all 0.18s;border:1.5px solid transparent}
+        .option-toggle span{display:flex;align-items:center;justify-content:center;width:100%;padding:12px;background:var(--border-light);color:var(--text-sub);border-radius:var(--radius);font-weight:800;font-size:14px;transition:all 0.18s;border:1.5px solid transparent}
         .option-toggle input:checked~span{background:var(--text-main);color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.15);transform:translateY(-1px);border-color:var(--text-main)}
         .option-toggle:active span{transform:scale(0.97)}
 
         /* ── SETTINGS ─────────────────────────────────────── */
-        .settings-group{background:linear-gradient(160deg,rgba(255,255,255,0.94) 0%,rgba(228,234,255,0.87) 100%);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px;border:1px solid var(--glass-border);box-shadow:var(--shadow-sm)}
-        .settings-collapse-btn{width:100%;background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(228,234,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:15px 18px;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--text-main);cursor:pointer;margin-bottom:8px;text-align:left;transition:background 0.1s}
-        .settings-collapse-btn:active{background:linear-gradient(160deg,rgba(230,232,255,0.95) 0%,rgba(210,218,255,0.92) 100%)}
+        .settings-group{background:var(--surface-raised);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;border:1px solid var(--border);box-shadow:none}
+        .settings-collapse-btn{width:100%;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--text-main);cursor:pointer;margin-bottom:8px;text-align:left;transition:background 0.1s}
+        .settings-collapse-btn:active{background:var(--border-light)}
         .settings-section-body{display:none;margin-bottom:12px}
         .settings-section-body.open{display:block}
         .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border-light);background:var(--surface-raised);transition:background 0.15s}
         .settings-row:last-child{border-bottom:none}
         .settings-label{font-size:15px;font-weight:700;color:var(--text-main);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px}
-        .settings-input-inline{background:var(--border-light);border:none;padding:7px 12px;border-radius:8px;font-size:16px;width:100px;text-align:right;color:var(--text-main);font-weight:600}
-        .settings-btn-inline{background:var(--text-main);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
+        .settings-input-inline{background:var(--border-light);border:none;padding:7px 12px;border-radius:var(--radius);font-size:16px;width:100px;text-align:right;color:var(--text-main);font-weight:600}
+        .settings-btn-inline{background:var(--text-main);color:#fff;border:none;border-radius:var(--radius);padding:6px 12px;font-weight:700;font-size:14px}
         .settings-note{font-size:12px;color:var(--text-sub);padding:0 18px;margin-bottom:16px;line-height:1.5}
         .toggle-switch{width:52px;height:28px;background:#d1d5db;border-radius:14px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0}
         .toggle-switch.checked{background:var(--text-main)}
         .toggle-switch::after{content:'';position:absolute;left:2px;top:2px;width:24px;height:24px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
         .toggle-switch.checked::after{left:26px}
-        .stepper{display:flex;align-items:center;background:var(--border-light);border-radius:8px;padding:2px}
+        .stepper{display:flex;align-items:center;background:var(--border-light);border-radius:var(--radius);padding:2px}
         .stepper-btn{width:44px;height:44px;border:none;background:transparent;font-size:18px;font-weight:700;cursor:pointer;color:var(--text-main)}
         .stepper-val{font-size:15px;font-weight:700;width:24px;text-align:center}
-        .segment-control{display:flex;background:var(--border-light);border-radius:8px;padding:2px}
+        .segment-control{display:flex;background:var(--border-light);border-radius:var(--radius);padding:2px}
         .segment-opt{padding:6px 12px;border-radius:6px;font-size:13px;font-weight:700;color:var(--text-sub);cursor:pointer}
         .segment-opt.selected{background:var(--surface-raised);color:var(--text-main);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
         .settings-slider-container{display:flex;flex-direction:column;gap:14px;padding:14px 18px}
         .slider-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-        .slider-value{font-size:15px;font-weight:800;color:var(--text-main);background:var(--border-light);padding:4px 10px;border-radius:8px;min-width:55px;text-align:center}
+        .slider-value{font-size:15px;font-weight:800;color:var(--text-main);background:var(--border-light);padding:4px 10px;border-radius:var(--radius);min-width:55px;text-align:center}
         .slider-wrapper{position:relative;width:100%;height:40px;display:flex;align-items:center}
         .slider-track{position:absolute;width:100%;height:5px;background:var(--border);border-radius:3px;z-index:1}
         .slider-fill{position:absolute;height:5px;background:var(--text-main);border-radius:3px;z-index:2;transition:width 0.1s}
@@ -308,37 +295,37 @@
         .note-tags-display{display:flex;flex-wrap:wrap;gap:4px}
         .note-editor-wally-id{font-size:26px;font-weight:900;color:var(--text-main);letter-spacing:-1px;margin-bottom:4px}
         .note-editor-section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-sub);margin-bottom:10px;margin-top:16px}
-        .note-text-input{width:100%;padding:13px 15px;background:var(--border-light);border:none;border-radius:var(--radius-md);font-size:15px;font-weight:500;color:var(--text-main);outline:none;resize:none;min-height:68px;font-family:inherit;line-height:1.4}
+        .note-text-input{width:100%;padding:13px 15px;background:var(--border-light);border:none;border-radius:var(--radius);font-size:15px;font-weight:500;color:var(--text-main);outline:none;resize:none;min-height:68px;font-family:inherit;line-height:1.4}
         .notes-filter-row{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
         .notes-filter-row::-webkit-scrollbar{display:none}
         .notes-filter-chip{padding:7px 15px;border-radius:20px;font-size:12px;font-weight:800;background:var(--border-light);color:var(--text-sub);cursor:pointer;white-space:nowrap;border:2px solid transparent;flex-shrink:0}
         .notes-filter-chip.active{background:var(--text-main);color:white}
-        .note-card{background:var(--surface-raised);border-radius:var(--radius-md);padding:13px 16px;margin-bottom:9px;border:1px solid var(--border-light);cursor:pointer;transition:background 0.1s}
+        .note-card{background:var(--surface-raised);border-radius:var(--radius);padding:13px 16px;margin-bottom:9px;border:1px solid var(--border-light);cursor:pointer;transition:background 0.1s}
         .note-card:active{background:var(--border-light)}
         .note-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
         .note-card-id{font-size:19px;font-weight:900;color:var(--text-main);letter-spacing:-0.5px}
         .note-card-date{font-size:11px;color:var(--text-muted);font-weight:700}
         .note-card-text{font-size:13px;color:var(--text-sub);margin-top:4px;line-height:1.3}
-        .note-new-btn{width:100%;padding:15px;background:var(--text-main);color:white;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:800;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:7px}
+        .note-new-btn{width:100%;padding:15px;background:var(--text-main);color:white;border:none;border-radius:var(--radius);font-size:15px;font-weight:800;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:7px}
         .note-new-btn:active{background:#1f2937}
-        .onboard-note-card{background:#fffbeb;border:1.5px solid #f59e0b;border-radius:var(--radius-md);padding:13px 15px;margin-bottom:14px;animation:slideDown 0.2s cubic-bezier(0.16,1,0.3,1)}
+        .onboard-note-card{background:var(--accent-amber-bg);border:1.5px solid var(--accent-amber);border-radius:var(--radius);padding:13px 15px;margin-bottom:14px;animation:slideDown 0.2s cubic-bezier(0.16,1,0.3,1)}
         @keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         .onboard-note-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
-        .onboard-note-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#d97706;display:flex;align-items:center;gap:4px}
-        .onboard-note-edit-btn{font-size:12px;font-weight:800;color:var(--text-main);background:none;border:1.5px solid var(--text-main);border-radius:7px;padding:3px 9px;cursor:pointer}
+        .onboard-note-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--accent-amber-dark);display:flex;align-items:center;gap:4px}
+        .onboard-note-edit-btn{font-size:12px;font-weight:800;color:var(--text-main);background:none;border:1.5px solid var(--text-main);border-radius:var(--radius);padding:3px 9px;cursor:pointer}
         .note-quick-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
         .note-quick-btn{padding:7px 13px;border-radius:20px;font-size:12px;font-weight:700;background:var(--accent-orange-bg);color:var(--accent-orange);border:1px solid rgba(234,88,12,0.25);cursor:pointer;display:inline-flex;align-items:center;gap:5px;touch-action:manipulation;transition:all 0.12s;}
         .note-quick-btn:active{background:var(--accent-orange);color:#fff;transform:scale(0.95);}
-        .onboard-note-ghost{background:var(--border-light);border:1.5px dashed var(--border);border-radius:var(--radius-md);padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-sub);font-size:14px;font-weight:600}
+        .onboard-note-ghost{background:var(--border-light);border:1.5px dashed var(--border);border-radius:var(--radius);padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-sub);font-size:14px;font-weight:600}
         .onboard-note-ghost:active{background:var(--border)}
-        .note-tag-chip.custom{background:#fffbeb;color:#b45309;border:2px solid #f59e0b}
-        .note-tag-chip.custom.selected{background:#f59e0b;color:white;border-color:#f59e0b}
+        .note-tag-chip.custom{background:var(--accent-amber-bg);color:var(--accent-amber-dark);border:2px solid var(--accent-amber)}
+        .note-tag-chip.custom.selected{background:var(--accent-amber);color:white;border-color:var(--accent-amber)}
         .note-tag-chip-x{margin-left:6px;font-weight:900;opacity:0.75}
         .note-custom-tag-row{display:flex;gap:8px;margin-top:8px}
-        .note-custom-tag-input{flex:1;padding:10px 13px;background:var(--border-light);border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;color:var(--text-main);outline:none}
-        .note-custom-tag-add-btn{padding:0 16px;background:var(--text-main);color:white;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+        .note-custom-tag-input{flex:1;padding:10px 13px;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text-main);outline:none}
+        .note-custom-tag-add-btn{padding:0 16px;background:var(--text-main);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
         .note-entries-badge{background:var(--border-light);color:var(--text-sub);border-radius:10px;padding:2px 7px;font-size:10px;font-weight:800;margin-left:6px}
-        .note-history-entry{background:var(--border-light);border-radius:12px;padding:10px 13px;margin-bottom:7px}
+        .note-history-entry{background:var(--border-light);border-radius:var(--radius);padding:10px 13px;margin-bottom:7px}
         .note-history-entry-date{font-size:11px;font-weight:800;color:var(--text-sub);margin-bottom:5px}
         .note-history-empty{font-size:12px;color:var(--text-muted);font-weight:600;padding:4px 0 10px}
         .type-badge-small{background:var(--text-main);color:white;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:3px}
@@ -352,29 +339,29 @@
         /* hours tab is now a standard tab-content div -- no fixed positioning needed */
 
         /* Panel header */
-        .ht-header{background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-bottom:1px solid var(--glass-border);padding:14px 16px 12px;flex-shrink:0;z-index:10;}
+        .ht-header{background:var(--surface-raised);border-bottom:1px solid var(--border);padding:14px 16px 12px;flex-shrink:0;z-index:10;}
         .ht-header-title-row{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:8px;min-height:28px;}
-        .ht-header-title{font-size:17px;font-weight:900;color:var(--text-main);letter-spacing:-0.4px;text-align:center;}
+        .ht-header-title{font-size:17px;font-weight:900;color:var(--text-main);letter-spacing:0.3px;text-align:center;text-transform:uppercase;}
         .ht-header-dop-row{display:flex;justify-content:center;margin-bottom:10px;}
 
         /* Shift time row */
-        .ht-time-wrap{display:flex;align-items:center;gap:8px;flex:1;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:8px 14px;}
+        .ht-time-wrap{display:flex;align-items:center;gap:8px;flex:1;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 14px;}
         .ht-time-lbl{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
         .ht-time-input{background:transparent;border:none;color:var(--text-main);font-family:inherit;font-size:15px;font-weight:800;width:90px;outline:none;}
-        .ht-shift-btn{border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:0.3px;white-space:nowrap;transition:all 0.15s;}
+        .ht-shift-btn{border:none;border-radius:var(--radius);padding:10px 18px;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:0.3px;white-space:nowrap;transition:all 0.15s;}
         .ht-shift-btn.idle{background:var(--text-main);color:#fff;}
         .ht-shift-btn.live{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
         .ht-shift-btn.ended{background:var(--border-light);border:1px solid var(--border);color:var(--text-sub);}
         .ht-shift-btn:active{transform:scale(0.97);}
 
         /* DOP toggle */
-        .ht-dop-toggle{display:flex;gap:3px;background:var(--border-light);border-radius:var(--radius-sm);padding:3px;border:1px solid var(--border);}
+        .ht-dop-toggle{display:flex;gap:3px;background:var(--border-light);border-radius:var(--radius);padding:3px;border:1px solid var(--border);}
         .ht-dop-btn{font-size:12px;font-weight:800;padding:8px 16px;min-height:36px;border:none;border-radius:6px;background:transparent;color:var(--text-sub);cursor:pointer;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px;}
         .ht-dop-btn.active{background:var(--text-main);color:#fff;}
 
         /* DOP status bar */
-        .ht-dop-bar{margin:0 16px 0;border-radius:var(--radius-md);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid transparent;transition:background 0.3s,border-color 0.3s;position:relative;overflow:hidden;}
-        .ht-dop-bar::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--radius-md) 0 0 var(--radius-md);transition:background 0.3s;}
+        .ht-dop-bar{margin:0 16px 0;border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid transparent;transition:background 0.3s,border-color 0.3s;position:relative;overflow:hidden;}
+        .ht-dop-bar::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--radius) 0 0 var(--radius);transition:background 0.3s;}
         .ht-dop-bar.state-none{background:var(--border-light);border-color:var(--border);}
         .ht-dop-bar.state-none::before{background:var(--text-muted);}
         .ht-dop-bar.state-met{background:var(--accent-green-bg);border-color:rgba(22,163,74,0.25);}
@@ -398,15 +385,15 @@
 
         /* KPI strip */
         .ht-kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border-light);}
-        .ht-kpi-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:14px 12px;border:1px solid var(--border-light);box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
-        .ht-kpi-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
-        .ht-kpi-belt .ht-kpi-bar{background:#f59e0b;}
+        .ht-kpi-card{background:var(--surface-raised);border-radius:var(--radius);padding:14px 12px;border:1px solid var(--border-light);box-shadow:none;position:relative;overflow:hidden;}
+        .ht-kpi-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
+        .ht-kpi-belt .ht-kpi-bar{background:var(--accent-amber);}
         .ht-kpi-bulk .ht-kpi-bar{background:var(--accent-blue);}
         .ht-kpi-unload .ht-kpi-bar{background:var(--text-sub);}
         .ht-kpi-head{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
         .ht-kpi-icon{font-size:13px;line-height:1;}
         .ht-kpi-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
-        .ht-kpi-belt .ht-kpi-role{color:#d97706;}
+        .ht-kpi-belt .ht-kpi-role{color:var(--accent-amber-dark);}
         .ht-kpi-bulk .ht-kpi-role{color:var(--accent-blue);}
         .ht-kpi-unload .ht-kpi-role{color:var(--text-sub);}
         .ht-kpi-hrs{font-size:26px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-1px;}
@@ -418,31 +405,31 @@
 
         /* Add employee row */
         .ht-add-row{padding:0 16px 8px;display:flex;justify-content:flex-end;}
-        .ht-add-btn{font-size:13px;font-weight:700;color:var(--text-main);background:var(--border-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 14px;cursor:pointer;display:flex;align-items:center;gap:5px;}
+        .ht-add-btn{font-size:13px;font-weight:700;color:var(--text-main);background:var(--border-light);border:1px solid var(--border);border-radius:var(--radius);padding:7px 14px;cursor:pointer;display:flex;align-items:center;gap:5px;}
         .ht-add-btn:active{background:var(--border);}
 
         /* Ended banner */
-        .ht-ended-banner{margin:8px 16px 4px;background:var(--accent-green-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--radius-md);padding:10px 16px;font-size:13px;font-weight:800;color:var(--accent-green);text-align:center;display:none;}
+        .ht-ended-banner{margin:8px 16px 4px;background:var(--accent-green-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--radius);padding:10px 16px;font-size:13px;font-weight:800;color:var(--accent-green);text-align:center;display:none;}
         .ht-ended-banner.show{display:block;}
 
         /* Employee list */
         .ht-emp-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
 
         /* Employee row */
-        .ht-emp-row{background:linear-gradient(160deg,rgba(255,255,255,0.94) 0%,rgba(228,234,255,0.87) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:16px 16px;min-height:78px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);transition:all 0.2s;position:relative;border-left:4px solid transparent;}
-        .ht-emp-row.ht-active.ht-role-belt{border-left-color:#f59e0b;background:#fffbeb;}
+        .ht-emp-row{background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);padding:16px 16px;min-height:78px;display:flex;align-items:center;gap:8px;box-shadow:none;transition:all 0.2s;position:relative;border-left:4px solid transparent;}
+        .ht-emp-row.ht-active.ht-role-belt{border-left-color:var(--accent-amber);background:var(--accent-amber-bg);}
         .ht-emp-row.ht-active.ht-role-bulk{border-left-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-emp-row.ht-active.ht-role-unload{border-left-color:var(--border);background:var(--surface-raised);}
         .ht-emp-row.ht-cut{opacity:0.45;border-style:dashed;}
 
         /* Rank badge */
         .ht-rank{font-size:12px;font-weight:900;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--border-light);color:var(--text-sub);border:1px solid var(--border);}
-        .ht-role-belt .ht-rank{background:#f59e0b;color:#fff;border-color:#f59e0b;}
+        .ht-role-belt .ht-rank{background:var(--accent-amber);color:#fff;border-color:var(--accent-amber);}
         .ht-role-bulk .ht-rank{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue);}
 
         /* Role icon */
-        .ht-role-icon{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;background:var(--border-light);border:1px solid var(--border);cursor:pointer;transition:all 0.15s;}
-        .ht-role-belt .ht-role-icon{background:#fef3c7;border-color:#fde68a;}
+        .ht-role-icon{width:38px;height:38px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;background:var(--border-light);border:1px solid var(--border);cursor:pointer;transition:all 0.15s;}
+        .ht-role-belt .ht-role-icon{background:var(--accent-amber-bg);border-color:var(--accent-amber-border);}
         .ht-role-bulk .ht-role-icon{background:var(--accent-blue-bg);border-color:rgba(37,99,235,0.3);}
         .ht-role-unload .ht-role-icon{background:var(--border-light);border-color:var(--border);}
         .ht-role-icon:active{transform:scale(0.92);}
@@ -452,7 +439,7 @@
         .ht-emp-name{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
         .ht-emp-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;}
         .ht-role-tag{font-size:10px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding:2px 7px;border-radius:5px;}
-        .ht-tag-belt{background:#fef3c7;color:#92400e;}
+        .ht-tag-belt{background:var(--accent-amber-bg);color:var(--accent-amber-dark);}
         .ht-tag-bulk{background:var(--accent-blue-bg);color:var(--accent-blue);}
         .ht-tag-unload{background:var(--border-light);color:var(--text-sub);}
         .ht-tag-manual{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--border-light);color:var(--text-sub);}
@@ -461,13 +448,13 @@
         /* Hours */
         .ht-hrs-wrap{text-align:right;flex-shrink:0;min-width:52px;}
         .ht-hrs{font-size:26px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-1px;}
-        .ht-role-belt .ht-hrs{color:#d97706;}
+        .ht-role-belt .ht-hrs{color:var(--accent-amber-dark);}
         .ht-role-bulk .ht-hrs{color:var(--accent-blue);}
         .ht-hrs-lbl{font-size:9px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
 
         /* Action buttons */
         .ht-actions{display:flex;flex-direction:row;gap:5px;align-items:center;flex-shrink:0;}
-        .ht-btn{font-size:11px;font-weight:800;padding:9px 12px;min-height:36px;border-radius:10px;cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
+        .ht-btn{font-size:11px;font-weight:800;padding:9px 12px;min-height:36px;border-radius:var(--radius);cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
         .ht-btn:active{transform:scale(0.94);}
         .ht-btn-start{background:var(--text-main);color:#fff;}
         .ht-btn-cut{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
@@ -483,29 +470,29 @@
         .ht-live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-green);animation:dot-pulse 2s ease-in-out infinite;}
 
         /* Reset FAB inside panel */
-        .ht-fab{position:fixed;bottom:calc(var(--tab-height) + var(--safe-bottom) + 8px);right:16px;z-index:900;background:var(--surface-raised);border:1px solid var(--border);border-radius:30px;padding:10px 16px;display:none;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-sub);cursor:pointer;box-shadow:var(--shadow-md);transition:transform 0.15s;touch-action:manipulation;}.ht-fab.visible{display:flex;}
+        .ht-fab{position:fixed;bottom:calc(var(--tab-height) + var(--safe-bottom) + 8px);right:16px;z-index:900;background:var(--surface-raised);border:1px solid var(--border);border-radius:30px;padding:10px 16px;display:none;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-sub);cursor:pointer;box-shadow:none;transition:transform 0.15s;touch-action:manipulation;}.ht-fab.visible{display:flex;}
         .ht-fab:active{transform:scale(0.95);}
 
         /* Hours modals (scoped .h-modal-* to avoid Wally's .modal-* collision) */
         .h-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2500;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(6px);}
         .h-modal-overlay.open{opacity:1;pointer-events:all;}
-        .h-modal-sheet{background:var(--surface-raised);width:100%;max-width:600px;border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);max-height:90vh;overflow-y:auto;border:1px solid var(--border-light);border-bottom:none;}
+        .h-modal-sheet{background:var(--surface-raised);width:100%;max-width:600px;border-radius:var(--radius) var(--radius) 0 0;padding:28px 24px;padding-bottom:max(36px,var(--safe-bottom));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);max-height:90vh;overflow-y:auto;border:1px solid var(--border-light);border-bottom:none;}
         .h-modal-overlay.open .h-modal-sheet{transform:translateY(0);}
         .h-modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
         .h-modal-title{font-size:20px;font-weight:900;color:var(--text-main);margin-bottom:16px;letter-spacing:-0.5px;}
-        .h-modal-input{width:100%;padding:15px 16px;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:16px;font-family:inherit;color:var(--text-main);outline:none;margin-bottom:12px;transition:border-color 0.2s;}
+        .h-modal-input{width:100%;padding:15px 16px;background:var(--border-light);border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:inherit;color:var(--text-main);outline:none;margin-bottom:12px;transition:border-color 0.2s;}
         .h-modal-input:focus{border-color:var(--text-main);}
         .h-modal-note{font-size:12px;color:var(--text-sub);margin-bottom:14px;line-height:1.5;}
         .h-modal-row{display:flex;gap:8px;}
-        .h-modal-cancel{flex:1;padding:15px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-md);font-size:15px;font-weight:700;color:var(--text-sub);cursor:pointer;}
-        .h-modal-confirm{flex:2;padding:15px;background:var(--text-main);border:none;border-radius:var(--radius-md);font-size:15px;font-weight:900;color:#fff;cursor:pointer;transition:background 0.15s;}
+        .h-modal-cancel{flex:1;padding:15px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);font-size:15px;font-weight:700;color:var(--text-sub);cursor:pointer;}
+        .h-modal-confirm{flex:2;padding:15px;background:var(--text-main);border:none;border-radius:var(--radius);font-size:15px;font-weight:900;color:#fff;cursor:pointer;transition:background 0.15s;}
         .h-modal-confirm:active{background:#1f2937;}
 
         /* Role picker options */
         .ht-role-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
-        .ht-role-option{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:var(--border-light);cursor:pointer;transition:all 0.15s;}
+        .ht-role-option{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--border-light);cursor:pointer;transition:all 0.15s;}
         .ht-role-option:active{transform:scale(0.98);}
-        .ht-role-option.sel-belt{border-color:#f59e0b;background:#fffbeb;}
+        .ht-role-option.sel-belt{border-color:var(--accent-amber);background:var(--accent-amber-bg);}
         .ht-role-option.sel-bulk{border-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-role-option.sel-unload{border-color:var(--border);background:var(--surface-raised);}
         .ht-role-option.sel-auto{border-color:var(--text-main);background:var(--border-light);}
@@ -514,25 +501,25 @@
         .ht-role-opt-sub{font-size:11px;color:var(--text-sub);margin-top:2px;}
 
         /* Over-DOP toast */
-        .ht-toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-130%);z-index:3000;width:calc(100% - 32px);max-width:420px;background:var(--surface-raised);border:1px solid var(--accent-red);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-lg);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;}
+        .ht-toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-130%);z-index:3000;width:calc(100% - 32px);max-width:420px;background:var(--surface-raised);border:1px solid var(--accent-red);border-radius:var(--radius);padding:14px 16px;box-shadow:none;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;}
         .ht-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
         .ht-toast-top{display:flex;align-items:flex-start;gap:10px;}
         .ht-toast-body{flex:1;}
         .ht-toast-title{font-size:14px;font-weight:900;color:var(--accent-red);margin-bottom:3px;}
         .ht-toast-msg{font-size:12px;color:var(--text-sub);line-height:1.4;}
         .ht-toast-actions{display:flex;gap:8px;margin-top:12px;}
-        .ht-toast-dismiss{flex:1;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
-        .ht-toast-mute{flex:1.4;padding:8px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-sub);cursor:pointer;}
+        .ht-toast-dismiss{flex:1;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
+        .ht-toast-mute{flex:1.4;padding:8px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-weight:700;color:var(--text-sub);cursor:pointer;}
 
         /* ── LABOR THRESHOLD ALERT ───────────────────────── */
         .ht-threshold-badge{position:absolute;top:-4px;right:-4px;background:var(--accent-red);color:white;font-size:9px;font-weight:900;padding:2px 5px;border-radius:8px;border:2px solid white;letter-spacing:0.2px;pointer-events:none;}
         .ht-kpi-card.ht-threshold-exceeded{border:1.5px solid var(--accent-red);}
         .ht-kpi-card.ht-threshold-exceeded .ht-kpi-bar{background:var(--accent-red)!important;}
-        .ht-labor-alert{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-130%);z-index:3000;width:calc(100% - 32px);max-width:420px;background:var(--surface-raised);border:1.5px solid var(--accent-red);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-lg);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;pointer-events:none;}
+        .ht-labor-alert{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-130%);z-index:3000;width:calc(100% - 32px);max-width:420px;background:var(--surface-raised);border:1.5px solid var(--accent-red);border-radius:var(--radius);padding:14px 16px;box-shadow:none;transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;pointer-events:none;}
         .ht-labor-alert.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}
         .ht-labor-alert-title{font-size:14px;font-weight:900;color:var(--accent-red);margin-bottom:3px;}
         .ht-labor-alert-msg{font-size:12px;color:var(--text-sub);line-height:1.4;}
-        .ht-labor-alert-dismiss{margin-top:10px;width:100%;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
+        .ht-labor-alert-dismiss{margin-top:10px;width:100%;padding:8px;background:var(--accent-red-bg);border:1px solid var(--accent-red);border-radius:var(--radius);font-size:12px;font-weight:700;color:var(--accent-red);cursor:pointer;}
 
         /* ── ACCESSIBILITY ────────────────────────────────── */
         :focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:4px}
@@ -547,9 +534,9 @@
         /* ── MODAL UTILITIES ──────────────────────────────── */
         .modal-field-label{font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block}
         .modal-field-group{margin-bottom:15px}
-        .modal-info-box{background:var(--border-light);padding:20px;border-radius:16px;text-align:center;margin-bottom:20px}
-        .modal-warning-box{background:#fff3f2;border:1px solid #ffccc9;border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--accent-red);font-weight:600;line-height:1.4}
-        .modal-neutral-box{background:var(--border-light);border-radius:14px;padding:15px;margin-bottom:20px;font-size:14px;line-height:1.5;color:var(--text-sub)}
+        .modal-info-box{background:var(--border-light);padding:20px;border-radius:var(--radius);text-align:center;margin-bottom:20px}
+        .modal-warning-box{background:#fff3f2;border:1px solid #ffccc9;border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--accent-red);font-weight:600;line-height:1.4}
+        .modal-neutral-box{background:var(--border-light);border-radius:var(--radius);padding:15px;margin-bottom:20px;font-size:14px;line-height:1.5;color:var(--text-sub)}
 
         /* ── WALLY ID TYPOGRAPHY ──────────────────────────── */
         .wally-id{font-family:'SF Mono','Courier New',monospace}
@@ -589,23 +576,23 @@
         <div class="section-label">Sort Statistics</div>
         <div class="stats-grid">
             <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Wally')">
-                <div><div class="stat-card-bar" style="background:#000;"></div><div class="stat-label">Wallies</div></div>
+                <div><div class="stat-card-bar" style="background:var(--text-main);"></div><div class="stat-label">Wallies</div></div>
                 <div class="stat-value" id="stat-total-wally">0</div>
             </div>
             <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('CPU')">
-                <div><div class="stat-card-bar" style="background:#007aff;"></div><div class="stat-label">CPUs</div></div>
+                <div><div class="stat-card-bar" style="background:var(--accent-blue);"></div><div class="stat-label">CPUs</div></div>
                 <div class="stat-value" id="stat-total-cpu">0</div>
             </div>
             <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Hour-0')">
-                <div><div class="stat-card-bar" style="background:#34c759;"></div><div class="stat-label">This Hour</div></div>
+                <div><div class="stat-card-bar" style="background:var(--accent-green);"></div><div class="stat-label">This Hour</div></div>
                 <div class="stat-value" id="stat-hour-wally">0</div>
             </div>
             <div class="stat-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('Hour-1')">
-                <div><div class="stat-card-bar" style="background:#ff9500;"></div><div class="stat-label">Last Hour</div></div>
+                <div><div class="stat-card-bar" style="background:var(--accent-orange);"></div><div class="stat-label">Last Hour</div></div>
                 <div class="stat-value" id="stat-last-wally">0</div>
             </div>
             <div class="stat-card" role="button" tabindex="0" style="grid-column:1/-1;" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="viewStatLogs('All')">
-                <div><div class="stat-card-bar" style="background:#bf5af2;"></div><div class="stat-label">Overall Total</div></div>
+                <div><div class="stat-card-bar" style="background:var(--accent-purple);"></div><div class="stat-label">Overall Total</div></div>
                 <div class="stat-value" id="stat-total-overall">0</div>
             </div>
         </div>
@@ -628,7 +615,7 @@
         <button id="logs-load-more" class="load-more-btn" style="display:none" onclick="loadMoreLogs()">Load More</button>
     </div>
     <div id="tab-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-tools" tabindex="0" style="background:transparent;">
-        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);margin:-20px -20px 20px;"><div class="header-bar" style="margin:0;"><h1>Tools</h1></div></div>
+        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);margin:-20px -20px 20px;"><div class="header-bar" style="margin:0;border-bottom:none;"><h1>Tools</h1></div></div>
         <div class="tools-grid">
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openNotesManager()"><div class="tool-icon-wrapper"><i class="ph ph-notepad"></i></div><div class="tool-title">Notes Manager</div></div>
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openPPHCalculator()"><div class="tool-icon-wrapper"><i class="ph ph-chart-bar"></i></div>
@@ -636,7 +623,7 @@
         </div>
     </div>
     <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:transparent;padding:0;">
-        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);"><div class="header-bar" style="margin:0;"><h1>Settings</h1></div></div>
+        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);"><div class="header-bar" style="margin:0;border-bottom:none;"><h1>Settings</h1></div></div>
         <div style="padding:20px 20px 120px;">
 
             <!-- SHIFT MANAGEMENT & CONFIGURATION (unified) -->
@@ -646,11 +633,11 @@
             </button>
             <div id="sec-shift" class="settings-section-body">
                 <div class="settings-group">
-                    <div class="settings-row" onclick="handleShiftAction()" style="cursor:pointer;"><span class="settings-label">Start New Shift</span><i class="ph ph-arrow-clockwise" style="color:#000;font-size:20px;"></i></div>
-                    <div class="settings-row" onclick="resetData()" style="cursor:pointer;"><span class="settings-label">Reset All Data</span><i class="ph ph-trash" style="color:#ff3b30;font-size:20px;"></i></div>
+                    <div class="settings-row" onclick="handleShiftAction()" style="cursor:pointer;"><span class="settings-label">Start New Shift</span><i class="ph ph-arrow-clockwise" style="color:var(--text-main);font-size:20px;"></i></div>
+                    <div class="settings-row" onclick="resetData()" style="cursor:pointer;"><span class="settings-label">Reset All Data</span><i class="ph ph-trash" style="color:var(--accent-red);font-size:20px;"></i></div>
                     <div class="settings-row"><span class="settings-label">Shift Start Time</span><input type="time" id="setting-shift-start" class="settings-input-inline" onchange="saveShiftStart(this.value)" value="20:00"></div>
                     <div class="settings-row"><span class="settings-label">Enable Grace Period</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Enable Grace Period" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('en-window')" id="switch-en-window" onclick="toggleSwitch('en-window')"></div></div>
-                    <div class="settings-note" style="border-top:1px solid #f2f2f7;padding-top:14px;">When enabled, Wallies completed in the first 10 minutes of a new hour can be counted toward the previous hour.</div>
+                    <div class="settings-note" style="border-top:1px solid var(--surface-alt);padding-top:14px;">When enabled, Wallies completed in the first 10 minutes of a new hour can be counted toward the previous hour.</div>
                 </div>
             </div>
 
@@ -663,16 +650,16 @@
                 <div class="settings-group">
                     <div class="settings-row" style="cursor:pointer;" onclick="openAddTeamMemberInline()">
                         <span class="settings-label">Add Team Member</span>
-                        <i class="ph ph-user-plus" style="color:#000;font-size:20px;"></i>
+                        <i class="ph ph-user-plus" style="color:var(--text-main);font-size:20px;"></i>
                     </div>
-                    <div id="add-team-inline" style="display:none;padding:12px 20px;border-top:1px solid #f2f2f7;background:#f9f9f9;">
+                    <div id="add-team-inline" style="display:none;padding:12px 20px;border-top:1px solid var(--surface-alt);background:var(--surface-alt);">
                         <div style="display:flex;gap:10px;align-items:center;">
                             <input type="text" id="inline-team-name" class="form-input" style="margin:0;flex:1;padding:10px;" placeholder="Full Name" autocapitalize="words">
                             <button class="settings-btn-inline" onclick="confirmAddTeamInline()">Add</button>
                         </div>
                     </div>
                 </div>
-                <div class="settings-group" id="team-management-list"><div style="padding:15px 0;color:#8e8e93;text-align:center;">No saved team members</div></div>
+                <div class="settings-group" id="team-management-list"><div style="padding:15px 0;color:var(--text-sub);text-align:center;">No saved team members</div></div>
             </div>
 
             <!-- DEMO -->
@@ -689,8 +676,8 @@
                     <div class="settings-row"><span class="settings-label">Auto-Complete (15s)</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Auto-Complete (15s)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-autocomplete')" id="switch-demo-autocomplete" onclick="toggleSwitch('demo-autocomplete')"></div></div>
                     <div class="settings-row"><span class="settings-label">Disable Webhook Firing</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Disable Webhook Firing" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('demo-nowebhook')" id="switch-demo-nowebhook" onclick="toggleSwitch('demo-nowebhook')"></div></div>
                     <div class="settings-row"><span class="settings-label">Number of Doors</span><div class="stepper"><button class="stepper-btn" onclick="stepDoor(-1)">-</button><span class="stepper-val" id="demo-door-val">2</span><button class="stepper-btn" onclick="stepDoor(1)">+</button></div></div>
-                    <div class="settings-row" style="justify-content:center;background:#f9f9f9;"><div class="segment-control"><div class="segment-opt selected" id="seg-wally" onclick="setDemoType('Wally')">Wally</div><div class="segment-opt" id="seg-cpu" onclick="setDemoType('CPU')">CPU</div></div></div>
-                    <div class="settings-row" style="cursor:pointer;background:#000;border-radius:0;" onclick="startDemo()">
+                    <div class="settings-row" style="justify-content:center;background:var(--surface-alt);"><div class="segment-control"><div class="segment-opt selected" id="seg-wally" onclick="setDemoType('Wally')">Wally</div><div class="segment-opt" id="seg-cpu" onclick="setDemoType('CPU')">CPU</div></div></div>
+                    <div class="settings-row" style="cursor:pointer;background:var(--text-main);border-radius:0;" onclick="startDemo()">
                         <span class="settings-label" style="color:white;font-weight:800;">Auto-Onboard</span>
                         <i class="ph ph-play-circle" style="color:white;font-size:22px;"></i>
                     </div>
@@ -703,7 +690,7 @@
                 <i class="ph ph-caret-down" id="caret-sec-changelog"></i>
             </button>
             <div id="sec-changelog" class="settings-section-body">
-                <div class="settings-group"><div class="settings-row" onclick="viewChangelog()" style="cursor:pointer;"><span class="settings-label">View Version History</span><i class="ph ph-caret-right" style="color:#ccc;"></i></div></div>
+                <div class="settings-group"><div class="settings-row" onclick="viewChangelog()" style="cursor:pointer;"><span class="settings-label">View Version History</span><i class="ph ph-caret-right" style="color:var(--border);"></i></div></div>
             </div>
 
         </div>
@@ -801,11 +788,11 @@
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-settings" onclick="switchTab('settings',this)" id="tab-btn-settings"><i class="ph ph-sliders-horizontal"></i><span>Settings</span></button>
 </nav>
 <!-- All modals identical to original, preserved below -->
-<div class="modal-overlay" id="pph-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">PPH Calculator</h2><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Volume (Packages)</label><input type="number" id="pph-volume" class="form-input" placeholder="e.g. 12617" inputmode="numeric" oninput="calculatePPH()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Hours Worked</label><input type="number" id="pph-hours" class="form-input" placeholder="e.g. 20.63" step="0.01" inputmode="decimal" oninput="calculatePPH()"></div><div style="background:#f9f9f9;padding:20px;border-radius:16px;text-align:center;margin-bottom:20px;"><div style="font-size:14px;color:var(--text-sub);font-weight:600;margin-bottom:5px;">Calculated PPH</div><div style="font-size:36px;font-weight:900;color:#000;line-height:1;" id="pph-result">0</div><div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;"><span style="font-size:12px;color:var(--text-sub);font-weight:600;text-transform:uppercase;">Time Differential (vs 600 PPH)</span><span id="pph-diff" style="font-size:14px;font-weight:800;padding:4px 10px;border-radius:12px;background:#e5e5ea;color:#000;">0.00 hrs</span></div></div><button id="pph-push-btn" class="btn-primary" onclick="uploadPPH()" style="background:#000;margin-bottom:10px;">Push to Sheets</button><button class="btn-cancel" onclick="closeModal('pph-modal')">Close</button></div></div>
+<div class="modal-overlay" id="pph-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">PPH Calculator</h2><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Volume (Packages)</label><input type="number" id="pph-volume" class="form-input" placeholder="e.g. 12617" inputmode="numeric" oninput="calculatePPH()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Hours Worked</label><input type="number" id="pph-hours" class="form-input" placeholder="e.g. 20.63" step="0.01" inputmode="decimal" oninput="calculatePPH()"></div><div style="background:var(--surface-alt);padding:20px;border-radius:16px;text-align:center;margin-bottom:20px;"><div style="font-size:14px;color:var(--text-sub);font-weight:600;margin-bottom:5px;">Calculated PPH</div><div style="font-size:36px;font-weight:900;color:var(--text-main);line-height:1;" id="pph-result">0</div><div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;"><span style="font-size:12px;color:var(--text-sub);font-weight:600;text-transform:uppercase;">Time Differential (vs 600 PPH)</span><span id="pph-diff" style="font-size:14px;font-weight:800;padding:4px 10px;border-radius:12px;background:var(--border);color:var(--text-main);">0.00 hrs</span></div></div><button id="pph-push-btn" class="btn-primary" onclick="uploadPPH()" style="background:var(--text-main);margin-bottom:10px;">Push to Sheets</button><button class="btn-cancel" onclick="closeModal('pph-modal')">Close</button></div></div>
 <div class="modal-overlay" id="note-modal"><div class="modal-sheet">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
         <div>
-            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#8e8e93;margin-bottom:4px;">Wally Notes</div>
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-sub);margin-bottom:4px;">Wally Notes</div>
             <div class="note-editor-wally-id" id="note-wally-id-display">----</div>
         </div>
         <button class="btn-danger" style="width:auto;padding:8px 16px;margin:0;font-size:14px;border-radius:12px;" onclick="deleteNote()">Clear</button>
@@ -827,7 +814,7 @@
 <div class="modal-overlay" id="notes-manager-modal"><div class="modal-sheet" style="max-height:85vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <h2 style="margin:0;font-size:24px;font-weight:900;">Notes</h2>
-        <button class="note-new-btn" style="width:auto;padding:10px 18px;margin:0;font-size:14px;border-radius:12px;" onclick="openNoteModal('','manager')"><i class="ph ph-plus"></i> New Note</button>
+        <button class="note-new-btn" style="width:auto;padding:10px 18px;margin:0;font-size:13px;letter-spacing:0.4px;text-transform:uppercase;border-radius:var(--radius);" onclick="openNoteModal('','manager')"><i class="ph ph-plus"></i> New Note</button>
     </div>
     <input type="text" id="notes-search" class="search-bar" placeholder="Search Wally ID or keyword..." style="margin-bottom:12px;">
     <div class="notes-filter-row" id="notes-filter-row"></div>
@@ -835,18 +822,18 @@
     <button class="btn-cancel" onclick="closeModal('notes-manager-modal')">Close</button>
 </div></div>
 <div class="modal-overlay" id="manual-add-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Manual Add</h2><div class="type-selector"><div class="type-opt selected" id="manual-opt-wally" onclick="setManualType('Wally')">Wally</div><div class="type-opt" id="manual-opt-cpu" onclick="setManualType('CPU')">CPU</div></div><div id="manual-wally-inputs"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Wally Number</label><input type="text" id="manual-wally-id" class="form-input" placeholder="e.g. 5589" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div></div><div id="manual-cpu-inputs" style="display:none;"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Number</label><input type="text" id="manual-trailer-id" class="form-input" placeholder="e.g. TRL123" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account Number</label><input type="text" id="manual-account-id" class="form-input" placeholder="e.g. ACCT456" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()" list="saved-accounts-datalist"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="manual-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="manual-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="manual-chk-gv" value="GV"><span>GV</span></label></div></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="manual-unloader" class="form-input" onchange="checkManualCustomUnloader(this)"><option value="" selected>Unassigned</option></select><input type="text" id="manual-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="margin-bottom:20px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Assign to Hour</label><select id="manual-hour-select" class="form-input"><option value="1">1st Hour</option><option value="2">2nd Hour</option><option value="3">3rd Hour</option><option value="4">4th Hour</option><option value="5">5th Hour</option></select></div><button class="btn-primary" onclick="confirmManualAdd()">Add to Stats</button><button class="btn-cancel" onclick="closeModal('manual-add-modal')">Cancel</button></div></div>
-<div class="modal-overlay z-high" id="move-count-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Move Door</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Count this door as a completion?</p><button class="btn-primary" onclick="handleMoveCount(true)">Yes</button><button class="btn-primary" onclick="handleMoveCount(false)" style="background:#f2f2f7;color:#000;margin-top:10px;">No</button><button class="btn-cancel" onclick="closeModal('move-count-modal')">Cancel</button></div></div>
+<div class="modal-overlay z-high" id="move-count-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Move Door</h2><p style="text-align:center;color:var(--text-sub);margin-bottom:25px;">Count this door as a completion?</p><button class="btn-primary" onclick="handleMoveCount(true)">Yes</button><button class="btn-primary" onclick="handleMoveCount(false)" style="background:var(--surface-alt);color:var(--text-main);margin-top:10px;">No</button><button class="btn-cancel" onclick="closeModal('move-count-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="changelog-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Changelog</h2><div id="changelog-content" style="max-height:300px;overflow-y:auto;font-size:14px;line-height:1.5;color:#333;white-space:pre-wrap;"></div><button class="btn-cancel" onclick="closeModal('changelog-modal')" style="margin-top:20px;">Close</button></div></div>
-<div class="modal-overlay" id="export-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Export Data</h2><button class="btn-primary" onclick="exportLogsCSV()">Export CSV (Spreadsheet)</button><button class="btn-primary" onclick="exportLogsPDF()" style="margin-top:10px;background:#e5e5ea;color:#000;">Export PDF (Report)</button><button class="btn-cancel" onclick="closeModal('export-modal')">Cancel</button></div></div>
-<div class="modal-overlay z-high" id="hour-attribution-modal"><div class="modal-sheet"><h2 style="margin:0 0 6px;font-size:24px;text-align:center;">Grace Period</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Completed in the first 10 minutes of the hour.</p><button class="btn-primary" onclick="resolveAttribution('Current')">Current Hour</button><button class="btn-primary" onclick="resolveAttribution('Previous')" style="background:#f2f2f7;color:#000;margin-top:10px;">Previous Hour</button></div></div>
+<div class="modal-overlay" id="export-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Export Data</h2><button class="btn-primary" onclick="exportLogsCSV()">Export CSV (Spreadsheet)</button><button class="btn-primary" onclick="exportLogsPDF()" style="margin-top:10px;background:var(--border);color:var(--text-main);">Export PDF (Report)</button><button class="btn-cancel" onclick="closeModal('export-modal')">Cancel</button></div></div>
+<div class="modal-overlay z-high" id="hour-attribution-modal"><div class="modal-sheet"><h2 style="margin:0 0 6px;font-size:24px;text-align:center;">Grace Period</h2><p style="text-align:center;color:var(--text-sub);margin-bottom:25px;">Completed in the first 10 minutes of the hour.</p><button class="btn-primary" onclick="resolveAttribution('Current')">Current Hour</button><button class="btn-primary" onclick="resolveAttribution('Previous')" style="background:var(--surface-alt);color:var(--text-main);margin-top:10px;">Previous Hour</button></div></div>
 <div class="modal-overlay" id="filter-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Filter Logs</h2><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;display:block;margin-bottom:5px;">By Date</label><input type="date" id="filter-date-input" class="form-input" style="padding:12px;"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;display:block;margin-bottom:5px;">By Door</label><div class="filter-grid" id="filter-grid"></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;display:block;margin-bottom:5px;">By Unloader</label><select id="filter-unloader-select" class="form-input"><option value="All">All Unloaders</option></select></div><button class="btn-primary" onclick="applyFilter()">Apply Filters</button><button class="btn-cancel" onclick="closeModal('filter-modal')">Cancel</button></div></div>
-<div class="modal-overlay z-high" id="duplicate-wally-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Duplicate Wally Detected</h2><div style="background:#f9f9f9;padding:15px;border-radius:12px;margin-bottom:20px;font-size:14px;line-height:1.5;"><p style="margin:0 0 10px;">Wally <strong id="dup-wally-id"></strong> was already completed.</p><div style="display:flex;justify-content:space-between;"><span style="color:#757575;">Door:</span><strong id="dup-door"></strong></div><div style="display:flex;justify-content:space-between;margin-top:5px;"><span style="color:#757575;">Completed:</span><strong id="dup-time"></strong></div><div style="display:flex;justify-content:space-between;margin-top:5px;"><span style="color:#757575;">Unloader:</span><strong id="dup-unloader"></strong></div></div><button class="btn-primary" onclick="continueWithDuplicate()">Continue Anyway</button><button class="btn-cancel" onclick="closeModal('duplicate-wally-modal')" style="margin-top:10px;">Cancel</button></div></div>
-<div class="modal-overlay" id="input-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Onboard Door <span id="modal-door-num"></span></h2><div id="onboard-form-container"><div class="type-selector"><div class="type-opt selected" id="opt-wally" onclick="setType('Wally')">Wally</div><div class="type-opt" id="opt-cpu" onclick="setType('CPU')">CPU</div></div><div id="wally-inputs"><div style="margin-bottom:6px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Wally Number</label><input type="text" id="input-wally-id" class="form-input" style="margin-bottom:10px;" placeholder="e.g. 5589" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateOnboardingNotePreview(this.value)"></div><div id="onboarding-note-preview" style="display:none;"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Notes</label><div class="note-tags-row" id="onboard-tag-chips"></div><div class="note-custom-tag-row"><input type="text" id="onboard-custom-tag-input" class="note-custom-tag-input" placeholder="Add custom tag..." onkeydown="if(event.key==='Enter'){event.preventDefault();addOnboardCustomTag()}"><button type="button" class="note-custom-tag-add-btn" onclick="addOnboardCustomTag()">Add</button></div><div class="note-tags-row" id="onboard-custom-tag-chips" style="margin-top:6px;"></div><textarea id="onboard-note-text" class="note-text-input" placeholder="Optional free text (keep it brief)..." maxlength="120" style="margin-top:8px;"></textarea></div></div><div id="cpu-inputs" style="display:none;"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Number</label><input type="text" id="input-trailer-id" class="form-input" placeholder="e.g. TRL123" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account Number</label><input type="text" id="input-account-id" class="form-input" placeholder="e.g. ACCT456" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"><datalist id="saved-accounts-datalist"></datalist></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="chk-gv" value="GV"><span>GV</span></label></div></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Assigned Unloader (Optional)</label><select id="select-unloader" class="form-input" onchange="checkCustomUnloader(this)"><option value="" selected>Unassigned</option></select><input type="text" id="input-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Start Time</label><input type="time" id="input-onboard-time" class="form-input"></div><button class="btn-primary" id="btn-start-unload" onclick="confirmArrival(false)">Start Unload</button><button class="btn-primary" onclick="confirmArrival(true)" style="background:#007aff;margin-top:10px;">Stage Only (No Unloader Yet)</button></div><div id="unavailable-msg" style="display:none;text-align:center;padding:30px 0;"><i class="ph ph-prohibit" style="font-size:48px;color:var(--text-sub);margin-bottom:10px;"></i><div style="font-size:18px;font-weight:700;color:var(--text-main);">Bay Unavailable</div><div style="font-size:14px;color:var(--text-sub);">This bay is currently marked for maintenance or offline.</div></div><button class="btn-primary btn-history" onclick="viewDoorLogs(currentDoor)">View History</button><button class="btn-primary" id="btn-toggle-availability" onclick="handleAvailabilityToggle()" style="background:var(--surface-raised);border:1.5px solid var(--border);color:var(--text-main);margin-top:10px;">Mark Unavailable</button><button class="btn-cancel" onclick="closeModal('input-modal')">Cancel</button></div></div>
+<div class="modal-overlay z-high" id="duplicate-wally-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Duplicate Wally Detected</h2><div style="background:var(--surface-alt);padding:15px;border-radius:12px;margin-bottom:20px;font-size:14px;line-height:1.5;"><p style="margin:0 0 10px;">Wally <strong id="dup-wally-id"></strong> was already completed.</p><div style="display:flex;justify-content:space-between;"><span style="color:var(--text-sub);">Door:</span><strong id="dup-door"></strong></div><div style="display:flex;justify-content:space-between;margin-top:5px;"><span style="color:var(--text-sub);">Completed:</span><strong id="dup-time"></strong></div><div style="display:flex;justify-content:space-between;margin-top:5px;"><span style="color:var(--text-sub);">Unloader:</span><strong id="dup-unloader"></strong></div></div><button class="btn-primary" onclick="continueWithDuplicate()">Continue Anyway</button><button class="btn-cancel" onclick="closeModal('duplicate-wally-modal')" style="margin-top:10px;">Cancel</button></div></div>
+<div class="modal-overlay" id="input-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Onboard Door <span id="modal-door-num"></span></h2><div id="onboard-form-container"><div class="type-selector"><div class="type-opt selected" id="opt-wally" onclick="setType('Wally')">Wally</div><div class="type-opt" id="opt-cpu" onclick="setType('CPU')">CPU</div></div><div id="wally-inputs"><div style="margin-bottom:6px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Wally Number</label><input type="text" id="input-wally-id" class="form-input" style="margin-bottom:10px;" placeholder="e.g. 5589" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateOnboardingNotePreview(this.value)"></div><div id="onboarding-note-preview" style="display:none;"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Notes</label><div class="note-tags-row" id="onboard-tag-chips"></div><div class="note-custom-tag-row"><input type="text" id="onboard-custom-tag-input" class="note-custom-tag-input" placeholder="Add custom tag..." onkeydown="if(event.key==='Enter'){event.preventDefault();addOnboardCustomTag()}"><button type="button" class="note-custom-tag-add-btn" onclick="addOnboardCustomTag()">Add</button></div><div class="note-tags-row" id="onboard-custom-tag-chips" style="margin-top:6px;"></div><textarea id="onboard-note-text" class="note-text-input" placeholder="Optional free text (keep it brief)..." maxlength="120" style="margin-top:8px;"></textarea></div></div><div id="cpu-inputs" style="display:none;"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Number</label><input type="text" id="input-trailer-id" class="form-input" placeholder="e.g. TRL123" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account Number</label><input type="text" id="input-account-id" class="form-input" placeholder="e.g. ACCT456" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"><datalist id="saved-accounts-datalist"></datalist></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="chk-gv" value="GV"><span>GV</span></label></div></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Assigned Unloader (Optional)</label><select id="select-unloader" class="form-input" onchange="checkCustomUnloader(this)"><option value="" selected>Unassigned</option></select><input type="text" id="input-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Start Time</label><input type="time" id="input-onboard-time" class="form-input"></div><button class="btn-primary" id="btn-start-unload" onclick="confirmArrival(false)">Start Unload</button><button class="btn-primary" onclick="confirmArrival(true)" style="background:var(--accent-blue);margin-top:10px;">Stage Only (No Unloader Yet)</button></div><div id="unavailable-msg" style="display:none;text-align:center;padding:30px 0;"><i class="ph ph-prohibit" style="font-size:48px;color:var(--text-sub);margin-bottom:10px;"></i><div style="font-size:18px;font-weight:700;color:var(--text-main);">Bay Unavailable</div><div style="font-size:14px;color:var(--text-sub);">This bay is currently marked for maintenance or offline.</div></div><button class="btn-primary btn-history" onclick="viewDoorLogs(currentDoor)">View History</button><button class="btn-primary" id="btn-toggle-availability" onclick="handleAvailabilityToggle()" style="background:var(--surface-raised);border:1.5px solid var(--border);color:var(--text-main);margin-top:10px;">Mark Unavailable</button><button class="btn-cancel" onclick="closeModal('input-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="add-unloader-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Add New Unloader</h2><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader Name</label><input type="text" id="input-new-unloader-name" class="form-input" placeholder="e.g. John Doe" autocapitalize="words"></div><button class="btn-primary" onclick="confirmAddUnloader()">Add Name</button><button class="btn-cancel" onclick="closeModal('add-unloader-modal')">Cancel</button></div></div>
-<div class="modal-overlay" id="active-detail-modal"><div class="modal-sheet"><h2 style="margin:0 0 16px;font-size:24px;text-align:center;">Active Door <span id="detail-door-num"></span></h2><div style="margin-bottom:20px;background:linear-gradient(160deg,rgba(255,255,255,0.95),rgba(226,236,255,0.88));border:1px solid var(--glass-border);border-radius:var(--radius-md);overflow:hidden;"><div class="detail-row"><span class="detail-label">Type</span><span class="detail-value" id="detail-type"></span></div><div class="detail-row"><span class="detail-label">ID #</span><span class="detail-value" id="detail-id"></span></div><div class="detail-row" id="row-account" style="display:none;"><span class="detail-label">Account #</span><span class="detail-value" id="detail-account"></span></div><div class="detail-row" id="row-cpu-opts" style="display:none;"><span class="detail-label">Options</span><span class="detail-value" id="detail-cpu-opts"></span></div><div class="detail-row"><span class="detail-label">Unloader</span><span class="detail-value" id="detail-unloader"></span></div><div class="detail-row"><span class="detail-label">Arrived</span><span class="detail-value" id="detail-time"></span></div><div class="detail-row" id="row-labor-start" style="display:none;"><span class="detail-label">Labor Start</span><span class="detail-value" id="detail-labor-time"></span></div><div class="detail-row"><span class="detail-label">Door Time</span><span class="detail-value" id="detail-duration">0m</span></div><div class="detail-row" id="row-unload-time" style="display:none;"><span class="detail-label">Unload Time</span><span class="detail-value" id="detail-unload-duration">0m</span></div><div class="detail-row" id="row-dwell" style="display:none;"><span class="detail-label" style="color:#ff9500;">Dwell</span><span class="detail-value" id="detail-dwell" style="color:#ff9500;"></span></div></div><div id="row-cpu-next" style="display:none;border-top:1px solid var(--border-light);padding:14px 0;margin-bottom:14px;">
+<div class="modal-overlay" id="active-detail-modal"><div class="modal-sheet"><h2 style="margin:0 0 16px;font-size:24px;text-align:center;">Active Door <span id="detail-door-num"></span></h2><div style="margin-bottom:20px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;"><div class="detail-row"><span class="detail-label">Type</span><span class="detail-value" id="detail-type"></span></div><div class="detail-row"><span class="detail-label">ID #</span><span class="detail-value" id="detail-id"></span></div><div class="detail-row" id="row-account" style="display:none;"><span class="detail-label">Account #</span><span class="detail-value" id="detail-account"></span></div><div class="detail-row" id="row-cpu-opts" style="display:none;"><span class="detail-label">Options</span><span class="detail-value" id="detail-cpu-opts"></span></div><div class="detail-row"><span class="detail-label">Unloader</span><span class="detail-value" id="detail-unloader"></span></div><div class="detail-row"><span class="detail-label">Arrived</span><span class="detail-value" id="detail-time"></span></div><div class="detail-row" id="row-labor-start" style="display:none;"><span class="detail-label">Labor Start</span><span class="detail-value" id="detail-labor-time"></span></div><div class="detail-row"><span class="detail-label">Door Time</span><span class="detail-value" id="detail-duration">0m</span></div><div class="detail-row" id="row-unload-time" style="display:none;"><span class="detail-label">Unload Time</span><span class="detail-value" id="detail-unload-duration">0m</span></div><div class="detail-row" id="row-dwell" style="display:none;"><span class="detail-label" style="color:var(--accent-orange);">Dwell</span><span class="detail-value" id="detail-dwell" style="color:var(--accent-orange);"></span></div></div><div id="row-cpu-next" style="display:none;border-top:1px solid var(--border-light);padding:14px 0;margin-bottom:14px;">
   <div id="cpu-next-wally-row">
     <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
-      <input type="checkbox" id="chk-cpu-next" style="width:20px;height:20px;accent-color:#000;cursor:pointer;">
+      <input type="checkbox" id="chk-cpu-next" style="width:20px;height:20px;accent-color:var(--text-main);cursor:pointer;">
       <span style="font-size:15px;font-weight:700;color:var(--text-main);">CPU replacing this Wally</span>
     </label>
     <div style="font-size:12px;color:var(--text-sub);margin-top:6px;margin-left:32px;">Team will be notified Door <span id="cpu-next-door-num"></span> is going CPU next.</div>
@@ -858,15 +845,15 @@
       <span style="font-size:15px;font-weight:700;color:var(--text-main);">CPU -- another CPU is coming</span>
     </label>
     <label style="display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="setCpuReplacement('Wally')">
-      <input type="checkbox" id="chk-replace-wally" style="width:20px;height:20px;accent-color:#007aff;cursor:pointer;" onclick="setCpuReplacement('Wally')">
-      <span style="font-size:15px;font-weight:700;color:#007aff;">Wally -- a Wally is coming</span>
+      <input type="checkbox" id="chk-replace-wally" style="width:20px;height:20px;accent-color:var(--accent-blue);cursor:pointer;" onclick="setCpuReplacement('Wally')">
+      <span style="font-size:15px;font-weight:700;color:var(--accent-blue);">Wally -- a Wally is coming</span>
     </label>
     <div style="font-size:12px;color:var(--text-sub);margin-top:8px;">Team will be notified what is rolling to Door <span class="cpu-next-door-num-ref"></span> next.</div>
   </div>
-</div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border-light);cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" id="btn-detail-note" onclick="openEditNoteFromActive()" style="flex:1;display:none;"><i class="ph ph-note-pencil"></i></button><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
+</div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border-light);cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:var(--text-main);cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" id="btn-detail-note" onclick="openEditNoteFromActive()" style="flex:1;display:none;"><i class="ph ph-note-pencil"></i></button><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid var(--border);"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
 <div class="modal-overlay z-high" id="start-shift-bays-modal"><div class="modal-sheet">
   <h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Trailers Still Onboard</h2>
-  <p style="text-align:center;color:#757575;margin-bottom:6px;font-size:15px;">
+  <p style="text-align:center;color:var(--text-sub);margin-bottom:6px;font-size:15px;">
     There are <strong id="start-shift-bay-count"></strong> trailer(s) currently active.
     What should happen to them?
   </p>
@@ -878,19 +865,19 @@
   </button>
   <button class="btn-cancel" onclick="closeModal('start-shift-bays-modal')">Cancel</button>
 </div></div>
-<div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
-<div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:#757575;margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
-<div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="edit-active-labor-time" class="form-input" style="margin-bottom:0;flex:1;"><button type="button" onclick="setLaborTimeNow()" style="padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--text-main);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:0.2px;">Now</button></div></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
+<div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:var(--text-sub);margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
+<div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:var(--text-sub);margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
+<div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="edit-active-labor-time" class="form-input" style="margin-bottom:0;flex:1;"><button type="button" onclick="setLaborTimeNow()" style="padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--text-main);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:0.2px;">Now</button></div></div></div><div style="font-size:12px;color:var(--text-sub);margin-bottom:15px;padding:10px 14px;background:var(--surface-alt);border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
 <div class="modal-overlay z-high" id="end-shift-modal"><div class="modal-sheet">
     <h2 style="margin:0 0 6px;font-size:24px;font-weight:900;">End Shift</h2>
-    <p style="color:#8e8e93;font-size:14px;margin:0 0 20px;line-height:1.4;">Review what will happen before confirming.</p>
-    <div id="end-shift-summary" style="background:#f9f9f9;border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px;"></div>
+    <p style="color:var(--text-sub);font-size:14px;margin:0 0 20px;line-height:1.4;">Review what will happen before confirming.</p>
+    <div id="end-shift-summary" style="background:var(--surface-alt);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px;"></div>
     <div style="background:#fff3f2;border:1px solid #ffccc9;border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#cc2200;font-weight:600;line-height:1.4;">
         <i class="ph ph-warning" style="font-size:16px;vertical-align:middle;margin-right:5px;"></i>All remaining active bays will be marked <strong>incomplete</strong> and synced to Sheets.
     </div>
-    <label style="display:flex;align-items:center;gap:10px;padding:10px 0 16px;cursor:pointer;"><input type="checkbox" id="chk-share-total" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Share total wallies to team</span></label>
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 0 16px;cursor:pointer;"><input type="checkbox" id="chk-share-total" style="width:20px;height:20px;accent-color:var(--text-main);cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Share total wallies to team</span></label>
     <button class="btn-primary btn-danger" onclick="confirmEndShift(false)" style="margin-bottom:10px;">End &amp; Close Bays</button>
-    <button class="btn-primary" onclick="confirmEndShift(true)" style="background:#f2f2f7;color:#000;margin-bottom:10px;">End &amp; Keep Bays Open</button>
+    <button class="btn-primary" onclick="confirmEndShift(true)" style="background:var(--surface-alt);color:var(--text-main);margin-bottom:10px;">End &amp; Keep Bays Open</button>
     <button class="btn-cancel" onclick="closeModal('end-shift-modal')">Cancel</button>
 </div></div>
 <div class="modal-overlay z-high" id="edit-log-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Log Entry</h2><input type="hidden" id="edit-log-index"><div class="type-selector"><div class="type-opt selected" id="edit-opt-wally" onclick="setEditType('Wally')">Wally</div><div class="type-opt" id="edit-opt-cpu" onclick="setEditType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">ID / Trailer #</label><input type="text" id="edit-input-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-log-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-log-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-log-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-log-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-select-unloader" class="form-input"></select></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Completion Hour</label><select id="edit-completion-hour" class="form-input"><option value="1">1st Hour</option><option value="2">2nd Hour</option><option value="3">3rd Hour</option><option value="4">4th Hour</option><option value="5">5th Hour</option><option value="6">6th Hour</option><option value="7">7th Hour</option><option value="8">8th Hour</option><option value="9">9th Hour</option><option value="10">10th Hour</option><option value="11">11th Hour</option><option value="12">12th Hour</option></select></div><button class="btn-primary" onclick="confirmLogEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-log-modal')">Discard</button></div></div>
@@ -899,13 +886,22 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.66',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.67',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.67:
+- Design: App-wide UI redesign -- sharper, sleeker, Nike.com-inspired look.
+  Flat opaque surfaces replace glassmorphism everywhere; corners collapsed to
+  a single sharp 4px radius (bay circles stay circular, tags/badges stay
+  pill-shaped); bottom nav is now a full-width flat bar; bay circles use one
+  consistent fill instead of decorative per-bay colors; two parallel color
+  systems (tokenized accents vs. hardcoded iOS colors) unified into one;
+  page titles and primary buttons now use a bold uppercase treatment; Hours
+  tab's separate design system brought in line with the rest of the app.
 v6.66:
 - New: Onboarding form has an inline Notes section -- pick predefined tags
   and/or type custom tags plus optional text right at onboarding. Saving
@@ -946,7 +942,7 @@ v6.63:
 - UI: Active door modal detail section wrapped in glassmorphism card matching
   stat-cards and log-cards. detail-value font-size 14px->15px, padding added.
 - UI: Onboard modal Bay Unavailable colors and Mark Unavailable button use
-  CSS variables instead of hardcoded #000/#8e8e93/#e5e5ea.
+  CSS variables instead of hardcoded var(--text-main)/var(--text-sub)/var(--border).
 - Fix: Hours tab Add Employee now Title-Cases the name and calls
   populateUnloaderSelect() so new employees appear in all unloader dropdowns.
 v6.62:
@@ -955,7 +951,7 @@ v6.62:
 - UI: Active door modal CPU section removed background box and horizontal padding
   so checkboxes align flush with modal content edge. Border-top separator added.
 - UI: Skip share sheet row gets a border-top separator for consistent visual rhythm.
-- UI: Hardcoded #000 and #8e8e93 colors in CPU section replaced with CSS variables.
+- UI: Hardcoded var(--text-main) and var(--text-sub) colors in CPU section replaced with CSS variables.
 v6.61:
 - Fix: Completion payloads no longer silently dropped when a start payload was
   in-flight during completion. Each queued payload now gets a unique _queueId.
@@ -1062,12 +1058,12 @@ v6.45:
 - A11Y: Settings collapse buttons have aria-expanded=false; synced in toggleSection().
 - A11Y: Active-trailers badge has aria-label synced in updateTabBadges().
 - Contrast: --text-sub darkened to #4b5563 (6.6:1, was 4.2:1). --text-muted
-  to #6b7280 (improved from #9ca3af 2.5:1).
+  to var(--text-muted) (improved from var(--text-muted) 2.5:1).
 - Stepper +/- buttons enlarged to 44x44px (WCAG minimum touch target).
 - Settings labels get flex:1 + text-overflow:ellipsis (prevents overflow on narrow screens).
 - Visual hierarchy: Dashboard nameplate now appears before action buttons so
   shift context is established first.
-- Hardcoded #e5e5ea / white in Tools+Settings tab headers replaced with CSS variables.
+- Hardcoded var(--border) / white in Tools+Settings tab headers replaced with CSS variables.
 - Added .modal-field-label, .modal-info-box, .modal-warning-box, .modal-neutral-box
   CSS utility classes for future modal refactoring.
 
@@ -1430,7 +1426,7 @@ v6.20:
 - New: Note editor redesigned as a bottom sheet with tag chips and a minimal textarea.
 - New: Notes Manager redesigned -- tag filter chips, grouped note cards with last-seen date, inline "New Note" button.
 - New: Note sync to webhook -- note saves and deletes send dataType=NOTE payloads. Completion records embed noteSnapshot.
-- New: Section title labels on dashboard styled as uppercase subheaders. Background changed to #f2f2f7 for depth.
+- New: Section title labels on dashboard styled as uppercase subheaders. Background changed to var(--surface-alt) for depth.
 
 v6.19:
 - Change: Settings page sections are now collapsible (tap heading to expand/collapse).
@@ -1620,9 +1616,9 @@ v5.06:
             setTimeout(function(){if(!isSyncingWebhook&&badge&&badge.classList.contains('error')){badge.classList.remove('error');badge.onclick=null;updateSyncBadge();processWebhookQueue();}},5000);
         });
     }
-    function openPPHCalculator(){byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='#e5e5ea';byId('pph-diff').style.color='#000';byId('pph-modal').style.display='flex'}
-    function calculatePPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value),resEl=byId('pph-result'),diffEl=byId('pph-diff');if(isNaN(vol)||isNaN(hrs)||hrs<=0){resEl.innerText='0';diffEl.innerText='0.00 hrs';diffEl.style.background='#e5e5ea';diffEl.style.color='#000';return}const pph=Math.round(vol/hrs);resEl.innerText=pph;const targetHours=vol/600,diff=hrs-targetHours;let diffText=diff>0?'+'+diff.toFixed(2):diff.toFixed(2);diffEl.innerText=diffText+' hrs';if(diff<=0){diffEl.style.background='#e8f5e9';diffEl.style.color='#2e7d32'}else{diffEl.style.background='#ffebee';diffEl.style.color='#c62828'}}
-    function uploadPPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value);if(isNaN(vol)||isNaN(hrs)||hrs<=0)return alert("Please enter valid volume and hours first.");const pph=Math.round(vol/hrs),diff=(hrs-vol/600).toFixed(2);attemptWebhook({dataType:'PPH_UPLOAD',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime(),volume:vol,hours:hrs,pph:pph,diffHours:diff});const btn=byId('pph-push-btn'),origText=btn.innerText;btn.innerText='Pushed!';btn.style.background='#34c759';setTimeout(()=>{btn.innerText=origText;btn.style.background='#000'},2000)}
+    function openPPHCalculator(){byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='var(--border)';byId('pph-diff').style.color='var(--text-main)';byId('pph-modal').style.display='flex'}
+    function calculatePPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value),resEl=byId('pph-result'),diffEl=byId('pph-diff');if(isNaN(vol)||isNaN(hrs)||hrs<=0){resEl.innerText='0';diffEl.innerText='0.00 hrs';diffEl.style.background='var(--border)';diffEl.style.color='var(--text-main)';return}const pph=Math.round(vol/hrs);resEl.innerText=pph;const targetHours=vol/600,diff=hrs-targetHours;let diffText=diff>0?'+'+diff.toFixed(2):diff.toFixed(2);diffEl.innerText=diffText+' hrs';if(diff<=0){diffEl.style.background='#e8f5e9';diffEl.style.color='#2e7d32'}else{diffEl.style.background='#ffebee';diffEl.style.color='#c62828'}}
+    function uploadPPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value);if(isNaN(vol)||isNaN(hrs)||hrs<=0)return alert("Please enter valid volume and hours first.");const pph=Math.round(vol/hrs),diff=(hrs-vol/600).toFixed(2);attemptWebhook({dataType:'PPH_UPLOAD',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime(),volume:vol,hours:hrs,pph:pph,diffHours:diff});const btn=byId('pph-push-btn'),origText=btn.innerText;btn.innerText='Pushed!';btn.style.background='var(--accent-green)';setTimeout(()=>{btn.innerText=origText;btn.style.background='var(--text-main)'},2000)}
     const NOTE_TAGS=['BARN DOORS','CPU','GAYLORDS','HEAVY BULK','HEAVY FLATS','HOTT','MIXED','OVERFLOW','SMALLS','SORTABLE','TIRES','WOODEN CRATES'];
     // wallyNotes[id] is an append-only history array: [{tags:[{value,type:'predefined'|'custom'}],text,timestamp}, ...]
     // migrateNoteHistory upgrades legacy shapes (raw string, or the old single {tags:[strings],text,updated} object) lazily on read.
@@ -1634,7 +1630,7 @@ v5.06:
     function getNoteHistory(id){return migrateNoteHistory(wallyNotes[id])}
     function getNoteObj(id){const h=getNoteHistory(id);return h.length?h[h.length-1]:null}
     function noteHasContent(id){const n=getNoteObj(id);return n&&(n.tags.length>0||n.text.trim().length>0)}
-    function renderNoteTagsInline(noteObj){if(!noteObj)return'';const chips=noteObj.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('');const txt=noteObj.text?`<span style="font-size:12px;color:#555;font-weight:500;">${noteObj.text}</span>`:'';return[chips,txt].filter(Boolean).join(' ')}
+    function renderNoteTagsInline(noteObj){if(!noteObj)return'';const chips=noteObj.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:var(--accent-amber);"':''}>${t.value}</span>`).join('');const txt=noteObj.text?`<span style="font-size:12px;color:var(--text-sub);font-weight:500;">${noteObj.text}</span>`:'';return[chips,txt].filter(Boolean).join(' ')}
 
     function loadNotes(){const saved=localStorage.getItem('ps9_wally_notes');if(saved){try{wallyNotes=JSON.parse(saved)}catch(e){wallyNotes={}}}else wallyNotes={}}
     function saveNotes(){localStorage.setItem('ps9_wally_notes',JSON.stringify(wallyNotes))}
@@ -1655,12 +1651,12 @@ v5.06:
         const histLabel=byId('note-history-label'),histList=byId('note-history-list');
         const pastEntries=history.slice(0,-1);
         if(histLabel)histLabel.style.display=pastEntries.length?'block':'none';
-        if(histList)histList.innerHTML=pastEntries.slice().reverse().map(e=>`<div class="note-history-entry"><div class="note-history-entry-date">${new Date(e.timestamp).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="note-tags-display">${e.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('')}</div>${e.text?`<div class="note-card-text">${e.text}</div>`:''}</div>`).join('');
+        if(histList)histList.innerHTML=pastEntries.slice().reverse().map(e=>`<div class="note-history-entry"><div class="note-history-entry-date">${new Date(e.timestamp).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="note-tags-display">${e.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:var(--accent-amber);"':''}>${t.value}</span>`).join('')}</div>${e.text?`<div class="note-card-text">${e.text}</div>`:''}</div>`).join('');
         // if opened from manager and no ID, show a wally ID input
         if(source==='manager'&&!id){
             const idRow=document.createElement('div');
             idRow.id='note-new-id-row';
-            idRow.innerHTML=`<div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:6px;">Wally ID</label><input type="text" id="note-new-id-input" class="form-input" style="margin:0;" placeholder="e.g. 5589" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'');byId('note-wally-id').value=this.value;byId('note-wally-id-display').textContent=this.value||'New'"></div>`;
+            idRow.innerHTML=`<div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:6px;">Wally ID</label><input type="text" id="note-new-id-input" class="form-input" style="margin:0;" placeholder="e.g. 5589" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'');byId('note-wally-id').value=this.value;byId('note-wally-id-display').textContent=this.value||'New'"></div>`;
             const sheet=byId('note-modal').querySelector('.modal-sheet');
             sheet.insertBefore(idRow,sheet.firstChild.nextSibling);
         } else {
@@ -1726,12 +1722,12 @@ v5.06:
             if(notesActiveFilter==='All')return true;
             if(notesActiveFilter==='No Tags')return n.tags.length===0;
             return n.tags.some(t=>t.value===notesActiveFilter)}).sort((a,b)=>(b[1].timestamp||0)-(a[1].timestamp||0));
-        if(entries.length===0){container.innerHTML='<div style="text-align:center;color:#8e8e93;padding:30px 0;font-weight:600;">No notes found</div>';return}
+        if(entries.length===0){container.innerHTML='<div style="text-align:center;color:var(--text-sub);padding:30px 0;font-weight:600;">No notes found</div>';return}
         entries.forEach(([id,n,entryCount])=>{
             const lastSeen=findLastSeenDate(id);
             const card=document.createElement('div');card.className='note-card';
             card.onclick=()=>{closeModal('notes-manager-modal');openNoteModal(id,'active')};
-            card.innerHTML=`<div class="note-card-header"><span class="note-card-id">${id}${entryCount>1?`<span class="note-entries-badge">${entryCount} entries</span>`:''}</span><span class="note-card-date">${lastSeen||''}</span></div><div class="note-tags-display">${n.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('')}</div>${n.text?`<div class="note-card-text">${n.text}</div>`:''}`;
+            card.innerHTML=`<div class="note-card-header"><span class="note-card-id">${id}${entryCount>1?`<span class="note-entries-badge">${entryCount} entries</span>`:''}</span><span class="note-card-date">${lastSeen||''}</span></div><div class="note-tags-display">${n.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:var(--accent-amber);"':''}>${t.value}</span>`).join('')}</div>${n.text?`<div class="note-card-text">${n.text}</div>`:''}`;
             container.appendChild(card)})}
     function setNotesFilter(tag){notesActiveFilter=tag;renderNotesList()}
     function findLastSeenDate(wallyId){const match=historyLog.find(l=>l.id===wallyId&&l.end);return match?new Date(match.end).toLocaleDateString([],{month:'short',day:'numeric'}):null}
@@ -1765,7 +1761,7 @@ v5.06:
         const noteObj=history.length?history[history.length-1]:null;
         if(noteObj&&(noteObj.tags.length>0||noteObj.text)){
             preview.style.display='block';
-            preview.innerHTML=`<div class="onboard-note-card"><div class="onboard-note-header"><div class="onboard-note-label"><i class="ph ph-note-pencil"></i> ${history.length} prior note${history.length>1?'s':''} on file</div><button class="onboard-note-edit-btn" onclick="copyPreviousNoteTags('${wallyId}')">Use These</button></div><div class="note-tags-display" style="margin-bottom:${noteObj.text?'6px':'0'}">${noteObj.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('')}</div>${noteObj.text?`<div style="font-size:13px;color:#555;margin-top:4px;">${noteObj.text}</div>`:''}</div>`
+            preview.innerHTML=`<div class="onboard-note-card"><div class="onboard-note-header"><div class="onboard-note-label"><i class="ph ph-note-pencil"></i> ${history.length} prior note${history.length>1?'s':''} on file</div><button class="onboard-note-edit-btn" onclick="copyPreviousNoteTags('${wallyId}')">Use These</button></div><div class="note-tags-display" style="margin-bottom:${noteObj.text?'6px':'0'}">${noteObj.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:var(--accent-amber);"':''}>${t.value}</span>`).join('')}</div>${noteObj.text?`<div style="font-size:13px;color:var(--text-sub);margin-top:4px;">${noteObj.text}</div>`:''}</div>`
         } else {
             preview.style.display='none';preview.innerHTML=''}}
     // -- SHIFT STATE MACHINE ---------------------------------
@@ -1857,9 +1853,9 @@ v5.06:
         const completedC=historyLog.filter(l=>l.status==='completed'&&l.type==='CPU').length;
         const summaryEl=byId('end-shift-summary');
         summaryEl.innerHTML=`
-            <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:#8e8e93;font-weight:600;">Wallies completed</span><span style="font-weight:800;">${completedW}</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:#8e8e93;font-weight:600;">CPUs completed</span><span style="font-weight:800;">${completedC}</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:14px;border-top:1px solid #f2f2f7;padding-top:8px;margin-top:2px;"><span style="color:#ff3b30;font-weight:600;">Active bays remaining</span><span style="font-weight:800;color:#ff3b30;">${activeCt+stagedCt}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:var(--text-sub);font-weight:600;">Wallies completed</span><span style="font-weight:800;">${completedW}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:var(--text-sub);font-weight:600;">CPUs completed</span><span style="font-weight:800;">${completedC}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;border-top:1px solid var(--surface-alt);padding-top:8px;margin-top:2px;"><span style="color:var(--accent-red);font-weight:600;">Active bays remaining</span><span style="font-weight:800;color:var(--accent-red);">${activeCt+stagedCt}</span></div>
             `+(htBuildBreakdown()?`<div style="margin-top:8px;">${htBuildBreakdown()}</div>`:'');
         const shareTotalChk=byId('chk-share-total');if(shareTotalChk)shareTotalChk.checked=false;
         byId('end-shift-modal').style.display='flex'}
@@ -1976,7 +1972,7 @@ v5.06:
     function toggleSection(id){const body=byId(id);const caret=byId('caret-'+id);if(!body)return;const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(caret){caret.className=isOpen?'ph ph-caret-down':'ph ph-caret-up';const btn=caret.closest('button');if(btn)btn.setAttribute('aria-expanded',String(!isOpen))}}
     function openAddTeamMemberInline(){const inp=byId('add-team-inline');if(!inp)return;inp.style.display=inp.style.display==='none'?'block':'none';if(inp.style.display==='block')setTimeout(()=>{const f=byId('inline-team-name');if(f)f.focus()},100)}
     function confirmAddTeamInline(){const raw=byId('inline-team-name').value.trim();if(!raw)return;const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();byId('inline-team-name').value='';byId('add-team-inline').style.display='none';showSaveToast()}
-    function renderTeamManagement(){const list=byId('team-management-list');if(!list)return;list.innerHTML='';if(teamNamesSorted.length===0){list.innerHTML='<div style="padding:15px 0;color:#8e8e93;text-align:center;">No team members yet</div>';return}teamNamesSorted.forEach((name)=>{const div=document.createElement('div');div.className='settings-row';div.innerHTML=`<span class="settings-label">${name}</span><div style="display:flex;gap:20px;align-items:center;"><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:#000;" onclick="editTeamMember('${name}')"></i><i class="ph ph-minus-circle delete-acct-btn" onclick="deleteTeamMember('${name}')"></i></div>`;list.appendChild(div)})}
+    function renderTeamManagement(){const list=byId('team-management-list');if(!list)return;list.innerHTML='';if(teamNamesSorted.length===0){list.innerHTML='<div style="padding:15px 0;color:var(--text-sub);text-align:center;">No team members yet</div>';return}teamNamesSorted.forEach((name)=>{const div=document.createElement('div');div.className='settings-row';div.innerHTML=`<span class="settings-label">${name}</span><div style="display:flex;gap:20px;align-items:center;"><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:var(--text-main);" onclick="editTeamMember('${name}')"></i><i class="ph ph-minus-circle delete-acct-btn" onclick="deleteTeamMember('${name}')"></i></div>`;list.appendChild(div)})}
     function deleteTeamMember(name){if(confirm(`Remove ${name} from your saved team list?`)){teamNames=teamNames.filter(n=>n!==name);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();showSaveToast()}}
     function editTeamMember(oldName){const newName=prompt(`Edit name for ${oldName}:`,oldName);if(!newName||newName.trim()===''||newName===oldName)return;const formattedName=newName.trim().toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');const index=teamNames.indexOf(oldName);if(index>-1)teamNames[index]=formattedName;else teamNames.push(formattedName);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();if(confirm(`Update all existing active trailers and past logs from "${oldName}" to "${formattedName}"?`)){let updatedCount=0;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'){let doorUpdated=false;if(doors[i].unloader===oldName){doors[i].unloader=formattedName;doorUpdated=true}if(doors[i].assignments){doors[i].assignments.forEach(a=>{if(a.name===oldName){a.name=formattedName;doorUpdated=true}})}if(doorUpdated){const updatePayload={stage:'update',door:i,id:doors[i].id,account:doors[i].account||'',type:doors[i].type,unloader:doors[i].unloader||'',assistants:doors[i].assignments?doors[i].assignments.map(a=>a.name).filter(n=>n!==doors[i].unloader):[],start:doors[i].start,end:null,dateKey:dateKeyFromTs(doors[i].start),durationMinutes:null,statOffset:0,logId:doors[i].logId,duplicate:doors[i].isDuplicate||false,completionHour:null,cpuOptions:doors[i].cpuOptions||[],status:'active',manual:false,shiftStart:getShiftStartTime()};sendToWebhook(updatePayload,'update')}}}historyLog.forEach(l=>{let logUpdated=false;if(l.unloader===oldName){l.unloader=formattedName;logUpdated=true}if(l.assistants&&l.assistants.includes(oldName)){l.assistants=l.assistants.map(a=>a===oldName?formattedName:a);logUpdated=true}if(logUpdated){updatedCount++;sendToWebhook(l,'end')}});saveDoors();saveHistory();renderDashboard();renderActiveTab();if(byId('tab-logs').classList.contains('active'))renderLogs();alert(`Successfully updated ${updatedCount} completed logs to "${formattedName}".`)}}
     function toggleSwitch(id){const el=byId('switch-'+id);if(!el)return;el.classList.toggle('checked');const checked=el.classList.contains('checked');el.setAttribute('aria-checked',String(checked));if(id==='demo-mode'){demoActive=checked;if(!checked&&shiftState==='demo'){shiftState='idle';saveShiftState()}updateDemoBanner();updateNameplate();updateTabBadges()}if(id==='demo-replenish')config.replenish=checked;if(id==='demo-random')config.randomHistory=checked;if(id==='sim-window')config.simulateWindow=checked;if(id==='en-window'){attributionConfig.enabled=checked;saveAttributionSetting()}if(id==='share-on-complete'){config.shareOnComplete=checked;savePreferences()}if(id==='demo-autocomplete')config.autoComplete=checked;if(id==='demo-nowebhook')config.noWebhook=checked;renderDashboard()}
@@ -2063,8 +2059,8 @@ v5.06:
     function calculateAndRenderStats(){const stats={};historyLog.forEach(l=>{if(!l.completionHour)return;const n=l.unloader;if(!stats[n])stats[n]={w:0,c:0,t:0};if(l.type==='Wally')stats[n].w++;else if(l.type==='CPU')stats[n].c++;stats[n].t++});const tb=byId('unloader-stats-body');tb.innerHTML='';Object.entries(stats).sort((a,b)=>b[1].t-a[1].t).forEach(([n,d])=>tb.innerHTML+=`<tr><td>${n}</td><td style="text-align:center">${d.w}</td><td style="text-align:center">${d.c}</td><td style="text-align:right">${d.t}</td></tr>`)}
     function calculateAndRenderHourlyStats(){const{shiftStart}=getShiftTimeWindows();const h={};historyLog.forEach(l=>{if(!l.completionHour)return;const idx=Math.floor((l.end-(l.statOffset||0)-shiftStart.getTime())/3600000)+1;if(!h[idx])h[idx]=0;h[idx]++});const tb=byId('hourly-stats-body');tb.innerHTML='';Object.keys(h).sort((a,b)=>a-b).forEach(k=>tb.innerHTML+=`<tr><td>${getHourText(parseInt(k))}</td><td style="text-align:center">${h[k]}</td></tr>`)}
     function nowOrFrozen(){return(shiftState==='idle'&&shiftEndTime)?shiftEndTime:Date.now();}
-    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
-    function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let urgencyClass='';if(d.status==='active'&&hasUnloader){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:#007aff;" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:#999;margin-top:40px;">No active trailers</div>'}
+    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:var(--accent-blue);">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
+    function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let urgencyClass='';if(d.status==='active'&&hasUnloader){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:var(--accent-blue);" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:var(--text-muted);margin-top:40px;">No active trailers</div>'}
     function openActiveDetails(doorNum){detailDoor=doorNum;const d=doors[doorNum];byId('detail-door-num').innerText=doorNum;byId('detail-type').innerText=d.type;byId('detail-id').innerText=d.id;byId('detail-unloader').innerText=d.unloader||"Unassigned";byId('detail-time').innerText=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const now=Date.now();byId('detail-duration').innerText=Math.floor((now-d.start)/60000)+"m";const ar=byId('row-account');if(d.account){ar.style.display='flex';byId('detail-account').innerText=d.account}else ar.style.display='none';const rowOpts=byId('row-cpu-opts');if(d.type==='CPU'&&d.cpuOptions&&d.cpuOptions.length>0){rowOpts.style.display='flex';byId('detail-cpu-opts').innerText=d.cpuOptions.join(', ')}else rowOpts.style.display='none';const laborStart=d.laborStart||d.start;const dwell=Math.round((laborStart-d.start)/60000);if(d.laborStart&&d.laborStart>d.start){byId('row-labor-start').style.display='flex';byId('detail-labor-time').innerText=new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('row-unload-time').style.display='flex';byId('detail-unload-duration').innerText=Math.floor((now-d.laborStart)/60000)+"m";byId('row-dwell').style.display='flex';byId('detail-dwell').innerText=dwell+"m"}else{byId('row-labor-start').style.display='none';byId('row-unload-time').style.display='none';byId('row-dwell').style.display='none'}
         // Show CPU-next checkbox for both Wally and CPU doors, always reset it
         const cpuNextRow=byId('row-cpu-next');
@@ -2100,7 +2096,7 @@ v5.06:
     function saveActiveEdit(){const orig=parseInt(byId('edit-active-original-door').value),dest=parseInt(byId('edit-active-door-select').value);let unl=byId('edit-active-unloader').value;if(unl==='Custom')unl=byId('edit-active-custom-unloader').value.trim();if(!unl)unl="Unassigned";else if(unl!=="Unassigned"&&unl===byId('edit-active-custom-unloader').value.trim())unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');const type=byId('edit-active-modal').dataset.type;let cpuOpts=[];if(type==='CPU'){if(byId('edit-active-chk-hott').checked)cpuOpts.push('HOTT');if(byId('edit-active-chk-recycle').checked)cpuOpts.push('RECYCLE');if(byId('edit-active-chk-gv').checked)cpuOpts.push('GV')}function parseTimeToTs(inputId,refTs){const val=byId(inputId).value;if(!val)return refTs;const[h,m]=val.split(':').map(Number);const ref=new Date(refTs);let d=new Date(ref);d.setHours(h,m,0,0);let diff=d.getTime()-ref.getTime();if(diff>12*3600000)d.setDate(d.getDate()-1);else if(diff<-12*3600000)d.setDate(d.getDate()+1);return d.getTime()}const newArrival=parseTimeToTs('edit-active-arrival-time',doors[orig].start);const newLaborRaw=parseTimeToTs('edit-active-labor-time',doors[orig].laborStart||doors[orig].start);const newLabor=newLaborRaw<newArrival?newArrival:newLaborRaw;const d=doors[orig],now=Date.now();let newAssignments=[...(d.assignments||[])];if(newArrival!==doors[orig].start&&newAssignments.length>0)newAssignments[0].start=newLabor;if(d.unloader!==unl){if(newAssignments.length>0)newAssignments[newAssignments.length-1].end=now;newAssignments.push({name:unl,start:now,end:null})}const newStatus=(unl==='Unassigned')?'staged':'active';const data={status:newStatus,start:newArrival,laborStart:newLabor,id:byId('edit-active-id').value.trim().toUpperCase(),account:byId('edit-active-account').value.trim().toUpperCase(),type:type,unloader:unl,unavailable:false,lastCompletionTime:doors[orig].lastCompletionTime,cpuOptions:cpuOpts,assignments:newStatus==='staged'?[]:newAssignments,logId:d.logId};if(dest!==orig){doors[dest]=data;doors[orig]={status:'empty',start:0,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:doors[orig].lastCompletionTime,assignments:[]}}else doors[orig]=data;saveDoors();sendToWebhook({stage:'update',door:dest,id:data.id,account:data.account||'',type:data.type,unloader:data.unloader||'',assistants:data.assignments?data.assignments.map(a=>a.name).filter(n=>n!==data.unloader):[],start:data.start,laborStart:data.laborStart,end:null,dateKey:dateKeyFromTs(data.start),durationMinutes:null,statOffset:0,logId:data.logId,duplicate:data.isDuplicate||false,completionHour:null,cpuOptions:data.cpuOptions||[],status:newStatus,manual:false,shiftStart:getShiftStartTime()},'update');closeModal('edit-active-modal');renderActiveTab();renderDashboard();updateTabBadges();showSaveToast()}
     function checkCustomUnloader(s){byId('input-custom-unloader').style.display=s.value==='Custom'?'block':'none'}
     function confirmArrival(stageOnly=false){const idVal=currentType==='Wally'?byId('input-wally-id').value:byId('input-trailer-id').value;if(!idVal)return alert("Missing ID");const fId=idVal.toUpperCase(),fAcc=(currentType==='CPU'?byId('input-account-id').value:'').toUpperCase();let unl=byId('select-unloader').value;if(unl==='Custom'){unl=byId('input-custom-unloader').value;if(unl)unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}let arrivalTime=Date.now(),cTime=byId('input-onboard-time').value;if(cTime){const now=new Date(),[h,m]=cTime.split(':').map(Number);const d=new Date(now);d.setHours(h,m,0,0);if(d>now)d.setDate(d.getDate()-1);arrivalTime=d.getTime()}const noteFields=currentType==='Wally'?collectOnboardNoteFields():null;if(!stageOnly&&currentType==='Wally'){const dup=checkDuplicateWally(fId);if(dup){pendingWallyDuplicate={doorNum:currentDoor,wallyId:fId,unloader:unl||"Unassigned",startTime:arrivalTime,stageOnly:false,noteFields};byId('dup-wally-id').textContent=fId;byId('dup-door').textContent=`Door ${dup.door}`;byId('dup-time').textContent=new Date(dup.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('dup-unloader').textContent=dup.unloader;byId('duplicate-wally-modal').style.display='flex';return}}let cpuOpts=[];if(currentType==='CPU'){if(byId('chk-hott').checked)cpuOpts.push('HOTT');if(byId('chk-recycle').checked)cpuOpts.push('RECYCLE');if(byId('chk-gv').checked)cpuOpts.push('GV')}const effectiveUnloader=stageOnly?'Unassigned':(unl||"Unassigned");const hasRealUnloader=effectiveUnloader!=='Unassigned';const laborStart=(stageOnly||!hasRealUnloader)?null:arrivalTime;const effectiveStatus=stageOnly?'staged':'active';const logId=Date.now().toString(36)+Math.random().toString(36).substr(2);doors[currentDoor]={status:effectiveStatus,start:arrivalTime,laborStart:laborStart,id:fId,account:fAcc,type:currentType,unloader:effectiveUnloader,isDuplicate:false,unavailable:false,lastCompletionTime:null,cpuOptions:cpuOpts,assignments:(stageOnly||!hasRealUnloader)?[]:[{name:effectiveUnloader,start:arrivalTime,end:null}],logId:logId};sendToWebhook({door:currentDoor,id:fId,account:fAcc,type:currentType,unloader:effectiveUnloader,assistants:[],start:arrivalTime,laborStart:laborStart,end:null,dateKey:dateKeyFromTs(arrivalTime),durationMinutes:null,statOffset:0,logId:logId,duplicate:false,completionHour:null,cpuOptions:cpuOpts,status:effectiveStatus,manual:false},'start');if(currentType==='Wally')commitOnboardingNoteFields(fId,noteFields,arrivalTime);if(isFirstOnboard){isFirstOnboard=false;localStorage.setItem('ps9_is_first_onboard','false')}saveDoors();closeModal('input-modal');renderDashboard();updateTabBadges();showSaveToast()}
-    function openArrivalModal(specificDoor=null){if(specificDoor)currentDoor=specificDoor;else{currentDoor=null;for(let i=DOORS_START;i<=DOORS_END;i++)if(doors[i].status==='empty'&&!doors[i].unavailable){currentDoor=i;break}}if(!currentDoor)return alert("No bays available!");byId('modal-door-num').innerText=currentDoor;byId('input-wally-id').value='';byId('input-trailer-id').value='';byId('input-account-id').value='';byId('select-unloader').value="";byId('input-custom-unloader').style.display='none';byId('chk-hott').checked=false;byId('chk-recycle').checked=false;byId('chk-gv').checked=false;const tIn=byId('input-onboard-time');if(historyLog.length===0)tIn.value=getShiftStartTime();else{const now=new Date();tIn.value=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`}const form=byId('onboard-form-container'),msg=byId('unavailable-msg'),btn=byId('btn-toggle-availability');if(doors[currentDoor].unavailable){form.style.display='none';msg.style.display='block';btn.innerText="Mark Available";btn.style.background="#34c759";btn.style.color="white";btn.style.border="none"}else{form.style.display='block';msg.style.display='none';btn.innerText="Mark Unavailable";btn.style.background="white";btn.style.color="#ff3b30";btn.style.border="2px solid #e5e5ea"}setType('Wally');resetOnboardNoteFields();byId('input-modal').style.display='flex';if(!doors[currentDoor].unavailable)setTimeout(()=>{const f=byId('input-wally-id');if(f)f.focus()},100);updateOnboardingNotePreview('')}
+    function openArrivalModal(specificDoor=null){if(specificDoor)currentDoor=specificDoor;else{currentDoor=null;for(let i=DOORS_START;i<=DOORS_END;i++)if(doors[i].status==='empty'&&!doors[i].unavailable){currentDoor=i;break}}if(!currentDoor)return alert("No bays available!");byId('modal-door-num').innerText=currentDoor;byId('input-wally-id').value='';byId('input-trailer-id').value='';byId('input-account-id').value='';byId('select-unloader').value="";byId('input-custom-unloader').style.display='none';byId('chk-hott').checked=false;byId('chk-recycle').checked=false;byId('chk-gv').checked=false;const tIn=byId('input-onboard-time');if(historyLog.length===0)tIn.value=getShiftStartTime();else{const now=new Date();tIn.value=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`}const form=byId('onboard-form-container'),msg=byId('unavailable-msg'),btn=byId('btn-toggle-availability');if(doors[currentDoor].unavailable){form.style.display='none';msg.style.display='block';btn.innerText="Mark Available";btn.style.background="var(--accent-green)";btn.style.color="white";btn.style.border="none"}else{form.style.display='block';msg.style.display='none';btn.innerText="Mark Unavailable";btn.style.background="white";btn.style.color="var(--accent-red)";btn.style.border="2px solid var(--border)"}setType('Wally');resetOnboardNoteFields();byId('input-modal').style.display='flex';if(!doors[currentDoor].unavailable)setTimeout(()=>{const f=byId('input-wally-id');if(f)f.focus()},100);updateOnboardingNotePreview('')}
     function handleAvailabilityToggle(){doors[currentDoor].unavailable=!doors[currentDoor].unavailable;saveDoors();renderDashboard();showSaveToast();closeModal('input-modal')}
     function setType(t){currentType=t;byId('opt-wally').classList.toggle('selected',t==='Wally');byId('opt-cpu').classList.toggle('selected',t==='CPU');byId('wally-inputs').style.display=t==='Wally'?'block':'none';byId('cpu-inputs').style.display=t==='CPU'?'block':'none'}
     function viewStatLogs(type){closeModal('input-modal');closeModal('active-detail-modal');activeLogFilter={door:'All',type:'All',timeRange:'All',unloader:'All',search:'',date:'All'};if(type==='Wally'||type==='CPU')activeLogFilter.type=type;else if(type==='Hour-0'){activeLogFilter.timeRange='ThisHour';activeLogFilter.type='Wally'}else if(type==='Hour-1'){activeLogFilter.timeRange='LastHour';activeLogFilter.type='Wally'}switchTab('logs')}
@@ -2112,7 +2108,7 @@ v5.06:
     function toggleStats(sec){const c=byId(sec==='unloader'?'stats-content':'hourly-content'),i=byId(sec==='unloader'?'stats-caret':'hourly-caret');const show=c.style.display!=='block';c.style.display=show?'block':'none';i.className=show?'ph ph-caret-up':'ph ph-caret-down';if(show)sec==='unloader'?calculateAndRenderStats():calculateAndRenderHourlyStats()}
     let currentVisibleLogs=50,filteredLogsCache=[];
     function renderLogs(){const list=byId('logs-list');if(!list)return;const filterDisplay=byId('active-filter-display'),filterText=byId('filter-text-display'),sVal=byId('log-search').value.trim().toUpperCase();activeLogFilter.search=sVal;const{thisHourStart,thisHourEnd,lastHourStart,lastHourEnd}=getShiftTimeWindows();filteredLogsCache=[];historyLog.forEach((l,masterIndex)=>{if(activeLogFilter.date!=='All'&&l.dateKey!==activeLogFilter.date)return;if(activeLogFilter.door!=='All'&&l.door!=activeLogFilter.door)return;if(activeLogFilter.unloader!=='All'&&l.unloader!==activeLogFilter.unloader)return;if(activeLogFilter.type!=='All'&&l.type!==activeLogFilter.type)return;if(activeLogFilter.search){const nObj=getNoteObj(l.id);const noteText=nObj?(nObj.tags.map(t=>t.value).join(' ')+' '+(nObj.text||'')).toUpperCase():'';if(!l.id.includes(sVal)&&!(l.account||'').includes(sVal)&&String(l.door)!=sVal&&!noteText.includes(sVal))return}if(activeLogFilter.timeRange!=='All'){const t=l.end-(l.statOffset||0);if(activeLogFilter.timeRange==='ThisHour'&&(t<thisHourStart.getTime()||t>=thisHourEnd.getTime()))return;if(activeLogFilter.timeRange==='LastHour'&&(t<lastHourStart.getTime()||t>=lastHourEnd.getTime()))return}filteredLogsCache.push({log:l,masterIndex:masterIndex})});const isFiltering=Object.values(activeLogFilter).some(v=>v!=='All'&&v!=='');if(filterDisplay){filterDisplay.style.display=isFiltering?'flex':'none';if(isFiltering){const p=[];if(activeLogFilter.date!=='All')p.push(activeLogFilter.date);if(activeLogFilter.door!=='All')p.push("Door "+activeLogFilter.door);if(activeLogFilter.unloader!=='All')p.push(activeLogFilter.unloader);if(activeLogFilter.type!=='All')p.push(activeLogFilter.type);if(activeLogFilter.search)p.push(`"${activeLogFilter.search}"`);filterText.innerText=p.join(' + ')}}list.innerHTML='';currentVisibleLogs=50;renderLogBatch();if(statsVisible)calculateAndRenderStats();if(hourlyVisible)calculateAndRenderHourlyStats()}
-    function renderLogBatch(){const list=byId('logs-list'),loadMore=byId('logs-load-more');if(filteredLogsCache.length===0){list.innerHTML='<div style="text-align:center;color:#999;margin-top:20px;">No logs found.</div>';loadMore.style.display='none';return}const frag=document.createDocumentFragment(),batch=filteredLogsCache.slice(list.children.length,currentVisibleLogs);batch.forEach(item=>{const l=item.log,idx=item.masterIndex,card=document.createElement('div');card.className='log-card';const dur=Math.round(l.duration/60000);const unloadDur=l.unloadDurationMinutes!=null?l.unloadDurationMinutes:dur;const dwell=l.dwellMinutes||0;let statusPill='';if(l.status==='moved')statusPill=`<span class="log-tag tag-gray"><i class="ph ph-arrows-left-right"></i> ${l.moveDest}</span>`;else if(l.status==='incomplete')statusPill=`<span class="log-tag tag-red"><i class="ph ph-x-circle"></i> Incomplete</span>`;else{statusPill=`<span class="log-tag tag-black">${l.type}</span>`;if(l.duplicate)statusPill+=` <span class="log-tag tag-red">DUP</span>`;if(l.type==='CPU'&&l.cpuOptions&&l.cpuOptions.length>0)l.cpuOptions.forEach(opt=>{statusPill+=` <span class="log-tag tag-gray">${opt}</span>`})}statusPill+=`<span class="log-tag" style="background:#fff;border:1px solid #e5e5ea;">${l.completionHour?getHourText(l.completionHour):'--'}</span>`;if(l.manual)statusPill+=` <span class="log-tag tag-gray"><i class="ph ph-pencil-simple-line"></i> Manual</span>`;if(l.idleBeforeMinutes!=null&&l.idleBeforeMinutes>=0)statusPill+=` <span class="log-tag" style="background:#e5f0ff;color:#007aff;"><i class="ph ph-timer"></i> Idle: ${l.idleBeforeMinutes}m</span>`;const timeRange=`${new Date(l.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} - ${new Date(l.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;const hasN=l.type==='Wally'&&noteHasContent(l.id);const noteIcon=l.type==='Wally'?`<button class="note-icon-btn ${hasN?'has-note':''}" onclick="openNoteModal('${l.id}','log')"><i class="ph ph-note${hasN?'-pencil':''}"></i></button>`:'';const dwellStr=dwell>0?`<div class="log-footer-item" style="color:#ff9500;"><i class="ph ph-hourglass"></i> Dwell ${dwell}m</div>`:'';card.innerHTML=`<div class="log-info"><div class="log-header-row"><span class="log-door-pill" onclick="viewDoorLogs(${l.door})">Door ${l.door}</span><div class="log-title">${l.id}${noteIcon}<span class="log-account">${l.account?l.account:''}</span></div></div><div class="log-tags-row">${statusPill}</div><div class="log-footer-row"><div class="log-footer-item"><i class="ph ph-user"></i> ${l.unloader}</div><div class="log-footer-item"><i class="ph ph-clock"></i> ${timeRange}</div>${dwellStr}</div></div><div class="log-right-col"><div style="text-align:right;"><div class="log-duration">${unloadDur}<span style="font-size:14px;font-weight:700;">m</span></div><div class="log-duration-label">Unload</div>${dwell>0?`<div style="font-size:10px;color:#8e8e93;font-weight:600;margin-top:2px;">${dur}m Door</div>`:''}</div><div class="log-actions-row">${(Date.now()-l.end<120000&&!demoActive&&l.status==='completed'&&!l.manual)?`<button class="log-mini-btn" onclick="revertLog(${idx})"><i class="ph ph-arrow-u-up-left"></i></button>`:''}<button class="log-mini-btn" onclick="openEditLogModal(${idx})"><i class="ph ph-pencil-simple"></i></button></div></div>`;frag.appendChild(card)});list.appendChild(frag);loadMore.style.display=(currentVisibleLogs<filteredLogsCache.length)?'block':'none'}
+    function renderLogBatch(){const list=byId('logs-list'),loadMore=byId('logs-load-more');if(filteredLogsCache.length===0){list.innerHTML='<div style="text-align:center;color:var(--text-muted);margin-top:20px;">No logs found.</div>';loadMore.style.display='none';return}const frag=document.createDocumentFragment(),batch=filteredLogsCache.slice(list.children.length,currentVisibleLogs);batch.forEach(item=>{const l=item.log,idx=item.masterIndex,card=document.createElement('div');card.className='log-card';const dur=Math.round(l.duration/60000);const unloadDur=l.unloadDurationMinutes!=null?l.unloadDurationMinutes:dur;const dwell=l.dwellMinutes||0;let statusPill='';if(l.status==='moved')statusPill=`<span class="log-tag tag-gray"><i class="ph ph-arrows-left-right"></i> ${l.moveDest}</span>`;else if(l.status==='incomplete')statusPill=`<span class="log-tag tag-red"><i class="ph ph-x-circle"></i> Incomplete</span>`;else{statusPill=`<span class="log-tag tag-black">${l.type}</span>`;if(l.duplicate)statusPill+=` <span class="log-tag tag-red">DUP</span>`;if(l.type==='CPU'&&l.cpuOptions&&l.cpuOptions.length>0)l.cpuOptions.forEach(opt=>{statusPill+=` <span class="log-tag tag-gray">${opt}</span>`})}statusPill+=`<span class="log-tag" style="background:#fff;border:1px solid var(--border);">${l.completionHour?getHourText(l.completionHour):'--'}</span>`;if(l.manual)statusPill+=` <span class="log-tag tag-gray"><i class="ph ph-pencil-simple-line"></i> Manual</span>`;if(l.idleBeforeMinutes!=null&&l.idleBeforeMinutes>=0)statusPill+=` <span class="log-tag" style="background:#e5f0ff;color:var(--accent-blue);"><i class="ph ph-timer"></i> Idle: ${l.idleBeforeMinutes}m</span>`;const timeRange=`${new Date(l.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} - ${new Date(l.end).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;const hasN=l.type==='Wally'&&noteHasContent(l.id);const noteIcon=l.type==='Wally'?`<button class="note-icon-btn ${hasN?'has-note':''}" onclick="openNoteModal('${l.id}','log')"><i class="ph ph-note${hasN?'-pencil':''}"></i></button>`:'';const dwellStr=dwell>0?`<div class="log-footer-item" style="color:var(--accent-orange);"><i class="ph ph-hourglass"></i> Dwell ${dwell}m</div>`:'';card.innerHTML=`<div class="log-info"><div class="log-header-row"><span class="log-door-pill" onclick="viewDoorLogs(${l.door})">Door ${l.door}</span><div class="log-title">${l.id}${noteIcon}<span class="log-account">${l.account?l.account:''}</span></div></div><div class="log-tags-row">${statusPill}</div><div class="log-footer-row"><div class="log-footer-item"><i class="ph ph-user"></i> ${l.unloader}</div><div class="log-footer-item"><i class="ph ph-clock"></i> ${timeRange}</div>${dwellStr}</div></div><div class="log-right-col"><div style="text-align:right;"><div class="log-duration">${unloadDur}<span style="font-size:14px;font-weight:700;">m</span></div><div class="log-duration-label">Unload</div>${dwell>0?`<div style="font-size:10px;color:var(--text-sub);font-weight:600;margin-top:2px;">${dur}m Door</div>`:''}</div><div class="log-actions-row">${(Date.now()-l.end<120000&&!demoActive&&l.status==='completed'&&!l.manual)?`<button class="log-mini-btn" onclick="revertLog(${idx})"><i class="ph ph-arrow-u-up-left"></i></button>`:''}<button class="log-mini-btn" onclick="openEditLogModal(${idx})"><i class="ph ph-pencil-simple"></i></button></div></div>`;frag.appendChild(card)});list.appendChild(frag);loadMore.style.display=(currentVisibleLogs<filteredLogsCache.length)?'block':'none'}
     function loadMoreLogs(){currentVisibleLogs+=50;renderLogBatch()}
     function revertLog(i){const l=historyLog[i];if(!l||l.manual||!doors[l.door]||(Date.now()-l.end>120000&&!demoActive)||doors[l.door].status!=='empty')return alert("Cannot revert");doors[l.door]={status:'active',start:l.start,id:l.id,account:l.account,type:l.type,unloader:l.unloader,unavailable:false,lastCompletionTime:null,cpuOptions:l.cpuOptions||[],assignments:[{name:l.unloader,start:l.start,end:null}],logId:l.logId};historyLog.splice(i,1);saveDoors();saveHistory();renderDashboard();renderLogs();updateTabBadges()}
     function openEditLogModal(i){const l=historyLog[i];byId('edit-log-index').value=i;byId('edit-input-id').value=l.id;const sel=byId('edit-select-unloader');sel.innerHTML='<option value="">Unassigned</option>';teamNamesSorted.forEach(n=>{const o=document.createElement('option');o.value=n;o.innerText=n;sel.appendChild(o)});sel.value=l.unloader;setEditType(l.type);const opts=l.cpuOptions||[];byId('edit-log-chk-hott').checked=opts.includes('HOTT');byId('edit-log-chk-recycle').checked=opts.includes('RECYCLE');byId('edit-log-chk-gv').checked=opts.includes('GV');byId('edit-completion-hour').value=l.completionHour;byId('edit-log-modal').style.display='flex'}
@@ -2287,8 +2283,8 @@ v5.06:
             else byRole.unload.push(e);
         });
         const ROLE_LABELS={belt:'Belt Tender',bulk:'Bulk Sweep',unload:'Unloader'};
-        const ROLE_COLORS={belt:'#d97706',bulk:'#2563eb',unload:'#6b7280'};
-        let html='<div style="font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Employee Hours Breakdown</div>';
+        const ROLE_COLORS={belt:'var(--accent-amber-dark)',bulk:'var(--accent-blue)',unload:'var(--text-muted)'};
+        let html='<div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Employee Hours Breakdown</div>';
         ['belt','bulk','unload'].forEach(role=>{
             const emps=byRole[role];
             if(!emps.length)return;
@@ -2487,7 +2483,7 @@ v5.06:
     function htOpenBreakdownModal(role){
         const elapsed=htShiftElapsed();
         const ROLE_LABELS={belt:'Belt Tender',bulk:'Bulk Sweep',unload:'Unloader'};
-        const ROLE_COLORS={belt:'#d97706',bulk:'#2563eb',unload:'#6b7280'};
+        const ROLE_COLORS={belt:'var(--accent-amber-dark)',bulk:'var(--accent-blue)',unload:'var(--text-muted)'};
         const emps=hoursState.employees.filter(e=>e.role===role&&(e.status==='active'||e.status==='cut'));
         document.getElementById('ht-breakdown-title').textContent=ROLE_LABELS[role]+' Hours';
         const totalHrs=emps.length*elapsed;
@@ -2496,7 +2492,7 @@ v5.06:
         html+='<span style="font-size:12px;font-weight:700;color:'+ROLE_COLORS[role]+';text-transform:uppercase;letter-spacing:0.5px;">'+ROLE_LABELS[role]+'</span>';
         html+='<span style="font-size:22px;font-weight:900;color:'+ROLE_COLORS[role]+';">'+htFmtHrs(totalHrs)+'h</span>';
         html+='</div>';
-        html+='<div style="font-size:11px;color:#6b7280;margin-bottom:10px;">'+emps.length+' employee'+(emps.length!==1?'s':'')+' x '+htFmtHrs(elapsed)+'h elapsed</div>';
+        html+='<div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">'+emps.length+' employee'+(emps.length!==1?'s':'')+' x '+htFmtHrs(elapsed)+'h elapsed</div>';
         if(emps.length){
             emps.forEach(e=>{
                 const h=htCalcHours(e);
@@ -2506,16 +2502,16 @@ v5.06:
                 html+='<div style="width:8px;height:8px;border-radius:50%;background:'+ROLE_COLORS[role]+';flex-shrink:0;"></div>';
                 html+='<div style="flex:1;">';
                 html+='<div style="font-size:14px;font-weight:700;color:#1a1a1a;">'+e.name+'</div>';
-                html+='<div style="font-size:11px;color:#6b7280;">'+(e.startTime?htFmtTime(e.startTime):'--')+(isPinned?' \u00b7 Manually pinned':isDefault?' \u00b7 Default belt':'')+'</div>';
+                html+='<div style="font-size:11px;color:var(--text-muted);">'+(e.startTime?htFmtTime(e.startTime):'--')+(isPinned?' \u00b7 Manually pinned':isDefault?' \u00b7 Default belt':'')+'</div>';
                 html+='</div>';
                 html+='<div style="text-align:right;">';
                 html+='<div style="font-size:18px;font-weight:900;color:'+ROLE_COLORS[role]+';">'+htFmtHrs(h)+'h</div>';
-                html+='<div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.3px;">individual</div>';
+                html+='<div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.3px;">individual</div>';
                 html+='</div>';
                 html+='</div>';
             });
         }else{
-            html+='<div style="font-size:13px;color:#9ca3af;text-align:center;padding:12px 0;">No employees in this role</div>';
+            html+='<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:12px 0;">No employees in this role</div>';
         }
         html+='</div>';
         document.getElementById('ht-breakdown-body').innerHTML=html;

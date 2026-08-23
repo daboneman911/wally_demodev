@@ -1,5 +1,17 @@
 # Changelog
 
+### [6.67] - 2026-08-23
+
+- **Design:** App-wide UI redesign toward a sharper, sleeker, Nike.com-inspired look.
+  - **Flat surfaces:** removed glassmorphism (translucent gradients + `backdrop-filter` blur) from every card, modal, and panel across all six tabs (Dashboard, Active, Logs, Hours, Tools, Settings) in favor of solid opaque surfaces with crisp 1px hairline borders for separation.
+  - **Sharp corners:** collapsed the four-value radius scale (`--radius-sm/md/lg/xl`, 10-28px) into a single `--radius:4px` token used on cards, buttons, inputs, and modals. Bay circles stay circular (a meaningful shape, not decoration); tags/badges/pills keep their rounded shape.
+  - **Bottom nav:** converted from a floating inset glass pill to a full-width flat bar with a top hairline border.
+  - **Bay circles:** dropped the arbitrary per-bay decorative gradient fill (bay 9 green, 10/12 purple, 11/13-16 orange) for one consistent solid fill; status is still communicated the same way it already was, via the colored border ring.
+  - **Color consolidation:** unified two parallel color systems (tokenized `--accent-*` set vs. hardcoded "iOS system colors" like `#007aff`/`#34c759`/`#ff3b30`/`#ff9500`, plus an untracked amber family and assorted pre-token legacy grays) into one token set referenced everywhere, including inline styles built by JS at render time.
+  - **Typography:** unified two competing header styles (small eyebrow labels vs. large centered titles) into one consistent pattern -- big bold uppercase page titles with a bottom hairline, paired with small wide-tracked uppercase section labels. Primary buttons (Start Shift, Save, Complete Unload, etc.) now use uppercase tracked text for a stronger CTA presence. Removed a duplicate font load (`<link>` + `@import` both loading Inter) and a stale duplicate `.header-bar h1` rule.
+  - **Hours tab parity:** brought the previously-separate `.ht-*` design system (KPI tiles, employee rows, role pickers, toasts) onto the same flat/sharp/tokenized treatment as the rest of the app.
+  - No behavior/logic changes -- CSS and a handful of inline-style color literals only.
+
 ### [6.66] - 2026-08-23
 
 - **New:** Onboarding Notes. The onboard-a-Wally form now has an inline Notes section — pick predefined tags (the existing 12-tag list) and/or type freeform custom tags, plus optional text, right at onboarding. Saving appends a new timestamped entry to that Wally's note history rather than overwriting it.
