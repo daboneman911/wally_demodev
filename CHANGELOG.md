@@ -1,5 +1,20 @@
 # Changelog
 
+### [6.70] - 2026-08-23
+
+- **Fix:** Grace Period (attribution window) fired inconsistently. `completeDoor()` tested `mins>=0 && mins<10` against the wall-clock minute — a window hardcoded to `:00–:10` since v6.56, despite the comment directly above it stating the window was "anchored to shift start minute". Hour buckets (`getCompletionHour()`) *were* already anchored to the shift start minute, so detection and bucketing disagreed on any start time that wasn't `:00`. The window now derives from the shift start minute via `minutesIntoShiftHour()`/`isInGraceWindow()`:
+
+  | Shift start | Correct window | Old behavior |
+  |---|---|---|
+  | 20:00 (Mon/Tue) | `:00–:10` | worked, by coincidence |
+  | 20:15 (Wed/Thu) | `:15–:25` | never fired; fired at `:00–:09` instead |
+  | 19:30 (Fri) | `:30–:40` | never fired; fired at `:00–:09` instead |
+
+  Verified across 18 boundary cases (first minute, last minute, one past, and out-of-window) for all three start times.
+- **Fix:** `resolveAttribution()` computed the "Previous Hour" offset as `(wallClockMinutes + 1)`, rewinding past `:00` rather than past the shift-anchored boundary. Now uses `minutesIntoShiftHour() + 1`. Confirmed the previous choice lands exactly one hour bucket back for all three start times.
+- **Fix:** `initAttributionSettings()` ran *before* `syncShiftStartToSchedule()` in `init()`, so the grace-window description rendered from the previous session's start time and could disagree with the actual window. Attribution UI is now initialized after the shift start is settled.
+- **UI:** The Grace Period prompt now names the real window and completion minute (e.g. "Completed at :17, inside the :15–:25 grace window") instead of the fixed "first 10 minutes of the hour" text, and correctly distinguishes a forced/simulated prompt from a genuine one. The Settings description likewise shows tonight's actual window.
+
 ### [6.69] - 2026-08-23
 
 - **Fix:** Dashboard no longer scrolls in its default view — all stats and every bay door fit on screen, verified down to 375×812 (iPhone 13 mini). Two causes: `.tab-content` reserved `--tab-height + --safe-bottom + 80px` (≈160px) of bottom padding when the floating tab bar only occupies `--safe-bottom + 88px`, and the stats grid used three rows. Padding is now `calc(var(--safe-bottom) + 100px)` — which also removes ~60px of dead space at the bottom of every other scrolling tab.
