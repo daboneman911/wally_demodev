@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.75] - 2026-08-23
+
+- **UI:** Unified the header treatment across all five tabs. Tools and Settings each wrapped `.header-bar` in an inline white strip (`background:var(--surface-raised)` + `border-bottom`, with negative margins on Tools), and DOP used a separate `.ht-header` panel with its own glass gradient, bottom border and a smaller 17px/900 centered title. Tools and Settings now use a plain `.header-bar` like Logs/Active, and `.ht-header` is transparent with `.ht-header-title` matching `.header-bar h1` (22px/800). Verified: all five titles render at an identical y-position (95px), font-size and weight.
+- **UI:** DOP brought onto the app's card language — `.ht-kpi-card` was flat white while every comparable tile (`.stat-card`) is a glass card; it now uses the same gradient, `--glass-border`, `--radius-md` and 2px top accent bar. `.ht-emp-row` moved from `--shadow-md` to `--shadow-sm` with a 5px accent edge to match `.active-card`, `.ht-section` matches `.section-label`, and roster spacing matches `.active-tab-list` (12px).
+- **Fix:** DOP employee names were truncating to "RO…" / "LOR…" — the name box measured 35px against 63px of text, because the action buttons, hours column, rank badge and role icon consumed the row. The name is now the row's primary element (15px/800 `--text-main`, normal case instead of 11px uppercase — which is no wider, since uppercase plus 0.6px tracking inflates width). Reclaimed space by trimming row padding/gaps, the rank badge (26→22px), the hours column (52→44px) and shortening the row's "Set Time" button to "Time" (the modal's own confirm keeps the full label). Tap targets unchanged. All 16 default names now render in full at both 393px and 375px, versus all 16 truncating before.
+- **UI:** `.tool-card` was the only remaining flat-white card in the app; it now uses the same glass gradient and `--glass-border` as every other card.
+
 ### [6.74] - 2026-08-23
 
 - **Change:** DOP no longer maintains a second employee list. `teamNames` (the Settings team list) is now the single source of truth, and `hoursState.employees` is *derived* from it via `htReconcileRoster()` — same people, same order, with each person's per-shift state (status, `startTime`, `frozenHours`, role) carried over by name. v6.73 kept the two lists in sync by patching each mutation site, which still allowed drift through any path that didn't call a sync helper; deriving the roster makes divergence structurally impossible.

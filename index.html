@@ -203,7 +203,7 @@
 
         /* ── TOOLS ────────────────────────────────────────── */
         .tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 0}
-        .tool-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:24px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;aspect-ratio:1/1;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid var(--border-light)}
+        .tool-card{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:24px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;aspect-ratio:1/1;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid var(--glass-border)}
         .tool-card:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,0,0,0.02);background:var(--border-light)}
         .tool-icon-wrapper{width:52px;height:52px;background:var(--text-main);border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;margin-bottom:12px}
         .tool-title{font-size:15px;font-weight:800;color:var(--text-main)}
@@ -360,9 +360,9 @@
         /* hours tab is now a standard tab-content div -- no fixed positioning needed */
 
         /* Panel header */
-        .ht-header{background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-bottom:1px solid var(--glass-border);padding:14px 16px 12px;flex-shrink:0;z-index:10;}
-        .ht-header-title-row{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:8px;min-height:28px;}
-        .ht-header-title{font-size:17px;font-weight:900;color:var(--text-main);letter-spacing:-0.4px;text-align:center;}
+        .ht-header{background:transparent;padding:0 16px 12px;flex-shrink:0;z-index:10;}
+        .ht-header-title-row{position:relative;display:flex;align-items:center;justify-content:center;height:50px;margin:16px 0 12px;}
+        .ht-header-title{font-size:22px;font-weight:800;color:var(--text-main);letter-spacing:-0.4px;text-align:center;}
         .ht-header-dop-row{display:flex;justify-content:center;margin-bottom:10px;}
 
         /* Shift time row */
@@ -405,23 +405,24 @@
         .ht-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;padding-bottom:calc(var(--tab-height) + var(--safe-bottom) + 40px);}
 
         /* KPI strip */
-        .ht-kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border-light);}
-        .ht-kpi-card{background:var(--surface-raised);border-radius:var(--radius-lg);padding:14px 12px;border:1px solid var(--border-light);box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
-        .ht-kpi-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+        .ht-kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 8px;}
+        .ht-kpi-card{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-md);padding:13px 14px;border:1px solid var(--glass-border);box-shadow:var(--shadow-sm);position:relative;overflow:hidden;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1);}
+        .ht-kpi-card:active{transform:scale(0.97);}
+        .ht-kpi-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-md) var(--radius-md) 0 0;}
         .ht-kpi-belt .ht-kpi-bar{background:#f59e0b;}
         .ht-kpi-bulk .ht-kpi-bar{background:var(--accent-blue);}
         .ht-kpi-unload .ht-kpi-bar{background:var(--text-sub);}
         .ht-kpi-head{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
         .ht-kpi-icon{font-size:13px;line-height:1;}
-        .ht-kpi-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+        .ht-kpi-role{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;}
         .ht-kpi-belt .ht-kpi-role{color:#d97706;}
         .ht-kpi-bulk .ht-kpi-role{color:var(--accent-blue);}
         .ht-kpi-unload .ht-kpi-role{color:var(--text-sub);}
-        .ht-kpi-hrs{font-size:26px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-1px;}
+        .ht-kpi-hrs{font-size:30px;font-weight:800;color:var(--text-main);line-height:1;letter-spacing:-1.2px;}
         .ht-kpi-sub{font-size:9px;color:var(--text-muted);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
 
         /* Section headers */
-        .ht-section{font-size:11px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 6px;display:flex;align-items:center;gap:8px;}
+        .ht-section{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.8px;padding:14px 16px 5px;display:flex;align-items:center;gap:8px;}
         .ht-section::after{content:'';flex:1;height:1px;background:var(--border-light);}
 
         /* Add employee row */
@@ -434,17 +435,17 @@
         .ht-ended-banner.show{display:block;}
 
         /* Employee list */
-        .ht-emp-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+        .ht-emp-list{padding:0 16px;display:flex;flex-direction:column;gap:12px;}
 
         /* Employee row */
-        .ht-emp-row{background:linear-gradient(160deg,rgba(255,255,255,0.94) 0%,rgba(228,234,255,0.87) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:16px 16px;min-height:78px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);transition:all 0.2s;position:relative;border-left:4px solid transparent;}
+        .ht-emp-row{background:linear-gradient(160deg,rgba(255,255,255,0.95) 0%,rgba(226,236,255,0.88) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:14px 12px;min-height:78px;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;border-left:5px solid var(--border);}
         .ht-emp-row.ht-active.ht-role-belt{border-left-color:#f59e0b;background:#fffbeb;}
         .ht-emp-row.ht-active.ht-role-bulk{border-left-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-emp-row.ht-active.ht-role-unload{border-left-color:var(--border);background:var(--surface-raised);}
         .ht-emp-row.ht-cut{opacity:0.45;border-style:dashed;}
 
         /* Rank badge */
-        .ht-rank{font-size:12px;font-weight:900;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--border-light);color:var(--text-sub);border:1px solid var(--border);}
+        .ht-rank{font-size:12px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--border-light);color:var(--text-sub);border:1px solid var(--border);}
         .ht-role-belt .ht-rank{background:#f59e0b;color:#fff;border-color:#f59e0b;}
         .ht-role-bulk .ht-rank{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue);}
 
@@ -457,7 +458,7 @@
 
         /* Emp info */
         .ht-emp-info{flex:1;min-width:0;}
-        .ht-emp-name{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+        .ht-emp-name{font-size:15px;font-weight:800;color:var(--text-main);letter-spacing:-0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;}
         .ht-emp-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;}
         .ht-role-tag{font-size:10px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding:2px 7px;border-radius:5px;}
         .ht-tag-belt{background:#fef3c7;color:#92400e;}
@@ -467,7 +468,7 @@
         .ht-emp-ts{font-size:10px;color:var(--text-muted);font-weight:600;}
 
         /* Hours */
-        .ht-hrs-wrap{text-align:right;flex-shrink:0;min-width:52px;}
+        .ht-hrs-wrap{text-align:right;flex-shrink:0;min-width:44px;}
         .ht-hrs{font-size:26px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-1px;}
         .ht-role-belt .ht-hrs{color:#d97706;}
         .ht-role-bulk .ht-hrs{color:var(--accent-blue);}
@@ -475,7 +476,7 @@
 
         /* Action buttons */
         .ht-actions{display:flex;flex-direction:row;gap:5px;align-items:center;flex-shrink:0;}
-        .ht-btn{font-size:11px;font-weight:800;padding:9px 12px;min-height:36px;border-radius:10px;cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
+        .ht-btn{font-size:11px;font-weight:800;padding:9px 10px;min-height:36px;border-radius:10px;cursor:pointer;border:none;letter-spacing:0.2px;transition:all 0.12s;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
         .ht-btn:active{transform:scale(0.94);}
         .ht-btn-start{background:var(--text-main);color:#fff;}
         .ht-btn-cut{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
@@ -638,7 +639,7 @@
         <button id="logs-load-more" class="load-more-btn" style="display:none" onclick="loadMoreLogs()">Load More</button>
     </div>
     <div id="tab-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-tools" tabindex="0" style="background:transparent;">
-        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);margin:-20px -20px 20px;"><div class="header-bar" style="margin:0;"><h1>Tools</h1></div></div>
+        <div class="header-bar"><h1>Tools</h1></div>
         <div class="tools-grid">
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openNotesManager()"><div class="tool-icon-wrapper"><i class="ph ph-notepad"></i></div><div class="tool-title">Notes Manager</div></div>
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openPPHCalculator()"><div class="tool-icon-wrapper"><i class="ph ph-chart-bar"></i></div>
@@ -646,7 +647,7 @@
         </div>
     </div>
     <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:transparent;padding:0;">
-        <div style="background:var(--surface-raised);padding:20px 20px 10px;border-bottom:1px solid var(--border);"><div class="header-bar" style="margin:0;"><h1>Settings</h1></div></div>
+        <div class="header-bar" style="margin-left:20px;margin-right:20px;"><h1>Settings</h1></div>
         <div style="padding:20px 20px 120px;">
 
             <!-- SHIFT MANAGEMENT & CONFIGURATION (unified) -->
@@ -911,13 +912,25 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.74',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.75',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.75:
+- UI: Every tab now has the same header. Tools and Settings dropped their
+  white banner strip and DOP dropped its tinted panel, so all five titles
+  sit in the same place at the same size as Logs and Active.
+- UI: DOP modernized to match the rest of the app -- KPI tiles are now
+  glass cards like the dashboard stats, employee rows match the Active
+  cards, and section headings match the dashboard labels.
+- Fix: Employee names on the DOP roster were cut to "RO..." / "LOR...".
+  The name is now the most prominent thing on the row and every name on
+  the default roster fits in full, down to a 5.4-inch iPhone.
+- UI: Tools cards were the only flat cards left in the app; they now use
+  the same glass treatment as every other card.
 v6.74:
 - Change: DOP no longer keeps its own employee list. The Settings team
   list is now the single master list, and the DOP roster is built from
@@ -2864,7 +2877,7 @@ v5.06:
         const rowClick=emp.status!=='inactive'?'onclick="htOpenRoleModal('+emp.id+',event)"':'';
         let actHTML='';
         if(emp.status==='inactive'){
-            const ctLbl=emp.customStartStr?emp.customStartStr+' ✎':'Set Time';
+            const ctLbl=emp.customStartStr?emp.customStartStr+' ✎':'Time';
             actHTML='<div class="ht-actions">'+
                 '<button class="ht-btn ht-btn-start" onclick="htActivateEmployee('+emp.id+');event.stopPropagation()">Start</button>'+
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()">'+ctLbl+'</button>'+
