@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.84] - 2026-08-24
+
+- **UI:** `.shift-meter` changed from a 104px circle to the same pill form as `.btn-shift` — identical `--radius-md` corners and, after pulling the 3px ring out of the vertical padding, an identical 44px height (verified 44px vs 44px, 0px delta). Hours and label now sit side by side inside the pill rather than stacked. The result reads as one control changing state instead of swapping into a different shape. Green ring and `meter-glow` pulse unchanged.
+
 ### [6.83] - 2026-08-24
 
 - **UI:** Removed the corner shift-status label (`.shift-state-pill` / `.shift-state-dot` / `#shift-state-label`) from the dashboard nameplate. With 6.82's transforming control, the state is already unambiguous: no counter means idle, a green ring means live, an orange ring means demo. Markup, CSS rules and the `updateNameplate()` writes to those nodes were all removed together — verified no null-reference errors while cycling idle → live → demo → idle. The `@keyframes dot-pulse` rule is retained because the DOP tab's `.ht-live-dot` still uses it.

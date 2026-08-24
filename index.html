@@ -86,14 +86,14 @@
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
         .nameplate-actions{display:flex;justify-content:center;align-items:center;margin-top:12px}
-        .shift-meter{display:none;flex-direction:column;align-items:center;justify-content:center;width:104px;height:104px;border-radius:50%;background:var(--surface-raised);border:4px solid var(--accent-green);box-shadow:0 0 0 5px rgba(22,163,74,0.14);cursor:pointer;line-height:1;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+        .shift-meter{display:none;flex-direction:row;align-items:center;justify-content:center;gap:9px;padding:7px 23px;border-radius:var(--radius-md);background:var(--surface-raised);border:3px solid var(--accent-green);cursor:pointer;line-height:1;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
         .shift-meter.visible{display:flex;animation:meter-glow 2.4s ease-in-out infinite}
         @keyframes meter-glow{0%,100%{box-shadow:0 0 0 5px rgba(22,163,74,0.14)}50%{box-shadow:0 0 0 10px rgba(22,163,74,0.04)}}
         @keyframes meter-glow-demo{0%,100%{box-shadow:0 0 0 5px rgba(234,88,12,0.14)}50%{box-shadow:0 0 0 10px rgba(234,88,12,0.04)}}
         .shift-meter:active{transform:scale(0.96)}
         .shift-meter.demo{border-color:var(--accent-orange);animation:meter-glow-demo 2.4s ease-in-out infinite}
-        .shift-meter-val{font-size:27px;font-weight:900;color:var(--text-main);letter-spacing:-1px}
-        .shift-meter-lbl{font-size:8px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;margin-top:5px}
+        .shift-meter-val{font-size:24px;font-weight:900;color:var(--text-main);letter-spacing:-0.9px;line-height:1}
+        .shift-meter-lbl{font-size:9px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;line-height:1.2;text-align:left;max-width:46px}
         .shift-meter.live .shift-meter-val{color:var(--accent-green)}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
         .btn-shift{border:none;border-radius:var(--radius-md);padding:13px 26px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;letter-spacing:0.2px}
@@ -927,13 +927,18 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.83',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.84',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.84:
+- UI: The live hours counter now uses the same pill shape as the Start
+  Shift button instead of a circle -- same corner radius, same height,
+  same spot -- so the control looks like it genuinely changes rather than
+  swapping into a different shape. The green ring and glow are unchanged.
 v6.83:
 - UI: Removed the Ready / Shift Live / Demo Mode label from the corner of
   the dashboard card. The ring around the hours counter already says it --
