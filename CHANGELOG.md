@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.83] - 2026-08-24
+
+- **UI:** Removed the corner shift-status label (`.shift-state-pill` / `.shift-state-dot` / `#shift-state-label`) from the dashboard nameplate. With 6.82's transforming control, the state is already unambiguous: no counter means idle, a green ring means live, an orange ring means demo. Markup, CSS rules and the `updateNameplate()` writes to those nodes were all removed together — verified no null-reference errors while cycling idle → live → demo → idle. The `@keyframes dot-pulse` rule is retained because the DOP tab's `.ht-live-dot` still uses it.
+- **UI:** The live ring now pulses gently (`meter-glow`, and `meter-glow-demo` in demo) instead of carrying a static halo, so it reads as running at a glance.
+
 ### [6.82] - 2026-08-24
 
 - **UI:** Replaced the split hours-tile/button row (6.81) with a single centred control. `.nameplate-actions` centres one element: the Start Shift button while idle, which becomes a 104px circular unload-hours meter ringed in `--accent-green` once the shift is live (`--accent-orange` in demo). The circular form echoes the bay circles rather than introducing a new shape. Verified both states render dead-centre (0.0px offset) and that the swap round-trips idle → live → demo → idle.
