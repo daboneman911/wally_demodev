@@ -1,5 +1,14 @@
 # Changelog
 
+### [6.74] - 2026-08-23
+
+- **Change:** DOP no longer maintains a second employee list. `teamNames` (the Settings team list) is now the single source of truth, and `hoursState.employees` is *derived* from it via `htReconcileRoster()` — same people, same order, with each person's per-shift state (status, `startTime`, `frozenHours`, role) carried over by name. v6.73 kept the two lists in sync by patching each mutation site, which still allowed drift through any path that didn't call a sync helper; deriving the roster makes divergence structurally impossible.
+- `htReconcileRoster()` runs on load and at the top of `htRenderAll()`, so the DOP tab always reflects the master list, and any orphaned roster entry (from an older build or a direct write) is pruned on the next render.
+- **Change:** `htAddEmployee()` now writes only to the master list — it pushes to `teamNames`, saves, refreshes the unloader dropdowns and Team Management list, and lets the roster derive. It no longer touches `hoursState.employees` directly, which removes the duplicate-row path entirely.
+- The load path's additive merge (which could add members but never remove them, so anyone deleted in Settings stayed on the DOP roster forever) is replaced by the same reconcile.
+- `htRenameEmployee()` is retained and still runs *before* reconcile on rename, so a renamed employee keeps their accumulated hours instead of being dropped and recreated at zero.
+- Verified: roster equals the master list exactly after add-from-DOP, add-from-Settings, rename, delete, an injected orphan, and a reload; hours and status survive both reconcile and rename.
+
 ### [6.73] - 2026-08-23
 
 - **Change:** Hours tab renamed to **DOP**; the panel header now reads "DOP Tracker". Internal ids (`tab-hours`, `ht-*`, `switchTab('hours')`) are unchanged, so no behavior or stored data is affected.
