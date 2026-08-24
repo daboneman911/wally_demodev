@@ -81,25 +81,26 @@
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
-        .nameplate{background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,0.9);border:1px solid var(--glass-border)}
+        .nameplate{position:relative;background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,0.9);border:1px solid var(--glass-border)}
         .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
-        .nameplate-actions{display:flex;align-items:center;gap:8px}
-        .shift-state-pill{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:30px;font-size:11px;font-weight:700;letter-spacing:0.1px;flex:1;justify-content:center}
-        .shift-state-pill.idle{background:var(--border-light);color:var(--text-sub)}
-        .shift-state-pill.live{background:var(--accent-green-bg);color:var(--accent-green)}
-        .shift-state-pill.demo{background:var(--accent-orange-bg);color:var(--accent-orange)}
+        .nameplate-actions{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:8px;margin-top:12px}
+        .shift-state-pill{position:absolute;top:12px;right:14px;display:flex;align-items:center;gap:5px;padding:0;background:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);z-index:1}
+        .shift-state-pill.idle{color:var(--text-muted)}
+        .shift-state-pill.live{color:var(--accent-green)}
+        .shift-state-pill.demo{color:var(--accent-orange)}
         .shift-state-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-        .nameplate-hours{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 11px;border-radius:10px;background:var(--border-light);flex-shrink:0;line-height:1}
-        .nameplate-hours-val{font-size:16px;font-weight:900;color:var(--text-main);letter-spacing:-0.6px}
-        .nameplate-hours-lbl{font-size:8px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+        .nameplate-hours{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 12px;border-radius:var(--radius-md);background:var(--border-light);line-height:1;min-height:52px}
+        .nameplate-hours-val{font-size:22px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px}
+        .nameplate-hours-lbl{font-size:9px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;margin-top:4px}
         .nameplate-hours.live .nameplate-hours-val{color:var(--accent-green)}
         .shift-state-dot.idle{background:#d1d5db}
         .shift-state-dot.live{background:var(--accent-green);box-shadow:0 0 0 3px rgba(22,163,74,0.2);animation:dot-pulse 2s ease-in-out infinite}
         .shift-state-dot.demo{background:var(--accent-orange);box-shadow:0 0 0 3px rgba(234,88,12,0.2);animation:dot-pulse 1.5s ease-in-out infinite}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-        .btn-shift{border:none;border-radius:10px;padding:9px 15px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s;letter-spacing:0.1px}
+        .btn-shift{border:none;border-radius:var(--radius-md);padding:10px 14px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;min-height:52px;transition:all 0.15s;letter-spacing:0.2px}
+        .btn-shift i{font-size:18px}
         .btn-shift.start{background:var(--text-main);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.18)}
         .btn-shift.start:active{background:#111827;transform:scale(0.93);box-shadow:inset 0 2px 6px rgba(0,0,0,0.25)}
         .btn-shift.end{background:var(--accent-red);color:#fff;box-shadow:0 2px 10px rgba(220,38,38,0.3)}
@@ -588,15 +589,15 @@
         <div>
         <!-- NAMEPLATE HEADER -->
         <div class="nameplate">
+            <div class="shift-state-pill idle" id="shift-state-pill">
+                <div class="shift-state-dot idle" id="shift-state-dot"></div>
+                <span id="shift-state-label">Ready</span>
+            </div>
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
                 <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.63</div>
             </div>
             <div class="nameplate-actions">
-                <div class="shift-state-pill idle" id="shift-state-pill">
-                    <div class="shift-state-dot idle" id="shift-state-dot"></div>
-                    <span id="shift-state-label">Ready</span>
-                </div>
                 <div class="nameplate-hours" id="nameplate-hours" title="Unload hours from the DOP tab">
                     <span class="nameplate-hours-val" id="nameplate-hours-val">0.00</span>
                     <span class="nameplate-hours-lbl">Unload hrs</span>
@@ -926,13 +927,22 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.80',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.81',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.81:
+- UI: Dashboard nameplate reworked. The Ready/Live pill was restating what
+  the button already says (Ready + "Start Shift", Shift Live + "End
+  Shift") while taking a third of the row, so it moved to a quiet status
+  label in the top corner of the card.
+- UI: The Unload hours tile and the shift button now split the row evenly
+  as two equal blocks, same height and same corner radius as the stat
+  cards below, so the button no longer looks like an odd small chip.
+  Unload hours are centred in the block.
 v6.80:
 - Change: Being cut no longer locks in the position someone held. A cut
   employee stays in the ranking with their frozen hours, so they keep a

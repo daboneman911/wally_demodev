@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.81] - 2026-08-24
+
+- **UI:** Dashboard nameplate reworked. `.shift-state-pill` carried `flex:1`, so it consumed roughly a third of the action row to display a single word that the button already conveyed — idle showed "Ready" beside "Start Shift", live showed "Shift Live" beside "End Shift". It is now a quiet uppercase status label pinned to the card's top-right corner (dot + text, no pill background), colour-coded by state: muted when idle, green when live, orange in demo. It keeps its element id and state classes, so `updateNameplate()` drives it unchanged.
+- **UI:** With the pill out of the row, the Unload hours tile and the shift button split it as two equal blocks — verified identical geometry (160×55 at 393px, same top edge). Both use `--radius-md`, matching the stat cards directly below, so the shift button no longer reads as a small mismatched chip; its type and icon were scaled up to suit the larger footprint. The hours value is centred within its block.
+- Dashboard still fits without scrolling on every tested device (bays clear the tab bar by 24–156px at 375–440px wide), and all three shift states render correctly.
+
 ### [6.80] - 2026-08-24
 
 - **Change:** Cut employees are ranked again alongside active ones, using their frozen hours, so being cut no longer locks in the position held at that moment. `htAssignRoles()` reverts to ranking `active || cut` (the v6.78 exclusion). That exclusion existed to stop a cut employee's hours jumping between KPI buckets, but the actual cause was the hardcoded `HT_BELT_DEFAULT` override removed in v6.79 — with assignment now purely time-ranked, including cut employees is stable: their clock has stopped, so they drift down the ranking as active employees accumulate past them.
