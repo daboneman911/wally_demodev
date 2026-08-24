@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.72] - 2026-08-23
+
+- **UI:** Grace Period prompt reworded to state the action directly: "Door 9 completed at 08:23 PM. Assign completion to previous hour or current hour." Now shows the clock time rather than just the minute, and no longer describes the grace window in the prompt itself (the Settings description still does). Because the text no longer asserts the completion fell *inside* the window, the separate wording for a simulated prompt was removed — one message is accurate for both, so a simulated prompt now previews exactly what a real one looks like.
+
 ### [6.71] - 2026-08-23
 
 - **UI:** The Grace Period prompt now leads with the bay number so it's unambiguous which trailer is being attributed when two bays finish close together — "Door 9 completed at :19, inside the :19-:29 grace window." The simulated variant reads "Simulated — door 14 completed at :49. Tonight's window is :19-:29." Everything else (title, both button labels, Settings copy) is unchanged.
