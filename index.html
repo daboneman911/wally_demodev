@@ -926,13 +926,22 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.77',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.78',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.78:
+- Fix: Cutting someone no longer moves their hours. A cut only stops the
+  clock -- the hours they already worked stay counted under the role they
+  actually worked. Previously cutting cleared their role pin, letting
+  auto-assignment move them to another role, so their hours jumped from
+  one total to another (an unloader cut at 1.00 hrs could drop the Unload
+  total by a full hour and add it to Belt instead).
+- Their role slot still frees up for whoever is still on the clock, so
+  cutting the Belt Tender still hands Belt to someone active.
 v6.77:
 - New: The dashboard nameplate now shows live Unload hours between the
   shift pill and the Start/End Shift button, mirroring the DOP tab's
@@ -2776,10 +2785,15 @@ v5.06:
     // Robert W special case: auto-assigned Belt when active (unless another employee has belt pinned).
     // Manual role pins always override auto-assignment.
     function htAssignRoles(){
-        const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
+        // Cut employees are off the clock. Their hours are frozen and stay attributed to
+        // the role they actually worked, so they are excluded from reassignment entirely
+        // -- otherwise clearing their manual pin lets auto-assignment move their frozen
+        // hours into a different KPI bucket. Their role slot still frees up for whoever
+        // is still working, because only active employees are ranked below.
+        const active=hoursState.employees.filter(e=>e.status==='active');
         const bulkMax=2;
         // Sort descending by hours (most hours first = belt priority)
-        const sorted=[...engaged].sort((a,b)=>{
+        const sorted=[...active].sort((a,b)=>{
             const diff=htCalcHours(b)-htCalcHours(a);
             if(Math.abs(diff)>0.0001)return diff;
             if(a.startTime&&b.startTime)return a.startTime-b.startTime;

@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.78] - 2026-08-23
+
+- **Fix:** Cutting an employee moved their accumulated hours between KPI buckets instead of simply stopping the clock. `htAssignRoles()` ranked `active` **and** `cut` employees together, wiping `e.role` and recomputing it; since `htCutEmployee()` clears `manualRole`, a cut employee fell through to auto-assignment and could be re-roled — e.g. an unloader cut at 1.00 hrs reverted to the default Belt Tender, dropping the Unload total by an hour and adding it to Belt. `htAssignRoles()` now ranks only `active` employees, so a cut employee's `role` freezes alongside their `frozenHours` and their contribution stays attributed to the role they actually worked.
+- The vacated role slot still frees up, because only active employees are counted when filling Belt/Bulk: cutting the Belt Tender now hands Belt to an active employee while the cut employee keeps Belt for accounting. Verified the cut person retains their role, the active roster re-covers the slot, and `htUncutEmployee()` still returns everyone to their prior roles.
+- Verified end to end: with 3 unloaders (1.00 + 0.50 + 0.50) and 1 Belt Tender (1.00), cutting the 1.00-hr unloader leaves Unload at 2.00 and Belt at 1.00 — both unchanged — while that employee's timer stops (1.0001 → 1.0001) and active employees keep accumulating. The dashboard tile continues to mirror the DOP figure.
+
 ### [6.77] - 2026-08-23
 
 - **New:** The dashboard nameplate shows live Unload hours in the slot between the shift-state pill and the Start/End Shift button. `getUnloadHours()` applies the same filter as the DOP tab's UNLOAD KPI (unload-role employees, `active` or `cut`), so the two figures always agree — verified equal on the dashboard and the DOP tab across clock-in and cut. Belt Tender and Bulk Sweep hours are excluded, matching the UNLOAD tile. The value renders green once above zero and reads `0.00` before a shift starts.
