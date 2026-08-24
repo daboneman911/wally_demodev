@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.80] - 2026-08-24
+
+- **Change:** Cut employees are ranked again alongside active ones, using their frozen hours, so being cut no longer locks in the position held at that moment. `htAssignRoles()` reverts to ranking `active || cut` (the v6.78 exclusion). That exclusion existed to stop a cut employee's hours jumping between KPI buckets, but the actual cause was the hardcoded `HT_BELT_DEFAULT` override removed in v6.79 — with assignment now purely time-ranked, including cut employees is stable: their clock has stopped, so they drift down the ranking as active employees accumulate past them.
+- Behaviour: a Belt Tender cut at 5.00 hrs keeps Belt while 5.00 still leads, and automatically drops to Bulk once an active employee passes them. Verified end to end, including that the employee's 5.00 hrs are preserved through the transition and that the Belt/Bulk/Unload buckets still sum to every engaged employee's hours (17.00 = 17.00), so no hours are lost by the re-rank.
+- Invariants hold throughout: exactly one Belt and at most two Bulk across active + cut, manual pins still claim their slot ahead of the ranking, and a cut employee's timer stays stopped while active employees keep accumulating.
+- Test suites updated to the corrected model: `test_cut_hours` now asserts *no hours are lost* (buckets total everyone's hours) rather than the obsolete bucket-stability assertion, and `test_dop_dynamic` checks role shape across active + cut rather than active only.
+
 ### [6.79] - 2026-08-24
 
 - **Fix:** DOP role assignment was not fully dynamic. `htAssignRoles()` did rank employees by hours, but a hardcoded `HT_BELT_DEFAULT = 'Robert W'` claimed Belt Tender whenever he was active and unpinned — regardless of hours. Worse, that flag was applied in the same pass that fills slots without re-checking `beltFilled`, so when he was *not* top-ranked the roster ended up with **two Belt Tenders** simultaneously (verified: with hours 5/4/3/2/1 ascending, both the 5.00-hr employee and the 1.00-hr Robert W were assigned `belt`). The hardcoded default and its `_autoBelt` flag are removed; assignment is now purely hours-ranked — most hours takes Belt, the next two take Bulk, the remainder Unload.

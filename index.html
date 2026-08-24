@@ -926,13 +926,21 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.79',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.80',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.80:
+- Change: Being cut no longer locks in the position someone held. A cut
+  employee stays in the ranking with their frozen hours, so they keep a
+  position only while their time still leads. As people still on the clock
+  work past them they are overtaken and drop down automatically.
+- Their hours are never lost -- they simply count wherever their total
+  ranks them. Positions stay purely time-driven: most hours is Belt
+  Tender, the next two are Bulk, everyone else unloads.
 v6.79:
 - Fix: DOP roles are now genuinely dynamic. The employee with the most
   hours is Belt Tender, the next two are Bulk, everyone else unloads --
@@ -2794,15 +2802,15 @@ v5.06:
     // Robert W special case: auto-assigned Belt when active (unless another employee has belt pinned).
     // Manual role pins always override auto-assignment.
     function htAssignRoles(){
-        // Cut employees are off the clock. Their hours are frozen and stay attributed to
-        // the role they actually worked, so they are excluded from reassignment entirely
-        // -- otherwise clearing their manual pin lets auto-assignment move their frozen
-        // hours into a different KPI bucket. Their role slot still frees up for whoever
-        // is still working, because only active employees are ranked below.
-        const active=hoursState.employees.filter(e=>e.status==='active');
+        // Positions are purely time-driven. Cut employees stay in the ranking with their
+        // frozen hours -- being cut does not lock in the position they happened to hold.
+        // Their clock has stopped, so as active employees accumulate past them they are
+        // overtaken and drop down automatically. Their hours are never lost; they simply
+        // rank wherever their total puts them.
+        const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
         const bulkMax=2;
         // Sort descending by hours (most hours first = belt priority)
-        const sorted=[...active].sort((a,b)=>{
+        const sorted=[...engaged].sort((a,b)=>{
             const diff=htCalcHours(b)-htCalcHours(a);
             if(Math.abs(diff)>0.0001)return diff;
             if(a.startTime&&b.startTime)return a.startTime-b.startTime;
