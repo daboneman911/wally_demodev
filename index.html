@@ -442,7 +442,7 @@
         .ht-emp-row.ht-active.ht-role-belt{border-left-color:#f59e0b;background:#fffbeb;}
         .ht-emp-row.ht-active.ht-role-bulk{border-left-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-emp-row.ht-active.ht-role-unload{border-left-color:var(--border);background:var(--surface-raised);}
-        .ht-emp-row.ht-cut{opacity:0.45;border-style:dashed;}
+        .ht-emp-row.ht-cut{opacity:0.6;border-style:dashed;}
 
         /* Rank badge */
         .ht-rank{font-size:12px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--border-light);color:var(--text-sub);border:1px solid var(--border);}
@@ -457,7 +457,7 @@
         .ht-role-icon:active{transform:scale(0.92);}
 
         /* Emp info */
-        .ht-emp-info{flex:1;min-width:0;}
+        .ht-emp-info{flex:1 1 auto;min-width:64px;}
         .ht-emp-name{font-size:15px;font-weight:800;color:var(--text-main);letter-spacing:-0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;}
         .ht-emp-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;}
         .ht-role-tag{font-size:10px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;padding:2px 7px;border-radius:5px;}
@@ -481,6 +481,12 @@
         .ht-btn-start{background:var(--text-main);color:#fff;}
         .ht-btn-cut{background:var(--accent-red-bg);border:1px solid var(--accent-red);color:var(--accent-red);}
         .ht-btn-time{background:transparent;border:1.5px solid var(--border);color:var(--text-sub);}
+        .ht-btn-undo{background:var(--accent-green-bg);border:1px solid var(--accent-green);color:var(--accent-green);padding:9px 9px;font-size:15px;}
+        .ht-btn-compact{font-size:10px;padding:9px 6px;letter-spacing:0;}
+        .ht-actions-cut{gap:3px;min-width:0;}
+        .ht-cut .ht-emp-info{min-width:56px;}
+        .ht-cut .ht-hrs-lbl{display:none;}
+        .ht-actions-cut .ht-btn{flex-shrink:1;overflow:hidden;}
         .ht-cut-label{font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;padding:4px 6px;text-align:center;}
         .ht-clickable{cursor:pointer;}
         .ht-clickable:active{background:var(--border-light);}
@@ -912,13 +918,21 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.75',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.76',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.76:
+- New: A cut can now be undone. Cut rows on the DOP tab have a green undo
+  button that puts the employee back to work. Hours resume from their
+  original start time (they never actually left), their role comes back,
+  and if cutting them had ended the shift, the shift goes live again.
+- UI: Cut rows were too crowded for a third control, so the two time
+  buttons now show a compact time (8:13 / 9:13). The full time is still
+  shown when you tap to edit. Names stay readable.
 v6.75:
 - UI: Every tab now has the same header. Tools and Settings dropped their
   white banner strip and DOP dropped its tinted panel, so all five titles
@@ -2409,6 +2423,7 @@ v5.06:
         return d;
     }
     function htFmtTime(date){return date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+    function htFmtTimeShort(date){return date.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}).replace(/\s*[AP]M$/i,'');}
     function htCalcHours(emp){
         if(emp.status==='cut')return emp.frozenHours;
         if(emp.status!=='active'||!emp.startTime)return 0;
@@ -2553,9 +2568,25 @@ v5.06:
     function htCutEmployee(id){
         const emp=hoursState.employees.find(e=>e.id===id);
         if(!emp||emp.status!=='active')return;
+        emp.preCutManualRole=emp.manualRole||null;
         emp.frozenHours=htCalcHours(emp);emp.cutTime=Date.now();emp.status='cut';emp.manualRole=null;
         htSaveState();
         if(!hoursState.employees.some(e=>e.status==='active')){hoursState.shiftEnded=true;htSaveState();}
+        htRenderAll();
+    }
+    // Reverse a cut. Hours resume from the original start time (the person never
+    // actually left), the manual role is restored, and if this was the last person
+    // cut, the shift is no longer 'ended'.
+    function htUncutEmployee(id){
+        const emp=hoursState.employees.find(e=>e.id===id);
+        if(!emp||emp.status!=='cut')return;
+        if(!emp.startTime){alert(emp.name+' has no start time to resume from.');return}
+        emp.status='active';
+        emp.cutTime=null;
+        emp.frozenHours=0;
+        if(emp.preCutManualRole!==undefined){emp.manualRole=emp.preCutManualRole;delete emp.preCutManualRole;}
+        hoursState.shiftEnded=false;
+        htSaveState();
         htRenderAll();
     }
     function htAddEmployee(){
@@ -2889,11 +2920,12 @@ v5.06:
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
                 '</div>';
         }else{
-            const ts=emp.customStartStr?emp.customStartStr:(emp.startTime?htFmtTime(emp.startTime):'--');
-            const cutTs=emp.cutTime?htFmtTime(new Date(emp.cutTime)):'--';
-            actHTML='<div class="ht-actions">'+
-                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time" style="font-size:10px;">'+ts+' ✎</button>'+
-                '<button class="ht-btn ht-btn-cut" onclick="htOpenCutTime('+emp.id+');event.stopPropagation()" title="Edit cut time" style="font-size:10px;padding:9px 8px;">Cut '+cutTs+' ✎</button>'+
+            const ts=emp.customStartStr?emp.customStartStr:(emp.startTime?htFmtTimeShort(emp.startTime):'--');
+            const cutTs=emp.cutTime?htFmtTimeShort(new Date(emp.cutTime)):'--';
+            actHTML='<div class="ht-actions ht-actions-cut">'+
+                '<button class="ht-btn ht-btn-time ht-btn-compact" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+'</button>'+
+                '<button class="ht-btn ht-btn-cut ht-btn-compact" onclick="htOpenCutTime('+emp.id+');event.stopPropagation()" title="Edit cut time">'+cutTs+'</button>'+
+                '<button class="ht-btn ht-btn-undo" onclick="htUncutEmployee('+emp.id+');event.stopPropagation()" title="Undo cut -- put '+emp.name+' back to work" aria-label="Undo cut"><i class="ph ph-arrow-u-up-left"></i></button>'+
                 '</div>';
         }
         return'<div class="'+rowCls+'" id="ht-row-'+emp.id+'" '+rowClick+'>'+

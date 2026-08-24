@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.76] - 2026-08-23
+
+- **New:** Cutting an employee on the DOP tab is now reversible. Cut rows carry a green undo button (`htUncutEmployee()`) that restores `status='active'`, clears `cutTime`, and resets `frozenHours` so hours resume from the original `startTime` rather than restarting at zero — the person never actually left, so the elapsed time counts. Verified an employee cut at 1.00 hrs returns to ~1.00 hrs rather than 0.
+- **New:** `htCutEmployee()` now stashes `preCutManualRole` before clearing `manualRole`, so an undo restores the manually-assigned role rather than dropping the employee back to auto-assignment.
+- **New:** Cutting the last active employee sets `shiftEnded=true`; undoing that cut now clears the flag, so the shift goes live again instead of staying stuck on "Shift Complete — Final Hours Locked". `htUncutEmployee()` is a no-op on an employee who isn't cut, and guards against an employee with no `startTime`.
+- **UI:** A third control did not fit on cut rows — the name collapsed to 0px and rows overflowed by 44px. Cut rows now use a compact time format (`htFmtTimeShort()`, `h:mm` without AM/PM — unambiguous on a night shift, and the full time is still shown in the edit modal), tighter button padding, and hide the redundant "hrs" label. Cut rows also lightened from 0.45 to 0.6 opacity so the undo control is legible. No row overflows at 393px or 375px, and names render in full except a 2px clip on one name at 375px.
+
 ### [6.75] - 2026-08-23
 
 - **UI:** Unified the header treatment across all five tabs. Tools and Settings each wrapped `.header-bar` in an inline white strip (`background:var(--surface-raised)` + `border-bottom`, with negative margins on Tools), and DOP used a separate `.ht-header` panel with its own glass gradient, bottom border and a smaller 17px/900 centered title. Tools and Settings now use a plain `.header-bar` like Logs/Active, and `.ht-header` is transparent with `.ht-header-title` matching `.header-bar h1` (22px/800). Verified: all five titles render at an identical y-position (95px), font-size and weight.
