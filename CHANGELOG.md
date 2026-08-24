@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.77] - 2026-08-23
+
+- **New:** The dashboard nameplate shows live Unload hours in the slot between the shift-state pill and the Start/End Shift button. `getUnloadHours()` applies the same filter as the DOP tab's UNLOAD KPI (unload-role employees, `active` or `cut`), so the two figures always agree — verified equal on the dashboard and the DOP tab across clock-in and cut. Belt Tender and Bulk Sweep hours are excluded, matching the UNLOAD tile. The value renders green once above zero and reads `0.00` before a shift starts.
+- Kept in sync from `renderDashboard()` (covering the 15s refresh loop and every re-render) and from both exit paths of `htRenderKPI()`, so a change on the DOP tab is reflected as soon as the dashboard is shown.
+- **Change:** Manual Add moved out of the dashboard nameplate — where it occupied the slot the hours tile now uses — into the Tools tab as a third card beside Notes Manager and PPH Calculator, reusing the existing `.tool-card` pattern.
+- **Note (pre-existing behavior, unchanged):** cutting an employee clears their `manualRole`, after which `htAssignRoles()` may auto-reassign them (e.g. the default Belt Tender reverts to `belt`), moving their hours between KPI buckets. The dashboard mirrors whatever the DOP tab shows, so the two never disagree.
+
 ### [6.76] - 2026-08-23
 
 - **New:** Cutting an employee on the DOP tab is now reversible. Cut rows carry a green undo button (`htUncutEmployee()`) that restores `status='active'`, clears `cutTime`, and resets `frozenHours` so hours resume from the original `startTime` rather than restarting at zero — the person never actually left, so the elapsed time counts. Verified an employee cut at 1.00 hrs returns to ~1.00 hrs rather than 0.

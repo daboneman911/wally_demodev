@@ -91,6 +91,10 @@
         .shift-state-pill.live{background:var(--accent-green-bg);color:var(--accent-green)}
         .shift-state-pill.demo{background:var(--accent-orange-bg);color:var(--accent-orange)}
         .shift-state-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+        .nameplate-hours{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 11px;border-radius:10px;background:var(--border-light);flex-shrink:0;line-height:1}
+        .nameplate-hours-val{font-size:16px;font-weight:900;color:var(--text-main);letter-spacing:-0.6px}
+        .nameplate-hours-lbl{font-size:8px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
+        .nameplate-hours.live .nameplate-hours-val{color:var(--accent-green)}
         .shift-state-dot.idle{background:#d1d5db}
         .shift-state-dot.live{background:var(--accent-green);box-shadow:0 0 0 3px rgba(22,163,74,0.2);animation:dot-pulse 2s ease-in-out infinite}
         .shift-state-dot.demo{background:var(--accent-orange);box-shadow:0 0 0 3px rgba(234,88,12,0.2);animation:dot-pulse 1.5s ease-in-out infinite}
@@ -593,7 +597,10 @@
                     <div class="shift-state-dot idle" id="shift-state-dot"></div>
                     <span id="shift-state-label">Ready</span>
                 </div>
-                <button class="icon-btn" aria-label="Manual add" onclick="openManualAddModal()"><i class="ph ph-pencil-simple-line"></i></button>
+                <div class="nameplate-hours" id="nameplate-hours" title="Unload hours from the DOP tab">
+                    <span class="nameplate-hours-val" id="nameplate-hours-val">0.00</span>
+                    <span class="nameplate-hours-lbl">Unload hrs</span>
+                </div>
                 <button class="btn-shift start" id="btn-shift-action" onclick="handleShiftAction()">
                     <i class="ph ph-play-circle" id="btn-shift-icon"></i>
                     <span id="btn-shift-label">Start Shift</span>
@@ -650,6 +657,7 @@
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openNotesManager()"><div class="tool-icon-wrapper"><i class="ph ph-notepad"></i></div><div class="tool-title">Notes Manager</div></div>
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openPPHCalculator()"><div class="tool-icon-wrapper"><i class="ph ph-chart-bar"></i></div>
     <div class="tool-title">PPH Calculator</div></div>
+            <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openManualAddModal()"><div class="tool-icon-wrapper"><i class="ph ph-pencil-simple-line"></i></div><div class="tool-title">Manual Add</div></div>
         </div>
     </div>
     <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:transparent;padding:0;">
@@ -918,13 +926,20 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.76',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.77',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.77:
+- New: The dashboard nameplate now shows live Unload hours between the
+  shift pill and the Start/End Shift button, mirroring the DOP tab's
+  UNLOAD tile exactly. It turns green once hours are on the board and
+  updates as DOP changes.
+- Change: Manual Add moved off the dashboard nameplate into the Tools tab,
+  alongside Notes Manager and PPH Calculator.
 v6.76:
 - New: A cut can now be undone. Cut rows on the DOP tab have a green undo
   button that puts the employee back to work. Hours resume from their
@@ -1887,6 +1902,21 @@ v5.06:
     // -- SHIFT STATE MACHINE ---------------------------------
     function loadShiftState(){const s=localStorage.getItem('ps9_shift_state');if(s==='live'||s==='demo')shiftState=s;else shiftState='idle';const et=localStorage.getItem('ps9_shift_end_time');shiftEndTime=et?parseInt(et,10):null;}
     function saveShiftState(){localStorage.setItem('ps9_shift_state',shiftState)}
+    // Mirrors the DOP tab's UNLOAD tile (unload-role hours only, active + cut).
+    function getUnloadHours(){
+        if(typeof hoursState==='undefined'||!hoursState||!Array.isArray(hoursState.employees))return 0;
+        if(!hoursState.shiftStarted||!hoursState.shiftStartTime)return 0;
+        return hoursState.employees
+            .filter(e=>(e.status==='active'||e.status==='cut')&&e.role==='unload')
+            .reduce((s,e)=>s+htCalcHours(e),0);
+    }
+    function updateNameplateHours(){
+        const el=byId('nameplate-hours-val');if(!el)return;
+        const hrs=getUnloadHours();
+        el.textContent=(typeof htFmtHrs==='function')?htFmtHrs(hrs):hrs.toFixed(2);
+        const box=byId('nameplate-hours');
+        if(box)box.classList.toggle('live',hrs>0);
+    }
     function updateNameplate(){
         const pill=byId('shift-state-pill'),dot=byId('shift-state-dot'),label=byId('shift-state-label');
         const btn=byId('btn-shift-action'),btnIcon=byId('btn-shift-icon'),btnLabel=byId('btn-shift-label');
@@ -2237,7 +2267,7 @@ v5.06:
     function calculateAndRenderStats(){const stats={};historyLog.forEach(l=>{if(!l.completionHour)return;const n=l.unloader;if(!stats[n])stats[n]={w:0,c:0,t:0};if(l.type==='Wally')stats[n].w++;else if(l.type==='CPU')stats[n].c++;stats[n].t++});const tb=byId('unloader-stats-body');tb.innerHTML='';Object.entries(stats).sort((a,b)=>b[1].t-a[1].t).forEach(([n,d])=>tb.innerHTML+=`<tr><td>${n}</td><td style="text-align:center">${d.w}</td><td style="text-align:center">${d.c}</td><td style="text-align:right">${d.t}</td></tr>`)}
     function calculateAndRenderHourlyStats(){const{shiftStart}=getShiftTimeWindows();const h={};historyLog.forEach(l=>{if(!l.completionHour)return;const idx=Math.floor((l.end-(l.statOffset||0)-shiftStart.getTime())/3600000)+1;if(!h[idx])h[idx]=0;h[idx]++});const tb=byId('hourly-stats-body');tb.innerHTML='';Object.keys(h).sort((a,b)=>a-b).forEach(k=>tb.innerHTML+=`<tr><td>${getHourText(parseInt(k))}</td><td style="text-align:center">${h[k]}</td></tr>`)}
     function nowOrFrozen(){return(shiftState==='idle'&&shiftEndTime)?shiftEndTime:Date.now();}
-    function renderDashboard(){updateStats();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
+    function renderDashboard(){updateStats();updateNameplateHours();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:#007aff;">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.floor((nowOrFrozen()-d.lastCompletionTime)/60000);btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
     function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let urgencyClass='';if(d.status==='active'&&hasUnloader){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:#007aff;" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:#999;margin-top:40px;">No active trailers</div>'}
     function openActiveDetails(doorNum){detailDoor=doorNum;const d=doors[doorNum];byId('detail-door-num').innerText=doorNum;byId('detail-type').innerText=d.type;byId('detail-id').innerText=d.id;byId('detail-unloader').innerText=d.unloader||"Unassigned";byId('detail-time').innerText=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const now=Date.now();byId('detail-duration').innerText=Math.floor((now-d.start)/60000)+"m";const ar=byId('row-account');if(d.account){ar.style.display='flex';byId('detail-account').innerText=d.account}else ar.style.display='none';const rowOpts=byId('row-cpu-opts');if(d.type==='CPU'&&d.cpuOptions&&d.cpuOptions.length>0){rowOpts.style.display='flex';byId('detail-cpu-opts').innerText=d.cpuOptions.join(', ')}else rowOpts.style.display='none';const laborStart=d.laborStart||d.start;const dwell=Math.round((laborStart-d.start)/60000);if(d.laborStart&&d.laborStart>d.start){byId('row-labor-start').style.display='flex';byId('detail-labor-time').innerText=new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('row-unload-time').style.display='flex';byId('detail-unload-duration').innerText=Math.floor((now-d.laborStart)/60000)+"m";byId('row-dwell').style.display='flex';byId('detail-dwell').innerText=dwell+"m"}else{byId('row-labor-start').style.display='none';byId('row-unload-time').style.display='none';byId('row-dwell').style.display='none'}
         // Show CPU-next checkbox for both Wally and CPU doors, always reset it
@@ -2868,6 +2898,7 @@ v5.06:
             ['ht-kpi-belt','ht-kpi-bulk','ht-kpi-unload'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0.00';});
             const bs=document.getElementById('ht-kpi-bulk-sub'),us=document.getElementById('ht-kpi-unload-sub');
             if(bs)bs.textContent='hrs \u00b7 0 people';if(us)us.textContent='hrs \u00b7 0 people';
+            updateNameplateHours();
             return;
         }
         const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
@@ -2883,6 +2914,7 @@ v5.06:
         setEl('ht-kpi-bulk-sub','hrs \u00b7 '+bulk.length+' people');
         setEl('ht-kpi-unload-sub','hrs \u00b7 '+unload.length+' people');
         htCheckLaborThreshold(unloadHrs);
+        updateNameplateHours();
     }
 
     // -- Render employee row -------------------------------
