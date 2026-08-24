@@ -926,13 +926,23 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.78',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.79',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.79:
+- Fix: DOP roles are now genuinely dynamic. The employee with the most
+  hours is Belt Tender, the next two are Bulk, everyone else unloads --
+  and roles re-rank as hours change. Previously one employee (Robert W)
+  was hardcoded as the default Belt Tender and took the role no matter
+  how few hours he had, which also produced TWO Belt Tenders at once.
+- Fix: Manually pinning someone to a role no longer creates a second Belt
+  Tender. Pins now claim their slot before the hours ranking is applied.
+- The "Default Belt" badge is gone, since there is no longer a preferred
+  employee for the role.
 v6.78:
 - Fix: Cutting someone no longer moves their hours. A cut only stops the
   clock -- the hours they already worked stay counted under the role they
@@ -2360,7 +2370,6 @@ v5.06:
 
     // -- Constants ----------------------------------------
     // REQ3: HT_PRESET_NAMES removed -- htInitEmployees pulls from teamNames instead
-    const HT_BELT_DEFAULT='Robert W';
     const HT_ROLES={
         belt:{icon:'\u26a1',label:'Belt Tender',tagCls:'ht-tag-belt'},
         bulk:{icon:'\u2699\ufe0f',label:'Bulk Sweep',tagCls:'ht-tag-bulk'},
@@ -2759,7 +2768,7 @@ v5.06:
             emps.forEach(e=>{
                 const h=htCalcHours(e);
                 const isPinned=!!e.manualRole;
-                const isDefault=e.name===HT_BELT_DEFAULT&&role==='belt'&&!e.manualRole;
+                const isDefault=false;
                 html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #ebebeb;">';
                 html+='<div style="width:8px;height:8px;border-radius:50%;background:'+ROLE_COLORS[role]+';flex-shrink:0;"></div>';
                 html+='<div style="flex:1;">';
@@ -2804,20 +2813,23 @@ v5.06:
         if(beltPinned.length>1)beltPinned.slice(1).forEach(e=>{e.manualRole=null;});
         const bulkPinned=sorted.filter(e=>e.manualRole==='bulk');
         if(bulkPinned.length>bulkMax)bulkPinned.slice(bulkMax).forEach(e=>{e.manualRole=null;});
-        sorted.forEach(e=>{e.role=null;e._autoBelt=false;});
-        // Pass 2: Robert W auto-belt (if no manual role and belt slot open)
-        const robertW=sorted.find(e=>e.name===HT_BELT_DEFAULT&&!e.manualRole);
-        if(robertW&&beltPinned.length<1){robertW._autoBelt=true;}
-        // Pass 3: assign roles in hours-ranked order
+        sorted.forEach(e=>{e.role=null;});
+        // Pass 2: assign roles in hours-ranked order -- most hours takes Belt, the next
+        // two take Bulk, everyone else unloads. Manual pins still win over the ranking.
+        // (There is deliberately no default/preferred Belt Tender: the roster is dynamic.)
         let beltFilled=0,bulkFilled=0;
+        // Pinned employees claim their slot FIRST. Assigning in one hours-ranked pass let
+        // an unpinned higher-hours employee take Belt before the pinned one was reached,
+        // leaving two Belt Tenders.
         sorted.forEach(emp=>{
-            if(emp.manualRole){
-                emp.role=emp.manualRole;
-                if(emp.manualRole==='belt')beltFilled++;
-                else if(emp.manualRole==='bulk')bulkFilled++;
-                return;
-            }
-            if(emp._autoBelt){emp.role='belt';beltFilled++;emp._autoBelt=false;return;}
+            if(!emp.manualRole)return;
+            emp.role=emp.manualRole;
+            if(emp.manualRole==='belt')beltFilled++;
+            else if(emp.manualRole==='bulk')bulkFilled++;
+        });
+        // Then fill whatever is left, most hours first: Belt, then Bulk, then Unload.
+        sorted.forEach(emp=>{
+            if(emp.manualRole)return;
             if(beltFilled<1){emp.role='belt';beltFilled++;}
             else if(bulkFilled<bulkMax){emp.role='bulk';bulkFilled++;}
             else{emp.role='unload';}
@@ -2935,7 +2947,7 @@ v5.06:
     function htRenderRow(emp,rank){
         const hrs=htCalcHours(emp);
         const roleCfg=emp.role?HT_ROLES[emp.role]:null;
-        const isBeltDefault=emp.name===HT_BELT_DEFAULT&&emp.role==='belt'&&!emp.manualRole;
+        const isBeltDefault=false;
         const rowCls=['ht-emp-row',
             emp.status==='active'?'ht-active':'',
             emp.status==='cut'?'ht-cut':'',

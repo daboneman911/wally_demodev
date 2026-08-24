@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.79] - 2026-08-24
+
+- **Fix:** DOP role assignment was not fully dynamic. `htAssignRoles()` did rank employees by hours, but a hardcoded `HT_BELT_DEFAULT = 'Robert W'` claimed Belt Tender whenever he was active and unpinned — regardless of hours. Worse, that flag was applied in the same pass that fills slots without re-checking `beltFilled`, so when he was *not* top-ranked the roster ended up with **two Belt Tenders** simultaneously (verified: with hours 5/4/3/2/1 ascending, both the 5.00-hr employee and the 1.00-hr Robert W were assigned `belt`). The hardcoded default and its `_autoBelt` flag are removed; assignment is now purely hours-ranked — most hours takes Belt, the next two take Bulk, the remainder Unload.
+- **Fix:** A manual role pin could also produce two Belt Tenders. Pins were honoured inside the single hours-ranked pass, so an unpinned higher-hours employee reached the Belt slot first and the pinned employee was then assigned Belt as well. Pins now claim their slot in a dedicated pass before auto-assignment fills what remains, guaranteeing exactly one Belt and at most two Bulk.
+- **UI:** Removed the "★ Default Belt" badge, which no longer describes anything — there is no preferred employee for the role.
+- Verified across ascending, descending and shuffled hour orders; a live overtake (lowest-hours employee jumping to 9.00 hrs correctly takes Belt); a manual pin on the lowest-hours employee (pin respected, still exactly one Belt); and cutting the Belt Tender (cut employee keeps `belt` so their hours stay attributed, while exactly one *active* employee picks the role up).
+- Note: Bulk is capped at 2 for both the 6/2 and 5/2 settings; `dopConfig` (6 or 5) is the unloader target, not the bulk count.
+
 ### [6.78] - 2026-08-23
 
 - **Fix:** Cutting an employee moved their accumulated hours between KPI buckets instead of simply stopping the clock. `htAssignRoles()` ranked `active` **and** `cut` employees together, wiping `e.role` and recomputing it; since `htCutEmployee()` clears `manualRole`, a cut employee fell through to auto-assignment and could be re-roled — e.g. an unloader cut at 1.00 hrs reverted to the default Belt Tender, dropping the Unload total by an hour and adding it to Belt. `htAssignRoles()` now ranks only `active` employees, so a cut employee's `role` freezes alongside their `frozenHours` and their contribution stays attributed to the role they actually worked.
