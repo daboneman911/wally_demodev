@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.85] - 2026-08-24
+
+- **New:** Onboarding a trailer while `shiftState === 'idle'` now prompts to start the shift, since door timers, stats and DOP hours only accrue once it's live. `maybePromptStartShift()` fires from both onboarding paths (`confirmArrival()` and `continueWithDuplicate()`).
+- "Start Shift Now" calls `confirmStartShift(true)` directly, keeping the already-onboarded trailers — it deliberately bypasses the "Trailers Still Onboard / what should happen to them?" modal, because a prompt triggered *by* onboarding has already answered that question. Verified three pre-shift trailers all survive the start and no second modal appears.
+- The prompt is shown once per idle period rather than per trailer, so staging several bays before the shift doesn't nag; the flag resets in `confirmStartShift()` so it can appear again after a later shift ends. Verified: prompts on the first idle onboard, stays silent on the next, never appears while live, and DOP picks the shift up on start.
+
 ### [6.84] - 2026-08-24
 
 - **UI:** `.shift-meter` changed from a 104px circle to the same pill form as `.btn-shift` — identical `--radius-md` corners and, after pulling the 3px ring out of the vertical padding, an identical 44px height (verified 44px vs 44px, 0px delta). Hours and label now sit side by side inside the pill rather than stacked. The result reads as one control changing state instead of swapping into a different shape. Green ring and `meter-glow` pulse unchanged.
