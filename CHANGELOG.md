@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.73] - 2026-08-23
+
+- **Change:** Hours tab renamed to **DOP**; the panel header now reads "DOP Tracker". Internal ids (`tab-hours`, `ht-*`, `switchTab('hours')`) are unchanged, so no behavior or stored data is affected.
+- **Fix:** The DOP roster and the master Team Management list are now genuinely one list, reconciled in both directions. Previously only one direction worked, and only partially — `htAddEmployee()` pushed to `teamNames`, but `htLoadState()` merged the other way *on load only*, and it merged additively. So: a member added in Settings didn't reach the DOP tab until a reload; deleting a member in Settings left them on the DOP roster permanently (the load-merge only ever adds); and renaming a member left the old name on the roster *and* added the new one, giving two rows for one person. Added `htSyncEmployeesFromTeam()`, `htRemoveEmployeeByName()` and `htRenameEmployee()`, wired into `confirmAddTeamInline()`, `confirmAddUnloader()`, `deleteTeamMember()` and `editTeamMember()`.
+- **Fix:** `htAddEmployee()` pushed to `hoursState.employees` unconditionally, so adding a name already on the roster created a duplicate row. It now checks both lists, adds only where missing, and reports when the name already exists. It also calls `renderTeamManagement()` so the Settings list reflects the addition immediately.
+- **UI:** `deleteTeamMember()` now states that removal also clears the person from the DOP roster, and warns separately when that person has recorded DOP hours (active, started, or accumulated) that removal would discard.
+
 ### [6.72] - 2026-08-23
 
 - **UI:** Grace Period prompt reworded to state the action directly: "Door 9 completed at 08:23 PM. Assign completion to previous hour or current hour." Now shows the clock time rather than just the minute, and no longer describes the grace window in the prompt itself (the Settings description still does). Because the text no longer asserts the completion fell *inside* the window, the separate wording for a simulated prompt was removed — one message is accurate for both, so a simulated prompt now previews exactly what a real one looks like.
