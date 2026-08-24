@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.86] - 2026-08-24
+
+- **New:** Added a **Methods** placeholder tool to the Tools tab, using the existing `.tool-card` pattern (`ph-list-checks` icon) so it matches Notes Manager, PPH Calculator and Manual Add — it also completes the 2x2 grid. `openMethods()` shows a "coming soon" sheet; no functionality is wired behind it yet.
+
 ### [6.85] - 2026-08-24
 
 - **New:** Onboarding a trailer while `shiftState === 'idle'` now prompts to start the shift, since door timers, stats and DOP hours only accrue once it's live. `maybePromptStartShift()` fires from both onboarding paths (`confirmArrival()` and `continueWithDuplicate()`).

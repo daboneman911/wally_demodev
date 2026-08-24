@@ -652,6 +652,7 @@
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openPPHCalculator()"><div class="tool-icon-wrapper"><i class="ph ph-chart-bar"></i></div>
     <div class="tool-title">PPH Calculator</div></div>
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openManualAddModal()"><div class="tool-icon-wrapper"><i class="ph ph-pencil-simple-line"></i></div><div class="tool-title">Manual Add</div></div>
+            <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openMethods()"><div class="tool-icon-wrapper"><i class="ph ph-list-checks"></i></div><div class="tool-title">Methods</div></div>
         </div>
     </div>
     <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:transparent;padding:0;">
@@ -885,6 +886,15 @@
     <div style="font-size:12px;color:var(--text-sub);margin-top:8px;">Team will be notified what is rolling to Door <span class="cpu-next-door-num-ref"></span> next.</div>
   </div>
 </div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border-light);cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" id="btn-detail-note" onclick="openEditNoteFromActive()" style="flex:1;display:none;"><i class="ph ph-note-pencil"></i></button><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
+<div class="modal-overlay" id="methods-modal"><div class="modal-sheet">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Methods</h2><button class="modal-close-btn" onclick="closeModal('methods-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div style="text-align:center;padding:26px 0 30px;">
+        <i class="ph ph-list-checks" style="font-size:46px;color:var(--text-muted);"></i>
+        <div style="font-size:16px;font-weight:800;color:var(--text-main);margin-top:14px;">Coming soon</div>
+        <div style="font-size:14px;color:var(--text-sub);margin-top:6px;line-height:1.45;">This tool hasn\u2019t been built yet.</div>
+    </div>
+    <button class="btn-cancel" onclick="closeModal('methods-modal')">Close</button>
+</div></div>
 <div class="modal-overlay z-high" id="onboard-start-shift-modal"><div class="modal-sheet">
     <h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Shift Not Started</h2>
     <p id="onboard-start-sub" style="text-align:center;color:#757575;margin-bottom:22px;font-size:15px;line-height:1.45;"></p>
@@ -933,13 +943,16 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.85',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.86',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.86:
+- New: Added a Methods tool to the Tools tab as a placeholder. It opens a
+  "coming soon" sheet for now -- nothing is wired up behind it yet.
 v6.85:
 - New: Onboarding a trailer while the shift hasn't been started now prompts
   you to start it, since timers and stats only run once the shift is live.
@@ -1822,6 +1835,7 @@ v5.06:
             setTimeout(function(){if(!isSyncingWebhook&&badge&&badge.classList.contains('error')){badge.classList.remove('error');badge.onclick=null;updateSyncBadge();processWebhookQueue();}},5000);
         });
     }
+    function openMethods(){byId('methods-modal').style.display='flex'}
     function openPPHCalculator(){byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='#e5e5ea';byId('pph-diff').style.color='#000';byId('pph-modal').style.display='flex'}
     function calculatePPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value),resEl=byId('pph-result'),diffEl=byId('pph-diff');if(isNaN(vol)||isNaN(hrs)||hrs<=0){resEl.innerText='0';diffEl.innerText='0.00 hrs';diffEl.style.background='#e5e5ea';diffEl.style.color='#000';return}const pph=Math.round(vol/hrs);resEl.innerText=pph;const targetHours=vol/600,diff=hrs-targetHours;let diffText=diff>0?'+'+diff.toFixed(2):diff.toFixed(2);diffEl.innerText=diffText+' hrs';if(diff<=0){diffEl.style.background='#e8f5e9';diffEl.style.color='#2e7d32'}else{diffEl.style.background='#ffebee';diffEl.style.color='#c62828'}}
     function uploadPPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value);if(isNaN(vol)||isNaN(hrs)||hrs<=0)return alert("Please enter valid volume and hours first.");const pph=Math.round(vol/hrs),diff=(hrs-vol/600).toFixed(2);attemptWebhook({dataType:'PPH_UPLOAD',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime(),volume:vol,hours:hrs,pph:pph,diffHours:diff});const btn=byId('pph-push-btn'),origText=btn.innerText;btn.innerText='Pushed!';btn.style.background='#34c759';setTimeout(()=>{btn.innerText=origText;btn.style.background='#000'},2000)}
