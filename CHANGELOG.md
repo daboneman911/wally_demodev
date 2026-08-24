@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.71] - 2026-08-23
+
+- **UI:** The Grace Period prompt now leads with the bay number so it's unambiguous which trailer is being attributed when two bays finish close together — "Door 9 completed at :19, inside the :19-:29 grace window." The simulated variant reads "Simulated — door 14 completed at :49. Tonight's window is :19-:29." Everything else (title, both button labels, Settings copy) is unchanged.
+
 ### [6.70] - 2026-08-23
 
 - **Fix:** Grace Period (attribution window) fired inconsistently. `completeDoor()` tested `mins>=0 && mins<10` against the wall-clock minute — a window hardcoded to `:00–:10` since v6.56, despite the comment directly above it stating the window was "anchored to shift start minute". Hour buckets (`getCompletionHour()`) *were* already anchored to the shift start minute, so detection and bucketing disagreed on any start time that wasn't `:00`. The window now derives from the shift start minute via `minutesIntoShiftHour()`/`isInGraceWindow()`:

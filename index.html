@@ -911,13 +911,18 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.70',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.71',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.71:
+- UI: The Grace Period prompt now names the bay, so it is clear which
+  trailer is being attributed when two bays finish close together --
+  "Door 9 completed at :19, inside the :19-:29 grace window." Wording
+  is otherwise unchanged.
 v6.70:
 - Fix: Grace Period now works on every start time. The window is anchored
   to the shift start MINUTE instead of being hardcoded to :00-:10, so an
@@ -2104,14 +2109,15 @@ v5.06:
         const{shiftStart}=getShiftTimeWindows();const s=shiftStart.getMinutes();
         const pad=n=>String(n).padStart(2,'0');
         return':'+pad(s)+'-:'+pad((s+GRACE_WINDOW_MINUTES)%60)}
-    function updateAttributionModalText(date){
+    function updateAttributionModalText(date,doorNum){
         const el=byId('attribution-window-text');if(!el)return;
         const done=':'+String(date.getMinutes()).padStart(2,'0');
+        const subj=doorNum!=null?'Door '+doorNum+' completed':'Completed';
         // config.simulateWindow forces this modal outside the real window, so don't
         // claim the completion was inside it when it wasn't.
         el.textContent=isInGraceWindow(date)
-            ?'Completed at '+done+', inside the '+getGraceWindowLabel()+' grace window.'
-            :'Simulated \u2014 completed at '+done+'. Tonight\u2019s window is '+getGraceWindowLabel()+'.'}
+            ?subj+' at '+done+', inside the '+getGraceWindowLabel()+' grace window.'
+            :'Simulated \u2014 '+subj.charAt(0).toLowerCase()+subj.slice(1)+' at '+done+'. Tonight\u2019s window is '+getGraceWindowLabel()+'.'}
     function populateUnloaderSelect(){const ids=['select-unloader','edit-select-unloader','edit-active-unloader','filter-unloader-select','req-unloader-select','manual-unloader'];ids.forEach(id=>{const el=byId(id);if(!el)return;const isFilter=id==='filter-unloader-select';el.innerHTML=isFilter?'<option value="All">All Unloaders</option>':'<option value="" selected>Unassigned</option>';teamNamesSorted.forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.innerText=name;el.appendChild(opt)});if(!isFilter)el.innerHTML+='<option value="Custom">Custom / Other</option>'})}
     function checkManualCustomUnloader(s){byId('manual-custom-unloader').style.display=s.value==='Custom'?'block':'none'}
     function openManualAddModal(){byId('manual-wally-id').value='';byId('manual-trailer-id').value='';byId('manual-account-id').value='';byId('manual-unloader').value='';byId('manual-custom-unloader').style.display='none';byId('manual-chk-hott').checked=false;byId('manual-chk-recycle').checked=false;byId('manual-chk-gv').checked=false;setManualType('Wally');byId('manual-hour-select').value='1';byId('manual-add-modal').style.display='flex'}
@@ -2144,7 +2150,7 @@ v5.06:
         completeDoor(detailDoor,false,cpuNext);
     }
     function completeDoor(doorNum,force=false,cpuNext=false){const d=doors[doorNum];if(d.status==='staged'||(!force&&(!d.unloader||d.unloader==='Unassigned'))){closeModal('active-detail-modal');byId('req-unloader-select').value="";byId('unloader-required-modal').style.display='flex';return}const now=new Date(),{shiftStart}=getShiftTimeWindows();// Attribution window is anchored to shift start minute + slider offset
-        let shouldCheck=false;if(d.type==='Wally'){const inWindow=isInGraceWindow(now);shouldCheck=config.simulateWindow||(attributionConfig.enabled&&!config.disableWindow&&(now-shiftStart>3600000)&&inWindow)}if(shouldCheck){pendingCompletion={doorNum,time:now.getTime(),cpuNext};updateAttributionModalText(now);byId('hour-attribution-modal').style.display='flex'}else finalizeCompletion(doorNum,now.getTime(),0,cpuNext)}
+        let shouldCheck=false;if(d.type==='Wally'){const inWindow=isInGraceWindow(now);shouldCheck=config.simulateWindow||(attributionConfig.enabled&&!config.disableWindow&&(now-shiftStart>3600000)&&inWindow)}if(shouldCheck){pendingCompletion={doorNum,time:now.getTime(),cpuNext};updateAttributionModalText(now,doorNum);byId('hour-attribution-modal').style.display='flex'}else finalizeCompletion(doorNum,now.getTime(),0,cpuNext)}
     function checkReqCustom(s){byId('req-custom-unloader').style.display=s.value==='Custom'?'block':'none'}
     function saveRequiredUnloader(){let unl=byId('req-unloader-select').value;if(unl==='Custom')unl=byId('req-custom-unloader').value.trim();if(!unl)return alert("Please select an unloader");if(unl!=="Unassigned"&&unl===byId('req-custom-unloader').value.trim())unl=unl.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');const d=doors[detailDoor];const now=Date.now();d.unloader=unl;d.status='active';if(!d.laborStart)d.laborStart=now;if(d.assignments.length>0){if(d.assignments[d.assignments.length-1].name==='Unassigned')d.assignments[d.assignments.length-1]={name:unl,start:now,end:null};else d.assignments.push({name:unl,start:now,end:null})}else d.assignments=[{name:unl,start:now,end:null}];saveDoors();closeModal('unloader-required-modal');completeDoor(detailDoor,true)}
     function resolveAttribution(choice){closeModal('hour-attribution-modal');if(!pendingCompletion)return;let offset=0;if(choice==='Previous')offset=(minutesIntoShiftHour(new Date(pendingCompletion.time))+1)*60000;finalizeCompletion(pendingCompletion.doorNum,pendingCompletion.time,offset,pendingCompletion.cpuNext!=null?pendingCompletion.cpuNext:false);pendingCompletion=null}
