@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.82] - 2026-08-24
+
+- **UI:** Replaced the split hours-tile/button row (6.81) with a single centred control. `.nameplate-actions` centres one element: the Start Shift button while idle, which becomes a 104px circular unload-hours meter ringed in `--accent-green` once the shift is live (`--accent-orange` in demo). The circular form echoes the bay circles rather than introducing a new shape. Verified both states render dead-centre (0.0px offset) and that the swap round-trips idle → live → demo → idle.
+- **New:** Tapping the running meter opens a Shift Options sheet showing the current unload hours, with **View Breakdown** (closes the sheet and switches to the DOP tab) and **End Shift** (routes into the existing `openEndShiftModal()` confirmation, so the keep-bays-open flow is unchanged). Both verified end to end.
+- The meter keeps the `nameplate-hours` / `nameplate-hours-val` ids, so `updateNameplateHours()` and the DOP mirroring from 6.77 continue to drive it untouched.
+
 ### [6.81] - 2026-08-24
 
 - **UI:** Dashboard nameplate reworked. `.shift-state-pill` carried `flex:1`, so it consumed roughly a third of the action row to display a single word that the button already conveyed — idle showed "Ready" beside "Start Shift", live showed "Shift Live" beside "End Shift". It is now a quiet uppercase status label pinned to the card's top-right corner (dot + text, no pill background), colour-coded by state: muted when idle, green when live, orange in demo. It keeps its element id and state classes, so `updateNameplate()` drives it unchanged.

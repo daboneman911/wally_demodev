@@ -85,21 +85,24 @@
         .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
-        .nameplate-actions{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:8px;margin-top:12px}
+        .nameplate-actions{display:flex;justify-content:center;align-items:center;margin-top:12px}
         .shift-state-pill{position:absolute;top:12px;right:14px;display:flex;align-items:center;gap:5px;padding:0;background:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);z-index:1}
         .shift-state-pill.idle{color:var(--text-muted)}
         .shift-state-pill.live{color:var(--accent-green)}
         .shift-state-pill.demo{color:var(--accent-orange)}
         .shift-state-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-        .nameplate-hours{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 12px;border-radius:var(--radius-md);background:var(--border-light);line-height:1;min-height:52px}
-        .nameplate-hours-val{font-size:22px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px}
-        .nameplate-hours-lbl{font-size:9px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;margin-top:4px}
-        .nameplate-hours.live .nameplate-hours-val{color:var(--accent-green)}
+        .shift-meter{display:none;flex-direction:column;align-items:center;justify-content:center;width:104px;height:104px;border-radius:50%;background:var(--surface-raised);border:4px solid var(--accent-green);box-shadow:0 0 0 5px rgba(22,163,74,0.14);cursor:pointer;line-height:1;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+        .shift-meter.visible{display:flex}
+        .shift-meter:active{transform:scale(0.96)}
+        .shift-meter.demo{border-color:var(--accent-orange);box-shadow:0 0 0 5px rgba(234,88,12,0.14)}
+        .shift-meter-val{font-size:27px;font-weight:900;color:var(--text-main);letter-spacing:-1px}
+        .shift-meter-lbl{font-size:8px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;margin-top:5px}
+        .shift-meter.live .shift-meter-val{color:var(--accent-green)}
         .shift-state-dot.idle{background:#d1d5db}
         .shift-state-dot.live{background:var(--accent-green);box-shadow:0 0 0 3px rgba(22,163,74,0.2);animation:dot-pulse 2s ease-in-out infinite}
         .shift-state-dot.demo{background:var(--accent-orange);box-shadow:0 0 0 3px rgba(234,88,12,0.2);animation:dot-pulse 1.5s ease-in-out infinite}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-        .btn-shift{border:none;border-radius:var(--radius-md);padding:10px 14px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;min-height:52px;transition:all 0.15s;letter-spacing:0.2px}
+        .btn-shift{border:none;border-radius:var(--radius-md);padding:13px 26px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;letter-spacing:0.2px}
         .btn-shift i{font-size:18px}
         .btn-shift.start{background:var(--text-main);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.18)}
         .btn-shift.start:active{background:#111827;transform:scale(0.93);box-shadow:inset 0 2px 6px rgba(0,0,0,0.25)}
@@ -598,14 +601,14 @@
                 <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.63</div>
             </div>
             <div class="nameplate-actions">
-                <div class="nameplate-hours" id="nameplate-hours" title="Unload hours from the DOP tab">
-                    <span class="nameplate-hours-val" id="nameplate-hours-val">0.00</span>
-                    <span class="nameplate-hours-lbl">Unload hrs</span>
-                </div>
                 <button class="btn-shift start" id="btn-shift-action" onclick="handleShiftAction()">
                     <i class="ph ph-play-circle" id="btn-shift-icon"></i>
                     <span id="btn-shift-label">Start Shift</span>
                 </button>
+                <div class="shift-meter" id="nameplate-hours" role="button" tabindex="0" aria-label="Unload hours, tap for shift options" title="Unload hours — tap for options" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openShiftMenu()">
+                    <span class="shift-meter-val" id="nameplate-hours-val">0.00</span>
+                    <span class="shift-meter-lbl">Unload hrs</span>
+                </div>
             </div>
         </div>
         <!-- STATS GRID -->
@@ -909,6 +912,13 @@
 <div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:#757575;margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="edit-active-labor-time" class="form-input" style="margin-bottom:0;flex:1;"><button type="button" onclick="setLaborTimeNow()" style="padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--text-main);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:0.2px;">Now</button></div></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
+<div class="modal-overlay z-high" id="shift-menu-modal"><div class="modal-sheet">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Shift Options</h2><button class="modal-close-btn" onclick="closeModal('shift-menu-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <p id="shift-menu-sub" style="text-align:center;color:var(--text-sub);margin:0 0 22px;font-size:14px;">0.00 unload hours so far.</p>
+    <button class="btn-primary" onclick="shiftMenuBreakdown()"><i class="ph ph-chart-bar" style="margin-right:8px;"></i>View Breakdown</button>
+    <button class="btn-primary btn-danger" onclick="shiftMenuEnd()" style="margin-top:10px;">End Shift</button>
+    <button class="btn-cancel" onclick="closeModal('shift-menu-modal')">Cancel</button>
+</div></div>
 <div class="modal-overlay z-high" id="end-shift-modal"><div class="modal-sheet">
     <h2 style="margin:0 0 6px;font-size:24px;font-weight:900;">End Shift</h2>
     <p style="color:#8e8e93;font-size:14px;margin:0 0 20px;line-height:1.4;">Review what will happen before confirming.</p>
@@ -927,13 +937,21 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.81',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.82',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.82:
+- UI: The dashboard now has one centred control. Start Shift sits in the
+  middle of the nameplate, and once the shift is running it becomes the
+  live unload-hours counter inside a green ring (orange in demo mode).
+- New: Tapping the running counter opens Shift Options -- View Breakdown
+  jumps to the DOP tab, or End Shift goes straight to the usual end-shift
+  confirmation. Ending the shift turns the counter back into the Start
+  Shift button.
 v6.81:
 - UI: Dashboard nameplate reworked. The Ready/Live pill was restating what
   the button already says (Ready + "Start Shift", Shift Live + "End
@@ -1978,11 +1996,24 @@ v5.06:
             btn.className='btn-shift end';
             btnIcon.className='ph ph-stop-circle';
             btnLabel.textContent='End Demo';
-            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION+' \u00b7 DEMO'+startDisp}}
+            sub.textContent='by Fitz Joseph \u00b7 v'+APP_VERSION+' \u00b7 DEMO'+startDisp}
+        // One centred control: the Start button becomes the running hours meter.
+        const meter=byId('nameplate-hours'),live=shiftState!=='idle';
+        if(meter){meter.classList.toggle('visible',live);meter.classList.toggle('demo',shiftState==='demo');}
+        if(btn)btn.style.display=live?'none':'flex';}
 
     function handleShiftAction(){
         if(shiftState==='idle')openStartShiftConfirm();
         else openEndShiftModal()}
+
+    // Tapping the running meter offers the two things you'd want mid-shift.
+    function openShiftMenu(){
+        if(shiftState==='idle')return;
+        const sub=byId('shift-menu-sub');
+        if(sub)sub.textContent=(typeof htFmtHrs==='function'?htFmtHrs(getUnloadHours()):getUnloadHours().toFixed(2))+' unload hours so far.';
+        byId('shift-menu-modal').style.display='flex'}
+    function shiftMenuBreakdown(){closeModal('shift-menu-modal');switchTab('hours')}
+    function shiftMenuEnd(){closeModal('shift-menu-modal');openEndShiftModal()}
 
     function openStartShiftConfirm(){
         if(demoActive){startDemoShift();return}
