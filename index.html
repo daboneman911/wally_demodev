@@ -86,16 +86,24 @@
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
         .nameplate-actions{display:flex;justify-content:center;align-items:center;margin-top:12px}
-        .shift-meter{display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 22px;border-radius:var(--radius-md);background:var(--surface-raised);border:3px solid var(--accent-green);cursor:pointer;line-height:1;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+        .shift-meter{display:none;flex-direction:column;gap:2px;padding:8px 18px;min-width:152px;border-radius:var(--radius-md);background:var(--surface-raised);border:3px solid var(--accent-green);cursor:pointer;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
         .shift-meter.visible{display:flex;animation:meter-glow 2.4s ease-in-out infinite}
         @keyframes meter-glow{0%,100%{box-shadow:0 0 0 5px rgba(22,163,74,0.14)}50%{box-shadow:0 0 0 10px rgba(22,163,74,0.04)}}
         @keyframes meter-glow-demo{0%,100%{box-shadow:0 0 0 5px rgba(234,88,12,0.14)}50%{box-shadow:0 0 0 10px rgba(234,88,12,0.04)}}
         .shift-meter:active{transform:scale(0.96)}
+        .shift-meter.under{border-color:var(--accent-red);animation:meter-glow-under 2.4s ease-in-out infinite}
+        @keyframes meter-glow-under{0%,100%{box-shadow:0 0 0 5px rgba(220,38,38,0.14)}50%{box-shadow:0 0 0 10px rgba(220,38,38,0.04)}}
         .shift-meter.demo{border-color:var(--accent-orange);animation:meter-glow-demo 2.4s ease-in-out infinite}
-        .shift-meter-val{font-size:21px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px;line-height:1.05}
-        .shift-meter-lbl{font-size:8px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;line-height:1.2;text-align:center;white-space:nowrap}
-        .shift-meter.live .shift-meter-val{color:var(--accent-green)}
-        .shift-meter-stale{color:var(--accent-orange)!important}
+        .shift-meter-line{display:flex;align-items:baseline;gap:6px}
+        .shift-meter-dash{font-size:10px;color:var(--text-muted);font-weight:700}
+        .shift-meter-val{font-size:17px;font-weight:900;color:var(--text-main);letter-spacing:-0.4px;margin-left:auto;font-variant-numeric:tabular-nums}
+        .shift-meter-line.pph .shift-meter-lbl{font-size:9px}
+        .shift-meter-line.pph .shift-meter-val{font-size:13px;color:var(--accent-green)}
+        .shift-meter.under .shift-meter-line.pph .shift-meter-val{color:var(--accent-red)}
+        .shift-meter.no-count .shift-meter-line.pph .shift-meter-val{color:var(--text-muted)}
+        .shift-meter-line.stale{opacity:0.55}
+        .shift-meter-lbl{font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.7px;width:44px;text-align:left;white-space:nowrap}
+        
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
         .btn-shift{border:none;border-radius:var(--radius-md);padding:13px 26px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;letter-spacing:0.2px}
         .btn-shift i{font-size:18px}
@@ -601,8 +609,8 @@
                     <span id="btn-shift-label">Start Shift</span>
                 </button>
                 <div class="shift-meter" id="nameplate-hours" role="button" tabindex="0" aria-label="Live PPH and unload hours, tap for shift options" title="Live PPH — tap for options" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openShiftMenu()">
-                    <span class="shift-meter-val" id="nameplate-pph-val">&mdash;</span>
-                    <span class="shift-meter-lbl" id="nameplate-hours-val">PPH &middot; 0.00 hrs</span>
+                    <div class="shift-meter-line"><span class="shift-meter-lbl">Hours</span><span class="shift-meter-dash">&ndash;</span><span class="shift-meter-val" id="nameplate-hours-val">0.00</span></div>
+                    <div class="shift-meter-line pph" id="nameplate-pph-line"><span class="shift-meter-lbl">PPH</span><span class="shift-meter-dash">&ndash;</span><span class="shift-meter-val" id="nameplate-pph-val">&mdash;</span></div>
                 </div>
             </div>
         </div>
@@ -966,13 +974,22 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.89',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.90',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.90:
+- UI: The dashboard pill now reads as two labelled rows -- "Hours - 6.00"
+  on top and "PPH - 1000" beneath in smaller type, with the values aligned
+  so the digits stay in a column as they change.
+- New: PPH is green at 500 or above and red below it, and the ring around
+  the pill matches, so you can read the shift at a glance without focusing
+  on the number. Demo mode keeps its orange ring.
+- A count older than ~75 minutes now dims the PPH row instead of recolouring
+  it, so the red/green reading is never masked by a staleness warning.
 v6.89:
 - New: Live PPH tracker. The dashboard pill now leads with PPH and shows
   live unload hours underneath. Only unload-role hours count, matching the
@@ -2086,15 +2103,22 @@ v5.06:
             .reduce((s,e)=>s+htCalcHours(e),0);
     }
     function updateNameplateHours(){
-        const lbl=byId('nameplate-hours-val'),val=byId('nameplate-pph-val');if(!lbl||!val)return;
+        const hEl=byId('nameplate-hours-val'),pEl=byId('nameplate-pph-val');if(!hEl||!pEl)return;
         const hrs=getUnloadHours();
-        const hrsTxt=(typeof htFmtHrs==='function')?htFmtHrs(hrs):hrs.toFixed(2);
-        const e=latestPphEntry();
-        val.textContent=(e&&e.pph!=null)?e.pph:'\u2014';
-        lbl.textContent='PPH \u00b7 '+hrsTxt+' hrs';
-        val.classList.toggle('shift-meter-stale',!!e&&(Date.now()-e.ts)>PPH_STALE_MS);
+        hEl.textContent=(typeof htFmtHrs==='function')?htFmtHrs(hrs):hrs.toFixed(2);
+        const e=latestPphEntry(),pph=(e&&e.pph!=null)?e.pph:null;
+        pEl.textContent=pph!=null?pph:'\u2014';
         const box=byId('nameplate-hours');
-        if(box)box.classList.toggle('live',hrs>0&&!(e&&e.pph!=null));
+        if(box){
+            // Under the target turns the figure and the ring red. Demo keeps its own
+            // ring colour, so the CSS lets .demo win over .under.
+            box.classList.toggle('under',pph!=null&&pph<PPH_TARGET);
+            box.classList.toggle('no-count',pph==null);
+        }
+        // A stale count dims the row rather than recolouring it, so the red/green
+        // reading stays intact.
+        const line=byId('nameplate-pph-line');
+        if(line)line.classList.toggle('stale',!!e&&(Date.now()-e.ts)>PPH_STALE_MS);
     }
     function updateNameplate(){
         const btn=byId('btn-shift-action'),btnIcon=byId('btn-shift-icon'),btnLabel=byId('btn-shift-label');

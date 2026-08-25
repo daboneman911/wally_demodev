@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.90] - 2026-08-24
+
+- **UI:** Dashboard pill restructured into two labelled rows — `Hours – 6.00` (17px value) above `PPH – 1000` (13px value, smaller as requested). Labels are fixed-width and values right-aligned with `font-variant-numeric: tabular-nums`, so digits occupy fixed columns and the figures don't shuffle as they tick. Verified against the widest realistic case (124.50 hrs / 4-digit PPH). Pill measures 152×60.
+- **New:** PPH is colour-coded against `PPH_TARGET` — green at 500 **or above**, red below — and the pill's ring and glow match, so the shift reads at a glance from a distance. Verified at 1000/500/499/420: 500 exactly is green, per spec. Demo mode still takes precedence and keeps its orange ring; with no count recorded the value is a muted em-dash and the ring stays green, since the shift is still live.
+- **Change:** A count older than ~75 minutes now dims the PPH row (`opacity`) rather than recolouring it amber. The previous amber treatment would have overridden the new red/green reading, hiding whether you were on target.
+
 ### [6.89] - 2026-08-24
 
 - **New:** Live PPH tracker built on the DOP unload hours. The dashboard pill now leads with the PPH figure and carries live unload hours beneath it (`PPH · 6.00 hrs`); it reads `—` until a volume count exists. Only unload-role hours count, so the denominator matches the DOP tab's UNLOAD tile exactly (Belt Tender and Bulk Sweep hours excluded).
