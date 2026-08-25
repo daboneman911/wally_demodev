@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.87] - 2026-08-24
+
+- **Change:** PPH Calculator target lowered from 600 to 500. The literal appeared in three places — `calculatePPH()`'s `targetHours`, `uploadPPH()`'s `diffHours`, and the on-screen label — so it is now a single `PPH_TARGET` constant that the label reads from, preventing the displayed target from drifting away from the maths.
+- Verified all downstream calculations follow: 10000 pkgs / 20 hrs now reads exactly 0.00 differential (500 PPH is on target, previously -3.33 vs 600); 10000 / 25 gives +5.00; 12617 / 20.63 gives -4.60. The green/red colouring still flips on the sign, and the `PPH_UPLOAD` payload pushed to Sheets carries the recalculated `diffHours` (+5.00 for 10000/25).
+- Note: `apps-script/Code.gs` needs no change — it writes the app-supplied `diffHours` straight into the "PPH Submissions" sheet's `+/-` column and holds no target of its own.
+
 ### [6.86] - 2026-08-24
 
 - **New:** Added a **Methods** placeholder tool to the Tools tab, using the existing `.tool-card` pattern (`ph-list-checks` icon) so it matches Notes Manager, PPH Calculator and Manual Add — it also completes the 2x2 grid. `openMethods()` shows a "coming soon" sheet; no functionality is wired behind it yet.
