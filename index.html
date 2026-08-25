@@ -562,6 +562,10 @@
         .ht-kpi-card:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
 
         /* ── MODAL UTILITIES ──────────────────────────────── */
+        .pph-diff{font-size:14px;font-weight:800;padding:4px 10px;border-radius:12px;background:var(--border);color:var(--text-main);transition:background 0.15s,color 0.15s}
+        .pph-diff.under{background:var(--accent-green-bg);color:var(--accent-green)}
+        .pph-diff.over{background:var(--accent-red-bg);color:var(--accent-red)}
+        .btn-primary.pph-pushed{background:var(--accent-green)}
         .modal-field-label{font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block}
         .modal-field-group{margin-bottom:15px}
         .modal-info-box{background:var(--border-light);padding:20px;border-radius:16px;text-align:center;margin-bottom:20px}
@@ -823,7 +827,7 @@
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-settings" onclick="switchTab('settings',this)" id="tab-btn-settings"><i class="ph ph-sliders-horizontal"></i><span>Settings</span></button>
 </nav>
 <!-- All modals identical to original, preserved below -->
-<div class="modal-overlay" id="pph-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">PPH Calculator</h2><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Volume (Packages)</label><input type="number" id="pph-volume" class="form-input" placeholder="e.g. 12617" inputmode="numeric" oninput="calculatePPH()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Hours Worked</label><input type="number" id="pph-hours" class="form-input" placeholder="e.g. 20.63" step="0.01" inputmode="decimal" oninput="calculatePPH()"></div><div style="background:#f9f9f9;padding:20px;border-radius:16px;text-align:center;margin-bottom:20px;"><div style="font-size:14px;color:var(--text-sub);font-weight:600;margin-bottom:5px;">Calculated PPH</div><div style="font-size:36px;font-weight:900;color:#000;line-height:1;" id="pph-result">0</div><div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;"><span style="font-size:12px;color:var(--text-sub);font-weight:600;text-transform:uppercase;">Time Differential (vs <span id="pph-target-lbl">500</span> PPH)</span><span id="pph-diff" style="font-size:14px;font-weight:800;padding:4px 10px;border-radius:12px;background:#e5e5ea;color:#000;">0.00 hrs</span></div></div><button id="pph-push-btn" class="btn-primary" onclick="uploadPPH()" style="background:#000;margin-bottom:10px;">Push to Sheets</button><button class="btn-cancel" onclick="closeModal('pph-modal')">Close</button></div></div>
+<div class="modal-overlay" id="pph-modal"><div class="modal-sheet"><div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">PPH Calculator</h2><button class="modal-close-btn" onclick="closeModal('pph-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Volume (Packages)</label><input type="number" id="pph-volume" class="form-input" placeholder="e.g. 12617" inputmode="numeric" oninput="calculatePPH()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Total Hours Worked</label><input type="number" id="pph-hours" class="form-input" placeholder="e.g. 20.63" step="0.01" inputmode="decimal" oninput="calculatePPH()"></div><div style="background:var(--border-light);padding:20px;border-radius:var(--radius-md);text-align:center;margin-bottom:20px;"><div style="font-size:14px;color:var(--text-sub);font-weight:600;margin-bottom:5px;">Calculated PPH</div><div style="font-size:36px;font-weight:900;color:var(--text-main);line-height:1;letter-spacing:-1px;" id="pph-result">0</div><div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;"><span style="font-size:12px;color:var(--text-sub);font-weight:600;text-transform:uppercase;">Time Differential (vs <span id="pph-target-lbl">500</span> PPH)</span><span id="pph-diff" class="pph-diff">0.00 hrs</span></div></div><button id="pph-push-btn" class="btn-primary" onclick="uploadPPH()" style="margin-bottom:10px;">Push to Sheets</button><button class="btn-cancel" onclick="closeModal('pph-modal')">Close</button></div></div>
 <div class="modal-overlay" id="note-modal"><div class="modal-sheet">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
         <div>
@@ -943,13 +947,20 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.87',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.88',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.88:
+- Fix: Tapping "Push to Sheets" twice in a row left the button permanently
+  reading "Pushed!". It restored whatever text the button happened to show
+  at the time, so a second tap saved "Pushed!" as the text to restore.
+- UI: PPH Calculator now has the same close (X) control as the other
+  sheets, and its result panel, differential pill and push button use the
+  app's standard colours instead of leftover hardcoded ones.
 v6.87:
 - Change: The PPH Calculator now measures against 500 PPH instead of 600.
   The target hours, the +/- differential, its green/red colouring and the
@@ -1846,8 +1857,29 @@ v5.06:
     // Expected packages-per-hour the calculator measures against.
     const PPH_TARGET=500;
     function openPPHCalculator(){const tl=byId('pph-target-lbl');if(tl)tl.textContent=PPH_TARGET;byId('pph-volume').value='';byId('pph-hours').value='';byId('pph-result').innerText='0';byId('pph-diff').innerText='0.00 hrs';byId('pph-diff').style.background='#e5e5ea';byId('pph-diff').style.color='#000';byId('pph-modal').style.display='flex'}
-    function calculatePPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value),resEl=byId('pph-result'),diffEl=byId('pph-diff');if(isNaN(vol)||isNaN(hrs)||hrs<=0){resEl.innerText='0';diffEl.innerText='0.00 hrs';diffEl.style.background='#e5e5ea';diffEl.style.color='#000';return}const pph=Math.round(vol/hrs);resEl.innerText=pph;const targetHours=vol/PPH_TARGET,diff=hrs-targetHours;let diffText=diff>0?'+'+diff.toFixed(2):diff.toFixed(2);diffEl.innerText=diffText+' hrs';if(diff<=0){diffEl.style.background='#e8f5e9';diffEl.style.color='#2e7d32'}else{diffEl.style.background='#ffebee';diffEl.style.color='#c62828'}}
-    function uploadPPH(){const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value);if(isNaN(vol)||isNaN(hrs)||hrs<=0)return alert("Please enter valid volume and hours first.");const pph=Math.round(vol/hrs),diff=(hrs-vol/PPH_TARGET).toFixed(2);attemptWebhook({dataType:'PPH_UPLOAD',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime(),volume:vol,hours:hrs,pph:pph,diffHours:diff});const btn=byId('pph-push-btn'),origText=btn.innerText;btn.innerText='Pushed!';btn.style.background='#34c759';setTimeout(()=>{btn.innerText=origText;btn.style.background='#000'},2000)}
+    function calculatePPH(){
+        const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value),
+              resEl=byId('pph-result'),diffEl=byId('pph-diff');
+        diffEl.classList.remove('under','over');
+        if(isNaN(vol)||isNaN(hrs)||hrs<=0){resEl.innerText='0';diffEl.innerText='0.00 hrs';return}
+        resEl.innerText=Math.round(vol/hrs);
+        const diff=hrs-(vol/PPH_TARGET);
+        diffEl.innerText=(diff>0?'+'+diff.toFixed(2):diff.toFixed(2))+' hrs';
+        diffEl.classList.add(diff<=0?'under':'over')}
+    const PPH_PUSH_LABEL='Push to Sheets';
+    let pphPushTimer=null;
+    function uploadPPH(){
+        const vol=parseFloat(byId('pph-volume').value),hrs=parseFloat(byId('pph-hours').value);
+        if(isNaN(vol)||isNaN(hrs)||hrs<=0)return alert("Please enter valid volume and hours first.");
+        const pph=Math.round(vol/hrs),diff=(hrs-vol/PPH_TARGET).toFixed(2);
+        attemptWebhook({dataType:'PPH_UPLOAD',dateKey:dateKeyFromTs(Date.now()),shiftStart:getShiftStartTime(),volume:vol,hours:hrs,pph:pph,diffHours:diff});
+        // Restore from a fixed label, not the button's current text -- reading the current
+        // text meant a second tap within the window captured "Pushed!" as the original and
+        // the button never went back.
+        const btn=byId('pph-push-btn');
+        btn.textContent='Pushed!';btn.classList.add('pph-pushed');
+        clearTimeout(pphPushTimer);
+        pphPushTimer=setTimeout(()=>{btn.textContent=PPH_PUSH_LABEL;btn.classList.remove('pph-pushed')},2000)}
     const NOTE_TAGS=['BARN DOORS','CPU','GAYLORDS','HEAVY BULK','HEAVY FLATS','HOTT','MIXED','OVERFLOW','SMALLS','SORTABLE','TIRES','WOODEN CRATES'];
     // wallyNotes[id] is an append-only history array: [{tags:[{value,type:'predefined'|'custom'}],text,timestamp}, ...]
     // migrateNoteHistory upgrades legacy shapes (raw string, or the old single {tags:[strings],text,updated} object) lazily on read.

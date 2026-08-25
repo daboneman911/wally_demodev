@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.88] - 2026-08-24
+
+- **Fix:** `uploadPPH()` captured `origText` from the button's *current* text before overwriting it with "Pushed!", so a second tap inside the 2s window captured "Pushed!" as the text to restore and the button was stranded on it permanently. It now restores from a fixed `PPH_PUSH_LABEL` constant and holds a single `pphPushTimer` that is cleared on each press. Verified three rapid taps now restore correctly.
+- **UI:** PPH Calculator brought in line with the other reworked sheets — added the `.modal-header-row` / `.modal-close-btn` close control it was missing.
+- **UI:** Replaced leftover hardcoded colours with tokens: the result panel (`#f9f9f9` → `--border-light`, `16px` → `--radius-md`), the PPH figure (`#000` → `--text-main`), and the push button's inline `background:#000` (removed, so `.btn-primary` supplies it). The differential pill's inline style writes (`#e5e5ea`/`#e8f5e9`/`#2e7d32`/`#ffebee`/`#c62828`) become a class-driven `.pph-diff` / `.under` / `.over` using `--accent-green`/`--accent-red`, and the push confirmation uses `.pph-pushed` with `--accent-green` rather than `#34c759`.
+- Calculations re-verified against the 500 target after the refactor, including that clearing the inputs resets the panel and the pill state.
+
 ### [6.87] - 2026-08-24
 
 - **Change:** PPH Calculator target lowered from 600 to 500. The literal appeared in three places — `calculatePPH()`'s `targetHours`, `uploadPPH()`'s `diffHours`, and the on-screen label — so it is now a single `PPH_TARGET` constant that the label reads from, preventing the displayed target from drifting away from the maths.
