@@ -453,7 +453,11 @@
         .ht-emp-row.ht-active.ht-role-belt{border-left-color:#f59e0b;background:#fffbeb;}
         .ht-emp-row.ht-active.ht-role-bulk{border-left-color:var(--accent-blue);background:var(--accent-blue-bg);}
         .ht-emp-row.ht-active.ht-role-unload{border-left-color:var(--border);background:var(--surface-raised);}
-        .ht-emp-row.ht-cut{opacity:0.6;border-style:dashed;}
+        .ht-emp-row.ht-cut{opacity:1;border-style:dashed;background:var(--border-light);border-left-color:var(--border);}
+        .ht-emp-row.ht-cut .ht-emp-name{color:var(--text-sub)}
+        .ht-emp-row.ht-cut .ht-hrs{color:var(--text-sub)!important}
+        .ht-emp-row.ht-cut .ht-role-tag{opacity:0.75}
+        .ht-cut-badge{font-size:10px;font-weight:900;letter-spacing:0.5px;text-transform:uppercase;color:var(--accent-red);background:var(--accent-red-bg);border-radius:5px;padding:2px 7px}
 
         /* Rank badge */
         .ht-rank{font-size:12px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--border-light);color:var(--text-sub);border:1px solid var(--border);}
@@ -974,13 +978,20 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.91',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.92',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.92:
+- Fix: A cut employee's row was dimmed to 60%, which faded its controls
+  along with everything else and made the row look disabled. Undo and both
+  time edits worked the whole time -- they just didn't look tappable.
+- Cut rows now render at full strength on a neutral grey surface with a red
+  CUT badge, so they still read as off the clock while the reinstate and
+  edit controls stay clearly usable.
 v6.91:
 - Fix: Labor hours were reading slightly high against the TMS. Start times
   are stored on the exact minute, but the running clock counted seconds
@@ -3216,6 +3227,7 @@ v5.06:
         const startTs=emp.startTime?htFmtTime(emp.startTime):(emp.customStartStr||'');
         let meta='';
         if(roleCfg)meta+='<span class="ht-role-tag '+roleCfg.tagCls+'">'+roleCfg.label+'</span>';
+        if(emp.status==='cut')meta+='<span class="ht-cut-badge">Cut</span>';
         if(emp.manualRole)meta+='<span class="ht-tag-manual">\ud83d\udccc Pinned</span>';
         else if(isBeltDefault)meta+='<span class="ht-tag-manual">\u2605 Default Belt</span>';
         if(startTs)meta+='<span class="ht-emp-ts">'+startTs+'</span>';

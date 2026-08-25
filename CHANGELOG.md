@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.92] - 2026-08-25
+
+- **Fix:** `.ht-emp-row.ht-cut` carried `opacity:0.6`, which faded the row's *controls* as well as its content — so the undo (reinstate) button and both time-edit buttons looked disabled even though all three were fully functional. Row opacity is now `1`; "off the clock" is signalled instead by a neutral `--border-light` surface, a neutral left edge, muted name/hours text and the retained dashed border, leaving the controls at full contrast.
+- **New:** Cut rows carry an explicit red **CUT** badge in the meta line. With the dimming gone, the state needed stating outright rather than being implied by a faded appearance.
+- Verified on a cut row that all three controls still work: start-time edit opens, cut-time edit opens, and undo reinstates the employee.
+
 ### [6.91] - 2026-08-25
 
 - **Fix:** DOP labor hours read high against the TMS because the two ends of each span were measured differently. `htParseHHMM()` zeroes seconds, so start times land on the exact minute, but `htCalcHours()` measured against `Date.now()` including seconds — so a 20:00 start read 2.0164 hrs (displayed **2.02**) at 22:00:59 where a whole-minute system reads 2.00. The error was always in the same direction (over, never under) and compounded per employee: ~30s of uncounted seconds each is ~0.08 hrs across a 10-person crew, and it also inflated the PPH denominator.
