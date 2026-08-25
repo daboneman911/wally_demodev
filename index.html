@@ -86,15 +86,16 @@
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
         .nameplate-actions{display:flex;justify-content:center;align-items:center;margin-top:12px}
-        .shift-meter{display:none;flex-direction:row;align-items:center;justify-content:center;gap:9px;padding:7px 23px;border-radius:var(--radius-md);background:var(--surface-raised);border:3px solid var(--accent-green);cursor:pointer;line-height:1;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+        .shift-meter{display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 22px;border-radius:var(--radius-md);background:var(--surface-raised);border:3px solid var(--accent-green);cursor:pointer;line-height:1;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
         .shift-meter.visible{display:flex;animation:meter-glow 2.4s ease-in-out infinite}
         @keyframes meter-glow{0%,100%{box-shadow:0 0 0 5px rgba(22,163,74,0.14)}50%{box-shadow:0 0 0 10px rgba(22,163,74,0.04)}}
         @keyframes meter-glow-demo{0%,100%{box-shadow:0 0 0 5px rgba(234,88,12,0.14)}50%{box-shadow:0 0 0 10px rgba(234,88,12,0.04)}}
         .shift-meter:active{transform:scale(0.96)}
         .shift-meter.demo{border-color:var(--accent-orange);animation:meter-glow-demo 2.4s ease-in-out infinite}
-        .shift-meter-val{font-size:24px;font-weight:900;color:var(--text-main);letter-spacing:-0.9px;line-height:1}
-        .shift-meter-lbl{font-size:9px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.6px;line-height:1.2;text-align:left;max-width:46px}
+        .shift-meter-val{font-size:21px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px;line-height:1.05}
+        .shift-meter-lbl{font-size:8px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;line-height:1.2;text-align:center;white-space:nowrap}
         .shift-meter.live .shift-meter-val{color:var(--accent-green)}
+        .shift-meter-stale{color:var(--accent-orange)!important}
         @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
         .btn-shift{border:none;border-radius:var(--radius-md);padding:13px 26px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;letter-spacing:0.2px}
         .btn-shift i{font-size:18px}
@@ -599,9 +600,9 @@
                     <i class="ph ph-play-circle" id="btn-shift-icon"></i>
                     <span id="btn-shift-label">Start Shift</span>
                 </button>
-                <div class="shift-meter" id="nameplate-hours" role="button" tabindex="0" aria-label="Unload hours, tap for shift options" title="Unload hours — tap for options" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openShiftMenu()">
-                    <span class="shift-meter-val" id="nameplate-hours-val">0.00</span>
-                    <span class="shift-meter-lbl">Unload hrs</span>
+                <div class="shift-meter" id="nameplate-hours" role="button" tabindex="0" aria-label="Live PPH and unload hours, tap for shift options" title="Live PPH — tap for options" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openShiftMenu()">
+                    <span class="shift-meter-val" id="nameplate-pph-val">&mdash;</span>
+                    <span class="shift-meter-lbl" id="nameplate-hours-val">PPH &middot; 0.00 hrs</span>
                 </div>
             </div>
         </div>
@@ -922,10 +923,28 @@
 <div class="modal-overlay z-high" id="unloader-required-modal"><div class="modal-sheet"><h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Assign Unloader</h2><p style="text-align:center;color:#757575;margin-bottom:25px;">Who completed this door?</p><select id="req-unloader-select" class="form-input" onchange="checkReqCustom(this)"></select><input type="text" id="req-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"><button class="btn-primary" onclick="saveRequiredUnloader()">Confirm & Finish</button><button class="btn-cancel" onclick="closeModal('unloader-required-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="move-menu-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Move / Mark Incomplete</h2><p style="text-align:center;color:#757575;margin-bottom:20px;">Select destination or mark as incomplete.</p><select id="move-dest-select" class="form-input"><option value="Small Sort">Small Sort</option><option value="Bulk Directs">Bulk Directs</option><option value="Incomplete">Incomplete (no unload)</option></select><button class="btn-primary" onclick="confirmMoveDoor()">Confirm</button><button class="btn-cancel" onclick="closeModal('move-menu-modal')">Cancel</button></div></div>
 <div class="modal-overlay" id="edit-active-modal"><div class="modal-sheet"><h2 style="margin:0 0 20px;font-size:24px;text-align:center;">Edit Active Bay</h2><input type="hidden" id="edit-active-original-door"><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Bay Number</label><select id="edit-active-door-select" class="form-input"></select></div><div class="type-selector"><div class="type-opt selected" id="active-opt-wally" onclick="setEditActiveType('Wally')">Wally</div><div class="type-opt" id="active-opt-cpu" onclick="setEditActiveType('CPU')">CPU</div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;" id="edit-id-label">Wally Number</label><input type="text" id="edit-active-id" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Account # (CPU only)</label><input type="text" id="edit-active-account" class="form-input" oninput="this.value=this.value.toUpperCase()"></div><div id="edit-active-options-container" style="display:none;margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:8px;display:block;">Options</label><div class="options-grid"><label class="option-toggle"><input type="checkbox" id="edit-active-chk-hott" value="HOTT"><span>HOTT</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-recycle" value="RECYCLE"><span>RECYCLE</span></label><label class="option-toggle"><input type="checkbox" id="edit-active-chk-gv" value="GV"><span>GV</span></label></div></div><div style="margin-bottom:15px;"><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Unloader</label><select id="edit-active-unloader" class="form-input" onchange="checkActiveCustomUnloader(this)"></select><input type="text" id="edit-active-custom-unloader" class="form-input" style="display:none;margin-top:10px;" placeholder="Enter Name" autocapitalize="words"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;"><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Trailer Arrival Time</label><input type="time" id="edit-active-arrival-time" class="form-input"></div><div><label style="font-size:12px;color:var(--text-sub);font-weight:600;margin-left:4px;margin-bottom:4px;display:block;">Labor Start Time</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="edit-active-labor-time" class="form-input" style="margin-bottom:0;flex:1;"><button type="button" onclick="setLaborTimeNow()" style="padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--text-main);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:0.2px;">Now</button></div></div></div><div style="font-size:12px;color:#8e8e93;margin-bottom:15px;padding:10px 14px;background:#f9f9f9;border-radius:10px;line-height:1.5;">Dwell time (gap between arrival and labor start) is tracked automatically.</div><button class="btn-primary" onclick="saveActiveEdit()">Save Changes</button><button class="btn-cancel" onclick="closeModal('edit-active-modal')">Discard</button></div></div>
+<div class="modal-overlay z-high" id="pph-volume-modal"><div class="modal-sheet" style="max-height:calc(100dvh - var(--safe-top) - 24px);overflow-y:auto;">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Update Volume</h2><button class="modal-close-btn" onclick="closeModal('pph-volume-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <p style="text-align:center;color:var(--text-sub);margin:0 0 16px;font-size:14px;line-height:1.45;">Running total of packages processed so far this shift.</p>
+    <div class="modal-field-group">
+        <label class="modal-field-label">Packages so far</label>
+        <input type="number" id="pph-volume-input" class="form-input" placeholder="e.g. 4200" inputmode="numeric" min="0">
+    </div>
+    <div id="pph-volume-preview" style="background:var(--border-light);border-radius:var(--radius-md);padding:14px;text-align:center;margin-bottom:18px;">
+        <div style="font-size:12px;color:var(--text-sub);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">This will read</div>
+        <div id="pph-volume-preview-val" style="font-size:28px;font-weight:900;color:var(--text-main);letter-spacing:-1px;margin-top:4px;">&mdash; PPH</div>
+        <div id="pph-volume-preview-sub" style="font-size:12px;color:var(--text-muted);font-weight:600;margin-top:3px;">over 0.00 unload hrs</div>
+    </div>
+    <button class="btn-primary" onclick="confirmVolume()">Save Count</button>
+    <div class="note-editor-section-label" id="pph-history-label" style="display:none;">History</div>
+    <div id="pph-history-list"></div>
+    <button class="btn-cancel" onclick="closeModal('pph-volume-modal')">Cancel</button>
+</div></div>
 <div class="modal-overlay z-high" id="shift-menu-modal"><div class="modal-sheet">
     <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Shift Options</h2><button class="modal-close-btn" onclick="closeModal('shift-menu-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
     <p id="shift-menu-sub" style="text-align:center;color:var(--text-sub);margin:0 0 22px;font-size:14px;">0.00 unload hours so far.</p>
-    <button class="btn-primary" onclick="shiftMenuBreakdown()"><i class="ph ph-chart-bar" style="margin-right:8px;"></i>View Breakdown</button>
+    <button class="btn-primary" onclick="shiftMenuVolume()"><i class="ph ph-package" style="margin-right:8px;"></i>Update Volume</button>
+    <button class="btn-primary btn-history" style="margin-top:10px;" onclick="shiftMenuBreakdown()"><i class="ph ph-chart-bar" style="margin-right:8px;"></i>View Breakdown</button>
     <button class="btn-primary btn-danger" onclick="shiftMenuEnd()" style="margin-top:10px;">End Shift</button>
     <button class="btn-cancel" onclick="closeModal('shift-menu-modal')">Cancel</button>
 </div></div>
@@ -947,13 +966,24 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.88',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.89',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.89:
+- New: Live PPH tracker. The dashboard pill now leads with PPH and shows
+  live unload hours underneath. Only unload-role hours count, matching the
+  DOP tab's UNLOAD tile.
+- New: Tap the pill > Update Volume to enter the running package count.
+  It previews the PPH before you save, keeps a timestamped history of every
+  count, and shows the rate for each interval between counts.
+- PPH is measured against the unload hours at the moment you enter a count,
+  so it holds steady between counts instead of sagging as hours build and
+  snapping back on the next entry. The figure turns amber once a count is
+  over ~75 minutes old. The volume log clears when a new shift starts.
 v6.88:
 - Fix: Tapping "Push to Sheets" twice in a row left the button permanently
   reading "Pushed!". It restored whatever text the button happened to show
@@ -2028,6 +2058,25 @@ v5.06:
     // -- SHIFT STATE MACHINE ---------------------------------
     function loadShiftState(){const s=localStorage.getItem('ps9_shift_state');if(s==='live'||s==='demo')shiftState=s;else shiftState='idle';const et=localStorage.getItem('ps9_shift_end_time');shiftEndTime=et?parseInt(et,10):null;}
     function saveShiftState(){localStorage.setItem('ps9_shift_state',shiftState)}
+    // -- LIVE PPH -------------------------------------------
+    // Volume is entered as a running total once an hour. PPH is measured against the
+    // unload hours AT THE MOMENT of that entry, not the current hours -- otherwise the
+    // figure would sag all hour and snap back on each entry, looking like lost
+    // performance when it is really just a stale count.
+    let pphLog=[];
+    function loadPphLog(){try{pphLog=JSON.parse(localStorage.getItem('ps9_pph_log'))||[]}catch(e){pphLog=[]}
+        if(!Array.isArray(pphLog))pphLog=[]}
+    function savePphLog(){localStorage.setItem('ps9_pph_log',JSON.stringify(pphLog))}
+    function clearPphLog(){pphLog=[];savePphLog()}
+    function latestPphEntry(){return pphLog.length?pphLog[pphLog.length-1]:null}
+    function recordVolume(vol){
+        const hrs=getUnloadHours();
+        pphLog.push({ts:Date.now(),volume:vol,hrs,pph:hrs>0?Math.round(vol/hrs):null});
+        savePphLog();
+        updateNameplateHours();renderPphHistory();}
+    // A count older than this is probably no longer representative.
+    const PPH_STALE_MS=75*60*1000;
+
     // Mirrors the DOP tab's UNLOAD tile (unload-role hours only, active + cut).
     function getUnloadHours(){
         if(typeof hoursState==='undefined'||!hoursState||!Array.isArray(hoursState.employees))return 0;
@@ -2037,11 +2086,15 @@ v5.06:
             .reduce((s,e)=>s+htCalcHours(e),0);
     }
     function updateNameplateHours(){
-        const el=byId('nameplate-hours-val');if(!el)return;
+        const lbl=byId('nameplate-hours-val'),val=byId('nameplate-pph-val');if(!lbl||!val)return;
         const hrs=getUnloadHours();
-        el.textContent=(typeof htFmtHrs==='function')?htFmtHrs(hrs):hrs.toFixed(2);
+        const hrsTxt=(typeof htFmtHrs==='function')?htFmtHrs(hrs):hrs.toFixed(2);
+        const e=latestPphEntry();
+        val.textContent=(e&&e.pph!=null)?e.pph:'\u2014';
+        lbl.textContent='PPH \u00b7 '+hrsTxt+' hrs';
+        val.classList.toggle('shift-meter-stale',!!e&&(Date.now()-e.ts)>PPH_STALE_MS);
         const box=byId('nameplate-hours');
-        if(box)box.classList.toggle('live',hrs>0);
+        if(box)box.classList.toggle('live',hrs>0&&!(e&&e.pph!=null));
     }
     function updateNameplate(){
         const btn=byId('btn-shift-action'),btnIcon=byId('btn-shift-icon'),btnLabel=byId('btn-shift-label');
@@ -2077,6 +2130,41 @@ v5.06:
         const sub=byId('shift-menu-sub');
         if(sub)sub.textContent=(typeof htFmtHrs==='function'?htFmtHrs(getUnloadHours()):getUnloadHours().toFixed(2))+' unload hours so far.';
         byId('shift-menu-modal').style.display='flex'}
+    function shiftMenuVolume(){closeModal('shift-menu-modal');openVolumeModal()}
+    function openVolumeModal(){
+        const e=latestPphEntry(),inp=byId('pph-volume-input');
+        if(inp){inp.value=e?e.volume:'';inp.oninput=updateVolumePreview}
+        updateVolumePreview();renderPphHistory();
+        byId('pph-volume-modal').style.display='flex';
+        setTimeout(()=>{if(inp)inp.focus()},120)}
+    function updateVolumePreview(){
+        const inp=byId('pph-volume-input');if(!inp)return;
+        const vol=parseFloat(inp.value),hrs=getUnloadHours();
+        const v=byId('pph-volume-preview-val'),s=byId('pph-volume-preview-sub');
+        if(s)s.textContent='over '+((typeof htFmtHrs==='function')?htFmtHrs(hrs):hrs.toFixed(2))+' unload hrs';
+        if(!v)return;
+        v.textContent=(!isNaN(vol)&&vol>=0&&hrs>0)?Math.round(vol/hrs)+' PPH':'\u2014 PPH'}
+    function confirmVolume(){
+        const inp=byId('pph-volume-input'),vol=parseFloat(inp.value);
+        if(isNaN(vol)||vol<0)return alert('Enter the running package count.');
+        if(getUnloadHours()<=0)return alert('No unload hours recorded yet \u2014 start unloaders on the DOP tab first.');
+        recordVolume(vol);
+        closeModal('pph-volume-modal');showSaveToast()}
+    function renderPphHistory(){
+        const list=byId('pph-history-list'),lbl=byId('pph-history-label');if(!list)return;
+        if(lbl)lbl.style.display=pphLog.length?'block':'none';
+        list.innerHTML=pphLog.slice().reverse().map((e,i,arr)=>{
+            const prev=arr[i+1];
+            const dv=prev?e.volume-prev.volume:e.volume;
+            const dh=prev?e.hrs-prev.hrs:e.hrs;
+            const inc=(dh>0)?Math.round(dv/dh):null;
+            const t=new Date(e.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+            return'<div class="note-history-entry"><div class="note-history-entry-date">'+t+'</div>'+
+                '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">'+
+                '<span style="font-size:13px;font-weight:700;color:var(--text-sub);">'+e.volume.toLocaleString()+' pkgs \u00b7 '+e.hrs.toFixed(2)+' hrs</span>'+
+                '<span style="font-size:15px;font-weight:900;color:var(--text-main);">'+(e.pph!=null?e.pph:'\u2014')+' PPH</span></div>'+
+                (inc!=null?'<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:3px;">this interval: '+inc+' PPH</div>':'')+
+                '</div>'}).join('')}
     function shiftMenuBreakdown(){closeModal('shift-menu-modal');switchTab('hours')}
     function shiftMenuEnd(){closeModal('shift-menu-modal');openEndShiftModal()}
 
@@ -2110,6 +2198,7 @@ v5.06:
     function confirmStartShift(keepBays){
         closeModal('start-shift-bays-modal');
         startPromptShown=false;
+        clearPphLog();
         if(!keepBays){
             for(let i=DOORS_START;i<=DOORS_END;i++)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};
         }
@@ -2230,7 +2319,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();

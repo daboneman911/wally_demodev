@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.89] - 2026-08-24
+
+- **New:** Live PPH tracker built on the DOP unload hours. The dashboard pill now leads with the PPH figure and carries live unload hours beneath it (`PPH · 6.00 hrs`); it reads `—` until a volume count exists. Only unload-role hours count, so the denominator matches the DOP tab's UNLOAD tile exactly (Belt Tender and Bulk Sweep hours excluded).
+- **New:** Volume is entered as a **running total** via the pill → Shift Options → **Update Volume**. The sheet previews the resulting PPH live as you type, prefills the previous count, and keeps a timestamped history of every entry — each row showing that count's PPH plus the rate achieved *in that interval* (derived from the deltas between consecutive entries), which is the more useful number for spotting a slow hour.
+- **Design note:** PPH is measured against `getUnloadHours()` **at the moment of entry**, stored on the log row, rather than recomputed against current hours. Recomputing would make the figure decay steadily between hourly counts and jump on each entry — reading as lost performance when it is only a stale count. Verified: with a count of 6,000 over 6.00 hrs (1,000 PPH), the figure held at 1,000 as hours advanced to 9.00, while the hours line tracked live; the next count of 15,000 correctly re-measured to 1,666.
+- A count older than ~75 minutes turns the figure amber, so a stale reading is visible rather than silently trusted. `pphLog` persists in `ps9_pph_log` and is cleared by `confirmStartShift()` so counts never carry across shifts.
+
 ### [6.88] - 2026-08-24
 
 - **Fix:** `uploadPPH()` captured `origText` from the button's *current* text before overwriting it with "Pushed!", so a second tap inside the 2s window captured "Pushed!" as the text to restore and the button was stranded on it permanently. It now restores from a fixed `PPH_PUSH_LABEL` constant and holds a single `pphPushTimer` that is cleared on each press. Verified three rapid taps now restore correctly.
