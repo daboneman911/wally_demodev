@@ -978,13 +978,21 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.92',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.93',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.93:
+- Fix: Reinstating a cut employee credited them for the time they were off
+  the clock. Someone who worked 3 hrs, sat cut for 2, then came back showed
+  5 hrs. They now resume from the 3 hrs they had actually accumulated and
+  build from there.
+- The stretch spent cut is banked and excluded rather than the clock-in
+  time being moved, so the roster still shows when they really started.
+  Cutting and reinstating repeatedly stays correct.
 v6.92:
 - Fix: A cut employee's row was dimmed to 60%, which faded its controls
   along with everything else and made the row look disabled. Undo and both
@@ -2649,7 +2657,8 @@ v5.06:
     // -- Employee factory ----------------------------------
     function htMakeEmployee(name){
         return{id:hoursState.nextId++,name,status:'inactive',startTime:null,
-               customStartStr:null,frozenHours:0,role:null,manualRole:null,prevRole:null};
+               customStartStr:null,frozenHours:0,role:null,manualRole:null,prevRole:null,
+               pausedMs:0};
     }
 
     // The DOP roster and Wally's team list are ONE list. Keep them reconciled in both
@@ -2742,10 +2751,15 @@ v5.06:
     function htFloorMin(ms){return Math.floor(ms/60000)*60000}
     function htNowMin(){return htFloorMin(Date.now())}
     function htSpanHours(startMs,endMs){return Math.max(0,htFloorMin(endMs)-htFloorMin(startMs))/3600000}
+    // Time spent cut never counts. Rather than move the clock-in time (which would
+    // misreport when they actually started), the cut gap is banked in pausedMs and
+    // subtracted, so a reinstated employee resumes from the hours they had already
+    // accumulated and starts adding again from that moment.
+    function htPausedHours(emp){return Math.max(0,(emp.pausedMs||0))/3600000}
     function htCalcHours(emp){
         if(emp.status==='cut')return emp.frozenHours;
         if(emp.status!=='active'||!emp.startTime)return 0;
-        return htSpanHours(emp.startTime.getTime(),Date.now());
+        return Math.max(0,htSpanHours(emp.startTime.getTime(),Date.now())-htPausedHours(emp));
     }
     function htFmtHrs(h){return h.toFixed(2);}
 
@@ -2874,6 +2888,7 @@ v5.06:
         const emp=hoursState.employees.find(e=>e.id===id);
         if(!emp||emp.status!=='inactive')return;
         emp.status='active';
+        emp.pausedMs=0;
         if(hoursState.shiftStarted&&hoursState.shiftStartTime){
             // Shift already live — clock starts now (or custom time)
             emp.startTime=emp.customStartStr?htParseHHMM(emp.customStartStr):new Date(hoursState.shiftStartTime);
@@ -2899,6 +2914,8 @@ v5.06:
         const emp=hoursState.employees.find(e=>e.id===id);
         if(!emp||emp.status!=='cut')return;
         if(!emp.startTime){alert(emp.name+' has no start time to resume from.');return}
+        // bank the stretch they were off the clock so it is not credited back
+        if(emp.cutTime)emp.pausedMs=(emp.pausedMs||0)+Math.max(0,htFloorMin(Date.now())-htFloorMin(emp.cutTime));
         emp.status='active';
         emp.cutTime=null;
         emp.frozenHours=0;
@@ -2949,7 +2966,7 @@ v5.06:
                 const newCutMs=htParseHHMM(val).getTime();
                 emp.cutTime=newCutMs;
                 const startMs=emp.startTime?emp.startTime.getTime():(hoursState.shiftStartTime?hoursState.shiftStartTime.getTime():newCutMs);
-                emp.frozenHours=htSpanHours(startMs,newCutMs);
+                emp.frozenHours=Math.max(0,htSpanHours(startMs,newCutMs)-htPausedHours(emp));
                 htSaveState();
             }
             htCloseModal('ht-time-modal');hoursState.pendingCutTimeId=null;htRenderAll();
@@ -2964,7 +2981,7 @@ v5.06:
                 const startMs=htParseHHMM(val).getTime();
                 const endMs=emp.cutTime||Date.now();
                 emp.startTime=htParseHHMM(val);
-                emp.frozenHours=htSpanHours(startMs,endMs);
+                emp.frozenHours=Math.max(0,htSpanHours(startMs,endMs)-htPausedHours(emp));
             }
             htSaveState();
         }

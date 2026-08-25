@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.93] - 2026-08-25
+
+- **Fix:** `htUncutEmployee()` cleared `frozenHours` and let the clock run from the original `startTime`, so a reinstated employee was credited for the entire stretch they were cut — someone who worked 3.00 hrs, sat cut for 2, then returned read **5.00**. They now resume from the hours actually accumulated (3.00) and accrue from that moment.
+- Implemented by banking the cut interval in a new `pausedMs` field on the employee and subtracting it in `htCalcHours()`, rather than shifting `startTime` forward. Moving the clock-in would have made the roster misreport when the person actually started; this keeps the displayed clock-in truthful while excluding the gap. `htActivateEmployee()` resets `pausedMs` so a fresh activation starts clean, and both `htApplyCustomTime()` branches subtract it so an edited start or cut time still honours the exclusion.
+- Verified end to end: 3.00 hrs worked → cut → 2 hrs elapsed → reinstate returns 3.00 (not 5.00) with 2.00 h banked and the original clock-in preserved; hours keep accruing afterwards; a second cut freezes at the corrected total; and editing the cut time afterwards keeps the pause excluded.
+
 ### [6.92] - 2026-08-25
 
 - **Fix:** `.ht-emp-row.ht-cut` carried `opacity:0.6`, which faded the row's *controls* as well as its content — so the undo (reinstate) button and both time-edit buttons looked disabled even though all three were fully functional. Row opacity is now `1`; "off the clock" is signalled instead by a neutral `--border-light` surface, a neutral left edge, muted name/hours text and the retained dashed border, leaving the controls at full contrast.
