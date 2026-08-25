@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.91] - 2026-08-25
+
+- **Fix:** DOP labor hours read high against the TMS because the two ends of each span were measured differently. `htParseHHMM()` zeroes seconds, so start times land on the exact minute, but `htCalcHours()` measured against `Date.now()` including seconds — so a 20:00 start read 2.0164 hrs (displayed **2.02**) at 22:00:59 where a whole-minute system reads 2.00. The error was always in the same direction (over, never under) and compounded per employee: ~30s of uncounted seconds each is ~0.08 hrs across a 10-person crew, and it also inflated the PPH denominator.
+- Added `htFloorMin()` / `htSpanHours()` and routed `htCalcHours()`, `htShiftElapsed()` and both `htApplyCustomTime()` branches through them, so every span floors **both** endpoints to the whole minute. Verified a 20:00→22:00 span now returns exactly 2.0000 at 0/1/15/30/45/59 seconds past, while still advancing correctly on each minute tick.
+- **Fix:** The live and edited paths disagreed for the same nominal window — a cut *edited* to 22:00 computed 2.0000 (both ends minute-exact) while a cut *taken live* at 22:00:45 carried the seconds. Both now return 2.0000.
+- Consequence: displayed hours advance once per minute instead of continuously. Verified an active employee holds steady within the minute and gains exactly 1/60 h on the tick.
+- Checked and found already correct, so left unchanged: 24-hour parsing (`00:00`, `08:30`, `13:45`, `20:00`, `23:59` all parse correctly — the reported military-time difference was not a parsing issue) and overnight spans (20:00 → 02:30 next day = 6.50 hrs). Trailer dwell/unload durations are a separate metric and were not altered.
+
 ### [6.90] - 2026-08-24
 
 - **UI:** Dashboard pill restructured into two labelled rows — `Hours – 6.00` (17px value) above `PPH – 1000` (13px value, smaller as requested). Labels are fixed-width and values right-aligned with `font-variant-numeric: tabular-nums`, so digits occupy fixed columns and the figures don't shuffle as they tick. Verified against the widest realistic case (124.50 hrs / 4-digit PPH). Pill measures 152×60.

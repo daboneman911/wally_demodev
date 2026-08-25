@@ -974,13 +974,24 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.90',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.91',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.91:
+- Fix: Labor hours were reading slightly high against the TMS. Start times
+  are stored on the exact minute, but the running clock counted seconds
+  too, so a span read up to a full minute over -- always over, never
+  under. Hours are now counted in whole minutes at both ends, matching a
+  TMS that drops seconds.
+- Fix: The same window could produce two different totals depending on how
+  it was recorded. A cut edited to 22:00 computed 2.00 hrs, while a cut
+  taken live at 22:00 carried the seconds. Both now agree.
+- Hours therefore advance once a minute rather than continuously. Overnight
+  spans and 24-hour times were checked and were already correct.
 v6.90:
 - UI: The dashboard pill now reads as two labelled rows -- "Hours - 6.00"
   on top and "PPH - 1000" beneath in smaller type, with the values aligned
@@ -2712,17 +2723,25 @@ v5.06:
     }
     function htFmtTime(date){return date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
     function htFmtTimeShort(date){return date.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}).replace(/\s*[AP]M$/i,'');}
+    // Labor hours are counted in WHOLE MINUTES, matching the TMS: seconds don't count
+    // until the minute ticks over. Start times are already minute-exact (htParseHHMM
+    // zeroes seconds), but the running clock carried seconds, so a span read up to a
+    // minute high -- always high, never low. Flooring both ends keeps every span
+    // measured the same way, whether it is live or reconstructed from edited times.
+    function htFloorMin(ms){return Math.floor(ms/60000)*60000}
+    function htNowMin(){return htFloorMin(Date.now())}
+    function htSpanHours(startMs,endMs){return Math.max(0,htFloorMin(endMs)-htFloorMin(startMs))/3600000}
     function htCalcHours(emp){
         if(emp.status==='cut')return emp.frozenHours;
         if(emp.status!=='active'||!emp.startTime)return 0;
-        return Math.max(0,Date.now()-emp.startTime.getTime())/3600000;
+        return htSpanHours(emp.startTime.getTime(),Date.now());
     }
     function htFmtHrs(h){return h.toFixed(2);}
 
     // REQ6: Elapsed shift time in decimal hours (single source for KPI calc)
     function htShiftElapsed(){
         if(!hoursState.shiftStartTime)return 0;
-        return Math.max(0,Date.now()-hoursState.shiftStartTime.getTime())/3600000;
+        return htSpanHours(hoursState.shiftStartTime.getTime(),Date.now());
     }
 
     // -- REQ1: htSyncFromWallyShift -- called when Wally shift starts ------
@@ -2919,7 +2938,7 @@ v5.06:
                 const newCutMs=htParseHHMM(val).getTime();
                 emp.cutTime=newCutMs;
                 const startMs=emp.startTime?emp.startTime.getTime():(hoursState.shiftStartTime?hoursState.shiftStartTime.getTime():newCutMs);
-                emp.frozenHours=Math.max(0,(newCutMs-startMs)/3600000);
+                emp.frozenHours=htSpanHours(startMs,newCutMs);
                 htSaveState();
             }
             htCloseModal('ht-time-modal');hoursState.pendingCutTimeId=null;htRenderAll();
@@ -2934,7 +2953,7 @@ v5.06:
                 const startMs=htParseHHMM(val).getTime();
                 const endMs=emp.cutTime||Date.now();
                 emp.startTime=htParseHHMM(val);
-                emp.frozenHours=Math.max(0,(endMs-startMs)/3600000);
+                emp.frozenHours=htSpanHours(startMs,endMs);
             }
             htSaveState();
         }
