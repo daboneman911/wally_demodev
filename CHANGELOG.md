@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.94] - 2026-08-26
+
+- **Removed:** The 16-hour unloader labour threshold and its alert. Deleted `HT_LABOR_THRESHOLD`, `htLaborAlertFired`, `htCheckLaborThreshold()`, `htDismissLaborAlert()`, the call from `htRenderKPI()`, the `#ht-labor-alert` banner markup, and the eight associated CSS rules (`.ht-threshold-badge`, `.ht-kpi-card.ht-threshold-exceeded`, `.ht-labor-alert*`). The UNLOAD tile now simply reports hours — no red border, no "16h+" badge, no banner.
+- `unloadHrs` is retained in `htRenderKPI()` since it still populates the tile. Verified with 25.00 unload hours on the board (well past the old 16.0 trip point) that no badge, banner or red styling appears and no console errors are raised.
+
 ### [6.93] - 2026-08-25
 
 - **Fix:** `htUncutEmployee()` cleared `frozenHours` and let the clock run from the original `startTime`, so a reinstated employee was credited for the entire stretch they were cut — someone who worked 3.00 hrs, sat cut for 2, then returned read **5.00**. They now resume from the hours actually accumulated (3.00) and accrue from that moment.
