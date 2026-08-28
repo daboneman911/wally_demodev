@@ -353,8 +353,6 @@
         .note-quick-btn:active{background:var(--accent-orange);color:#fff;transform:scale(0.95);}
         .onboard-note-ghost{background:var(--border-light);border:1.5px dashed var(--border);border-radius:var(--radius-md);padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-sub);font-size:14px;font-weight:600}
         .onboard-note-ghost:active{background:var(--border)}
-        .note-tag-chip.custom{background:#fffbeb;color:#b45309;border:1.5px solid #f59e0b}
-        .note-tag-chip.custom.selected{background:#f59e0b;color:white;border-color:#f59e0b}
         .note-tag-chip-x{margin-left:6px;font-weight:900;opacity:0.75}
         .note-custom-tag-row{display:flex;gap:8px;margin-top:8px}
         .note-custom-tag-input{flex:1;padding:10px 13px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-weight:600;color:var(--text-main);outline:none;transition:border-color 0.15s,box-shadow 0.15s}
@@ -900,6 +898,29 @@
     <div style="font-size:12px;color:var(--text-sub);margin-top:8px;">Team will be notified what is rolling to Door <span class="cpu-next-door-num-ref"></span> next.</div>
   </div>
 </div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border-light);cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" id="btn-detail-note" onclick="openEditNoteFromActive()" style="flex:1;display:none;"><i class="ph ph-note-pencil"></i></button><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
+<div class="h-modal-overlay" id="ht-edit-times-modal">
+  <div class="h-modal-sheet">
+    <div class="h-modal-handle"></div>
+    <div class="h-modal-title" id="ht-edit-times-title">Edit Times</div>
+    <div class="modal-field-group">
+      <label class="modal-field-label">Start time</label>
+      <input type="time" id="ht-edit-start" class="h-modal-input" oninput="htPreviewEditTimes()">
+    </div>
+    <div class="modal-field-group">
+      <label class="modal-field-label">End time</label>
+      <input type="time" id="ht-edit-end" class="h-modal-input" oninput="htPreviewEditTimes()">
+    </div>
+    <div style="background:var(--border-light);border-radius:var(--radius-md);padding:13px;text-align:center;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-sub);">Hours</div>
+      <div id="ht-edit-preview" style="font-size:24px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px;margin-top:3px;">0.00</div>
+      <div id="ht-edit-note" style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:3px;"></div>
+    </div>
+    <div class="h-modal-row">
+      <button class="h-modal-cancel" onclick="htCloseModal('ht-edit-times-modal')">Cancel</button>
+      <button class="h-modal-confirm" onclick="htApplyEditTimes()">Save</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay z-high" id="obs-swap-modal"><div class="modal-sheet">
     <h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Observation Reassigned</h2>
     <p id="obs-swap-text" style="text-align:center;color:var(--text-sub);margin-bottom:22px;font-size:15px;line-height:1.45;"></p>
@@ -1003,13 +1024,22 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.97',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.98',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.98:
+- New: A cut employee's start and end times are now edited together in one
+  sheet, with the resulting hours shown live as you type. The row button
+  reads the span (e.g. "8:13 - 9:45") instead of two unlabelled times where
+  you couldn't tell which was which.
+- An end time earlier than the start is treated as running past midnight,
+  and any time banked off the clock is still excluded.
+- UI: Custom note tags now look exactly like the predefined ones -- same
+  fill, border, size and shape, in the editor and on note cards.
 v6.97:
 - Change: Eddie F added to the observation rotation, making it nine
   employees. A full cycle is now nine shift days.
@@ -2020,7 +2050,7 @@ v5.06:
     function getNoteHistory(id){return migrateNoteHistory(wallyNotes[id])}
     function getNoteObj(id){const h=getNoteHistory(id);return h.length?h[h.length-1]:null}
     function noteHasContent(id){const n=getNoteObj(id);return n&&(n.tags.length>0||n.text.trim().length>0)}
-    function renderNoteTagsInline(noteObj){if(!noteObj)return'';const chips=noteObj.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('');const txt=noteObj.text?`<span style="font-size:12px;color:#555;font-weight:500;">${noteObj.text}</span>`:'';return[chips,txt].filter(Boolean).join(' ')}
+    function renderNoteTagsInline(noteObj){if(!noteObj)return'';const chips=noteObj.tags.map(t=>`<span class="note-tag-inline"${''}>${t.value}</span>`).join('');const txt=noteObj.text?`<span style="font-size:12px;color:#555;font-weight:500;">${noteObj.text}</span>`:'';return[chips,txt].filter(Boolean).join(' ')}
 
     function loadNotes(){const saved=localStorage.getItem('ps9_wally_notes');if(saved){try{wallyNotes=JSON.parse(saved)}catch(e){wallyNotes={}}}else wallyNotes={}}
     function saveNotes(){localStorage.setItem('ps9_wally_notes',JSON.stringify(wallyNotes))}
@@ -2041,7 +2071,7 @@ v5.06:
         const histLabel=byId('note-history-label'),histList=byId('note-history-list');
         const pastEntries=history.slice(0,-1);
         if(histLabel)histLabel.style.display=pastEntries.length?'block':'none';
-        if(histList)histList.innerHTML=pastEntries.slice().reverse().map(e=>`<div class="note-history-entry"><div class="note-history-entry-date">${new Date(e.timestamp).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="note-tags-display">${e.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('')}</div>${e.text?`<div class="note-card-text">${e.text}</div>`:''}</div>`).join('');
+        if(histList)histList.innerHTML=pastEntries.slice().reverse().map(e=>`<div class="note-history-entry"><div class="note-history-entry-date">${new Date(e.timestamp).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="note-tags-display">${e.tags.map(t=>`<span class="note-tag-inline"${''}>${t.value}</span>`).join('')}</div>${e.text?`<div class="note-card-text">${e.text}</div>`:''}</div>`).join('');
         // if opened from manager and no ID, show a wally ID input
         if(source==='manager'&&!id){
             const idRow=document.createElement('div');
@@ -2117,7 +2147,7 @@ v5.06:
             const lastSeen=findLastSeenDate(id);
             const card=document.createElement('div');card.className='note-card';
             card.onclick=()=>{closeModal('notes-manager-modal');openNoteModal(id,'active')};
-            card.innerHTML=`<div class="note-card-header"><span class="note-card-id">${id}${entryCount>1?`<span class="note-entries-badge">${entryCount} entries</span>`:''}</span><span class="note-card-date">${lastSeen||''}</span></div><div class="note-tags-display">${n.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('')}</div>${n.text?`<div class="note-card-text">${n.text}</div>`:''}`;
+            card.innerHTML=`<div class="note-card-header"><span class="note-card-id">${id}${entryCount>1?`<span class="note-entries-badge">${entryCount} entries</span>`:''}</span><span class="note-card-date">${lastSeen||''}</span></div><div class="note-tags-display">${n.tags.map(t=>`<span class="note-tag-inline"${''}>${t.value}</span>`).join('')}</div>${n.text?`<div class="note-card-text">${n.text}</div>`:''}`;
             container.appendChild(card)})}
     function setNotesFilter(tag){notesActiveFilter=tag;renderNotesList()}
     function findLastSeenDate(wallyId){const match=historyLog.find(l=>l.id===wallyId&&l.end);return match?new Date(match.end).toLocaleDateString([],{month:'short',day:'numeric'}):null}
@@ -2151,7 +2181,7 @@ v5.06:
         const noteObj=history.length?history[history.length-1]:null;
         if(noteObj&&(noteObj.tags.length>0||noteObj.text)){
             preview.style.display='block';
-            preview.innerHTML=`<div class="onboard-note-card"><div class="onboard-note-header"><div class="onboard-note-label"><i class="ph ph-note-pencil"></i> ${history.length} prior note${history.length>1?'s':''} on file</div><button class="onboard-note-edit-btn" onclick="copyPreviousNoteTags('${wallyId}')">Use These</button></div><div class="note-tags-display" style="margin-bottom:${noteObj.text?'6px':'0'}">${noteObj.tags.map(t=>`<span class="note-tag-inline"${t.type==='custom'?' style="background:#f59e0b;"':''}>${t.value}</span>`).join('')}</div>${noteObj.text?`<div style="font-size:13px;color:#555;margin-top:4px;">${noteObj.text}</div>`:''}</div>`
+            preview.innerHTML=`<div class="onboard-note-card"><div class="onboard-note-header"><div class="onboard-note-label"><i class="ph ph-note-pencil"></i> ${history.length} prior note${history.length>1?'s':''} on file</div><button class="onboard-note-edit-btn" onclick="copyPreviousNoteTags('${wallyId}')">Use These</button></div><div class="note-tags-display" style="margin-bottom:${noteObj.text?'6px':'0'}">${noteObj.tags.map(t=>`<span class="note-tag-inline"${''}>${t.value}</span>`).join('')}</div>${noteObj.text?`<div style="font-size:13px;color:#555;margin-top:4px;">${noteObj.text}</div>`:''}</div>`
         } else {
             preview.style.display='none';preview.innerHTML=''}}
     // -- SHIFT STATE MACHINE ---------------------------------
@@ -3198,6 +3228,56 @@ v5.06:
         document.getElementById('ht-custom-time').value=htFmtTime(cutDate);
         htOpenModal('ht-time-modal');
     }
+    // Cut employees get one editor for both ends of their shift, rather than two
+    // unlabelled time buttons where you couldn't tell start from end.
+    let htEditTimesId=null;
+    function htOpenEditTimes(id){
+        const emp=hoursState.employees.find(e=>e.id===id);
+        if(!emp)return;
+        htEditTimesId=id;
+        const pad=n=>String(n).padStart(2,'0');
+        const s=emp.startTime?emp.startTime:(hoursState.shiftStartTime||new Date());
+        const e=emp.cutTime?new Date(emp.cutTime):new Date();
+        byId('ht-edit-times-title').textContent=emp.name+' \u2014 Times';
+        byId('ht-edit-start').value=pad(s.getHours())+':'+pad(s.getMinutes());
+        byId('ht-edit-end').value=pad(e.getHours())+':'+pad(e.getMinutes());
+        htPreviewEditTimes();
+        htOpenModal('ht-edit-times-modal');
+    }
+    // Start and end are wall-clock times; an end earlier than the start means the
+    // shift ran past midnight, so roll it to the next day.
+    function htEditTimesSpan(){
+        const sv=byId('ht-edit-start').value,ev=byId('ht-edit-end').value;
+        if(!sv||!ev)return null;
+        const s=htParseHHMM(sv);let e=htParseHHMM(ev);
+        if(e.getTime()<s.getTime())e=new Date(e.getTime()+86400000);
+        return{start:s,end:e};
+    }
+    function htPreviewEditTimes(){
+        const emp=hoursState.employees.find(x=>x.id===htEditTimesId);
+        const span=htEditTimesSpan();
+        const out=byId('ht-edit-preview'),note=byId('ht-edit-note');
+        if(!span||!emp){if(out)out.textContent='0.00';if(note)note.textContent='';return}
+        const paused=htPausedHours(emp);
+        const hrs=Math.max(0,htSpanHours(span.start.getTime(),span.end.getTime())-paused);
+        if(out)out.textContent=htFmtHrs(hrs);
+        if(note){
+            const bits=[];
+            if(span.end.getDate()!==span.start.getDate())bits.push('ends next day');
+            if(paused>0)bits.push(htFmtHrs(paused)+' h off the clock excluded');
+            note.textContent=bits.join(' \u00b7 ');
+        }
+    }
+    function htApplyEditTimes(){
+        const emp=hoursState.employees.find(x=>x.id===htEditTimesId);
+        const span=htEditTimesSpan();
+        if(!emp||!span)return;
+        emp.startTime=span.start;
+        emp.customStartStr=byId('ht-edit-start').value;
+        emp.cutTime=span.end.getTime();
+        emp.frozenHours=Math.max(0,htSpanHours(span.start.getTime(),span.end.getTime())-htPausedHours(emp));
+        htSaveState();htCloseModal('ht-edit-times-modal');htRenderAll();showSaveToast();
+    }
     function htApplyCustomTime(){
         const val=document.getElementById('ht-custom-time').value;
         if(!val)return;
@@ -3478,8 +3558,7 @@ v5.06:
             const ts=emp.customStartStr?emp.customStartStr:(emp.startTime?htFmtTimeShort(emp.startTime):'--');
             const cutTs=emp.cutTime?htFmtTimeShort(new Date(emp.cutTime)):'--';
             actHTML='<div class="ht-actions ht-actions-cut">'+
-                '<button class="ht-btn ht-btn-time ht-btn-compact" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+'</button>'+
-                '<button class="ht-btn ht-btn-cut ht-btn-compact" onclick="htOpenCutTime('+emp.id+');event.stopPropagation()" title="Edit cut time">'+cutTs+'</button>'+
+                '<button class="ht-btn ht-btn-time ht-btn-compact" onclick="htOpenEditTimes('+emp.id+');event.stopPropagation()" title="Edit start and end times">'+ts+' \u2013 '+cutTs+' \u270e</button>'+
                 '<button class="ht-btn ht-btn-undo" onclick="htUncutEmployee('+emp.id+');event.stopPropagation()" title="Undo cut -- put '+emp.name+' back to work" aria-label="Undo cut"><i class="ph ph-arrow-u-up-left"></i></button>'+
                 '</div>';
         }

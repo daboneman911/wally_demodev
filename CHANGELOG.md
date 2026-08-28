@@ -1,5 +1,11 @@
 # Changelog
 
+### [6.98] - 2026-08-28
+
+- **New:** Cut employees get a single Edit Times sheet covering both ends of the shift (`htOpenEditTimes()` / `htApplyEditTimes()`), replacing the two separate compact buttons that rendered as bare unlabelled times (`8:13`, `9:45`) with no indication of which was the start and which the cut. The row button now shows the span with a pencil — `8:13 – 9:45 ✎` — and the sheet previews the resulting hours live as either field changes.
+- An end time earlier than the start is treated as an overnight span and rolled to the next day (verified 20:00 → 02:30 = 6.50 with an "ends next day" note), and any `pausedMs` banked while off the clock is still excluded from the total, so the reinstate behaviour from 6.93 is preserved through a manual edit.
+- **UI:** Custom note tags now render identically to predefined ones. Removed the `.note-tag-chip.custom` amber treatment and the four inline `background:#f59e0b` overrides applied to `.note-tag-inline` on note cards, the onboarding banner and the history list. Verified by computed style that a selected custom chip and a selected predefined chip match on background, colour, border, radius, font-size and weight. Custom chips keep their remove "×" — a functional difference, not a visual one.
+
 ### [6.97] - 2026-08-27
 
 - **Change:** Eddie F added to the observation rotation — nine employees, so a full cycle is nine shift days. Verified the cycle assigns all nine with no repeats before restarting.
