@@ -1,5 +1,10 @@
 # Changelog
 
+### [7.02] - 2026-08-28
+
+- **Change:** Team Management's PS9 badge now matches the DOP row chip exactly — short `PS9` text with `title="PS9 Twilight"`, 9px/900 on the purple token, 2px 6px padding, 5px radius. Both views now render the *same* `.ps9-core-tag` class rather than two near-duplicate rules (`.ht-ps9-tag` is removed), so the two can no longer drift apart the way the geometry already had. The settings-only left margin lives in a `.settings-label .ps9-core-tag` override.
+- Verified: 9 of 13 rows badged (exactly `PS9_CORE`), chip 31×15px, no `.settings-label` clipped.
+
 ### [7.01] - 2026-08-28
 
 - **New:** The **PS9 Twilight** badge now renders on DOP employee rows as a compact `PS9` chip (`.ht-ps9-tag`), leading the row's meta line ahead of the role tag and any Cut/Pinned badges. Same `isPS9Core()` predicate and same purple token as the Team Management badge, so the two views can't disagree. Verified at 393px and 375px: exactly nine rows badged, matching `PS9_CORE`.
