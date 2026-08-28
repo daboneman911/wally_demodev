@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.99] - 2026-08-28
+
+- **Fix:** `obsValidateAgainstDOP()` gated only on `active.length` — any single clock-in was enough to judge the day's observee absent and hand the observation to whoever happened to be on first, long before the crew had arrived. It now requires DOP to be met, gating on `htCalcDOP().delta >= 0` so every position is filled (and still firing when the crew is over DOP). Verified it holds at 1, 3, 5 and 8 staffed (one short of the 9 needed at `dopConfig` 6) and fires at 9 (met) and 10 (over), and that an observee who *is* on the clock at full staffing is left alone.
+
 ### [6.98] - 2026-08-28
 
 - **New:** Cut employees get a single Edit Times sheet covering both ends of the shift (`htOpenEditTimes()` / `htApplyEditTimes()`), replacing the two separate compact buttons that rendered as bare unlabelled times (`8:13`, `9:45`) with no indication of which was the start and which the cut. The row button now shows the span with a pencil — `8:13 – 9:45 ✎` — and the sheet previews the resulting hours live as either field changes.
