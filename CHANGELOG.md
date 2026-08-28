@@ -1,5 +1,14 @@
 # Changelog
 
+### [7.03] - 2026-08-28
+
+- **New:** Entries in the Observation Tracker's Recent list are now tappable (`.obs-history-row`, caret affordance, press state) and open an `#obs-edit-modal` sheet scoped to that date. From it you can change the status between Pending and Observed, reassign the employee, or delete the record. Changes write through `saveObsState()` and re-render immediately, so the list behind and the dashboard line stay in sync.
+- Status is more than a label — `obsCompletedThisCycle()` counts only `status==='done'`, so editing a past day moves that person in or out of the rotation pool. The sheet states which way the entry is currently counted rather than leaving that side effect invisible.
+- Reassigning clears the `auto` flag, since the pick is no longer the DOP cross-check's doing.
+- An observee who has since left the roster is kept at the head of the employee list rather than dropping out of it — otherwise opening an old entry and touching anything would silently rewrite the name to whoever the select defaulted to.
+- Deleting today's entry calls `obsEnsureToday()` rather than leaving the day unassigned, which the tracker and the dashboard line both assume.
+- New `test_obs_edit.py` covers all of the above plus persistence across reload; suite is now 19 tests, all passing.
+
 ### [7.02] - 2026-08-28
 
 - **Change:** Team Management's PS9 badge now matches the DOP row chip exactly — short `PS9` text with `title="PS9 Twilight"`, 9px/900 on the purple token, 2px 6px padding, 5px radius. Both views now render the *same* `.ps9-core-tag` class rather than two near-duplicate rules (`.ht-ps9-tag` is removed), so the two can no longer drift apart the way the geometry already had. The settings-only left margin lives in a `.settings-label .ps9-core-tag` override.

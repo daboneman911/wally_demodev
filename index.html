@@ -362,6 +362,8 @@
         .note-custom-tag-add-btn{padding:0 16px;background:var(--text-main);color:white;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
         .note-entries-badge{background:var(--border-light);color:var(--text-sub);border-radius:10px;padding:2px 7px;font-size:10px;font-weight:800;margin-left:6px}
         .note-history-entry{background:var(--border-light);border-radius:12px;padding:10px 13px;margin-bottom:7px}
+        .obs-history-row{cursor:pointer;transition:background 0.15s,transform 0.15s}
+        .obs-history-row:active{transform:scale(0.985);background:var(--border)}
         .note-history-entry-date{font-size:11px;font-weight:800;color:var(--text-sub);margin-bottom:5px}
         .note-history-empty{font-size:12px;color:var(--text-muted);font-weight:600;padding:4px 0 10px}
         .type-badge-small{background:var(--text-main);color:white;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:3px}
@@ -946,6 +948,20 @@
     <div id="obs-history-list"></div>
     <button class="btn-cancel" onclick="closeModal('observation-modal')">Close</button>
 </div></div>
+<div class="modal-overlay z-high" id="obs-edit-modal"><div class="modal-sheet">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Edit Observation</h2><button class="modal-close-btn" onclick="closeModal('obs-edit-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div id="obs-edit-date" style="text-align:center;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-sub);margin-bottom:16px;"></div>
+    <div class="note-editor-section-label">Status</div>
+    <div class="type-selector">
+        <div class="type-opt" id="obs-edit-status-pending" onclick="obsEditSetStatus('pending')">Pending</div>
+        <div class="type-opt" id="obs-edit-status-done" onclick="obsEditSetStatus('done')">Observed</div>
+    </div>
+    <div class="note-editor-section-label">Employee</div>
+    <select id="obs-edit-name" class="form-input" onchange="obsEditSetName(this.value)"></select>
+    <div id="obs-edit-note" style="font-size:11.5px;color:var(--text-muted);font-weight:600;line-height:1.45;margin:-8px 0 16px;"></div>
+    <button class="btn-primary" onclick="closeModal('obs-edit-modal')">Done</button>
+    <button class="btn-primary btn-danger" onclick="obsEditDelete()">Delete Entry</button>
+</div></div>
 <div class="modal-overlay" id="methods-modal"><div class="modal-sheet">
     <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Methods</h2><button class="modal-close-btn" onclick="closeModal('methods-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
     <div class="settings-group" style="margin-bottom:16px;">
@@ -1026,13 +1042,21 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.02',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
+    const APP_VERSION='7.03',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.03:
+- New: Tap any day in the Observation Tracker's Recent list to edit it. You
+  can flip it between Pending and Observed, put a different employee on it,
+  or delete the record.
+- Note: Marking a past day Observed retires that person from the rotation
+  until the cycle comes round again; setting it back to Pending returns them
+  to the pool. The sheet spells out which way it is currently counted.
+
 v7.02:
 - Change: The PS9 Twilight tag in Settings now looks exactly like the one on
   the DOP rows -- the same small "PS9" chip. Hover it for the full name.
@@ -2707,6 +2731,70 @@ v5.06:
         return true;
     }
 
+    // -- EDITING A PAST OBSERVATION --------------------------
+    // Any day in the Recent list can be reopened to correct its status or its
+    // employee. Status matters beyond the record itself: only 'done' entries count
+    // toward the cycle, so marking a day observed retires that person from the
+    // rotation and reverting it puts them back in.
+    let obsEditKey=null;
+    function obsOpenEdit(key){
+        if(!obsState.assignments[key])return;
+        obsEditKey=key;
+        obsRenderEdit();
+        byId('obs-edit-modal').style.display='flex';
+    }
+    function obsRenderEdit(){
+        const a=obsState.assignments[obsEditKey];
+        if(!a){closeModal('obs-edit-modal');return}
+        const d=byId('obs-edit-date');
+        if(d)d.textContent=obsEditKey+(obsEditKey===obsTodayKey()?' \u00b7 Today':'');
+        ['pending','done'].forEach(s=>{
+            const el=byId('obs-edit-status-'+s);
+            if(el)el.classList.toggle('selected',a.status===s);
+        });
+        const sel=byId('obs-edit-name');
+        if(sel){
+            const team=(typeof teamNamesSorted!=='undefined'&&teamNamesSorted.length)?teamNamesSorted:DEFAULT_TEAM;
+            // a past observee who has since left the roster would otherwise vanish
+            // from the list and be silently rewritten on the next change
+            const names=team.includes(a.name)?team.slice():[a.name].concat(team);
+            sel.innerHTML=names.map(n=>'<option value="'+n+'"'+(a.name===n?' selected':'')+'>'+n+'</option>').join('');
+        }
+        const note=byId('obs-edit-note');
+        if(note){
+            const bits=[];
+            if(a.auto)bits.push('Auto-reassigned because the original pick was not clocked in.');
+            if(a.skipped&&a.skipped.length)bits.push('Skipped that day: '+a.skipped.join(', ')+'.');
+            bits.push(a.status==='done'
+                ?'Counts toward cycle '+(a.cycle||1)+', so '+a.name+' is retired from the rotation until it comes round again.'
+                :'Not counted toward the cycle, so '+a.name+' can still come up again.');
+            note.textContent=bits.join(' ');
+        }
+    }
+    function obsEditSetStatus(status){
+        const a=obsState.assignments[obsEditKey];
+        if(!a||a.status===status)return;
+        a.status=status;saveObsState();obsRenderEdit();obsRenderAll();showSaveToast();
+    }
+    function obsEditSetName(name){
+        const a=obsState.assignments[obsEditKey];
+        if(!a||!name||a.name===name)return;
+        a.name=name;a.auto=false;saveObsState();obsRenderEdit();obsRenderAll();showSaveToast();
+    }
+    function obsEditDelete(){
+        const a=obsState.assignments[obsEditKey];
+        if(!a)return;
+        if(!confirm('Delete the observation record for '+obsEditKey+' ('+a.name+')?'))return;
+        const wasToday=obsEditKey===obsTodayKey();
+        delete obsState.assignments[obsEditKey];
+        saveObsState();
+        obsEditKey=null;
+        closeModal('obs-edit-modal');
+        // today's slot can't be left empty -- the tracker expects a pick for the day
+        if(wasToday)obsEnsureToday();
+        obsRenderAll();showSaveToast();
+    }
+
     function openObservation(){
         closeModal('methods-modal');
         obsEnsureToday();obsRenderAll();
@@ -2766,14 +2854,18 @@ v5.06:
         if(list){
             const keys=Object.keys(obsState.assignments).sort().reverse().slice(0,8);
             if(lbl)lbl.style.display=keys.length?'block':'none';
+            const todayKey=obsTodayKey();
             list.innerHTML=keys.map(k=>{
                 const a=obsState.assignments[k];
                 const badge=a.status==='done'
                     ?'<span style="font-size:10px;font-weight:900;color:var(--accent-green);">OBSERVED</span>'
                     :'<span style="font-size:10px;font-weight:900;color:var(--text-muted);">PENDING</span>';
-                return'<div class="note-history-entry"><div class="note-history-entry-date">'+k+'</div>'
+                return'<div class="note-history-entry obs-history-row" onclick="obsOpenEdit(\''+k+'\')" title="Edit this observation">'
+                    +'<div class="note-history-entry-date">'+k+(k===todayKey?' \u00b7 today':'')+'</div>'
                     +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">'
-                    +'<span style="font-size:14px;font-weight:800;color:var(--text-main);">'+a.name+'</span>'+badge+'</div>'
+                    +'<span style="font-size:14px;font-weight:800;color:var(--text-main);">'+a.name+'</span>'
+                    +'<span style="display:flex;align-items:center;gap:7px;">'+badge
+                    +'<i class="ph ph-caret-right" style="font-size:13px;color:var(--text-muted);"></i></span></div>'
                     +(a.skipped&&a.skipped.length?'<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:3px;">skipped: '+a.skipped.join(', ')+'</div>':'')
                     +'</div>';
             }).join('');
