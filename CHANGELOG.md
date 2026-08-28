@@ -1,5 +1,10 @@
 # Changelog
 
+### [6.97] - 2026-08-27
+
+- **Change:** Eddie F added to the observation rotation — nine employees, so a full cycle is nine shift days. Verified the cycle assigns all nine with no repeats before restarting.
+- **Fix:** The rotation list was persisted into `ps9_observations.pool` and read back on load, which made sense while it was user-editable but became a liability once the editor was removed in 6.96 — any change to the list in code would have been ignored on devices that already had the old list stored, including this Eddie F addition. `obsEligible()` now reads the `OBS_POOL` constant directly (still intersected with the live team list) and the pool is no longer written to storage. Verified against a device seeded with the previous eight-name pool: it correctly picks up all nine after the upgrade.
+
 ### [6.96] - 2026-08-27
 
 - **UI:** Removed the "Eligible pool" chip editor from the Observation Tracker along with its render block and `obsTogglePool()`. The rotation logic is unchanged — `OBS_DEFAULT_POOL` still holds the eight identified employees and `obsEligible()` still intersects it with the live team list — the pool simply isn't surfaced or editable in the UI. Verified the sheet now shows only today's employee, Mark Observed / Skip, the manual override and recent history, while `obsEligible()` still returns the same eight names.

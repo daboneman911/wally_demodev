@@ -1003,13 +1003,19 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.96',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.97',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.97:
+- Change: Eddie F added to the observation rotation, making it nine
+  employees. A full cycle is now nine shift days.
+- Fix: The rotation list was being saved to the device, so changing it in
+  the app would not have reached anyone already using it. It is now read
+  from the app itself, so future changes take effect straight away.
 v6.96:
 - UI: Removed the eligible-pool editor from the Observation Tracker. The
   rotation still runs through the same eight employees; the list is just no
@@ -2487,13 +2493,12 @@ v5.06:
     // whole roster). A cycle runs until everyone in the pool has been observed, then
     // restarts. Skipping does NOT complete someone -- they stay owed and come back
     // round later in the same cycle.
-    const OBS_DEFAULT_POOL=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J'];
-    let obsState={pool:[...OBS_DEFAULT_POOL],assignments:{},cycle:1};
+    const OBS_POOL=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F'];
+    let obsState={assignments:{},cycle:1};
     function loadObsState(){
         try{const s=JSON.parse(localStorage.getItem('ps9_observations'));
             if(s&&typeof s==='object'){
-                obsState={pool:Array.isArray(s.pool)?s.pool:[...OBS_DEFAULT_POOL],
-                          assignments:s.assignments&&typeof s.assignments==='object'?s.assignments:{},
+                obsState={assignments:s.assignments&&typeof s.assignments==='object'?s.assignments:{},
                           cycle:s.cycle||1};
             }}catch(e){/* keep defaults */}
     }
@@ -2508,7 +2513,7 @@ v5.06:
     // Only people still on the master team list can be observed.
     function obsEligible(){
         const team=(typeof teamNames!=='undefined'&&teamNames.length)?teamNames:DEFAULT_TEAM;
-        return obsState.pool.filter(n=>team.includes(n));
+        return OBS_POOL.filter(n=>team.includes(n));
     }
     function obsCompletedThisCycle(){
         return Object.values(obsState.assignments)
