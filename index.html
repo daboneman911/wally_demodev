@@ -482,6 +482,7 @@
         .ht-tag-belt{background:#fef3c7;color:#92400e;}
         .ht-tag-bulk{background:var(--accent-blue-bg);color:var(--accent-blue);}
         .ht-tag-unload{background:var(--border-light);color:var(--text-sub);}
+        .ht-ps9-tag{font-size:9px;font-weight:900;letter-spacing:0.4px;padding:2px 6px;border-radius:5px;background:var(--accent-purple-bg);color:var(--accent-purple);flex-shrink:0}
         .ht-tag-manual{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--border-light);color:var(--text-sub);}
         .ht-emp-ts{font-size:10px;color:var(--text-muted);font-weight:600;}
 
@@ -1025,13 +1026,20 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.00',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
+    const APP_VERSION='7.01',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.01:
+- New: The PS9 Twilight tag now shows on DOP rows too, so you can tell the
+  core crew from a temporary add without leaving the tab.
+- Fix: Names no longer truncate on active DOP rows. The start-time button
+  uses the same short format the cut rows already used, which frees up the
+  width the name column was short of.
+
 v7.00:
 - New: The nine core employees are tagged "PS9 Twilight" in Team
   Management. These are the same nine the observation rotation uses.
@@ -3584,7 +3592,6 @@ v5.06:
     function htRenderRow(emp,rank){
         const hrs=htCalcHours(emp);
         const roleCfg=emp.role?HT_ROLES[emp.role]:null;
-        const isBeltDefault=false;
         const rowCls=['ht-emp-row',
             emp.status==='active'?'ht-active':'',
             emp.status==='cut'?'ht-cut':'',
@@ -3593,10 +3600,10 @@ v5.06:
         const rankTxt=emp.status!=='inactive'?rank+1:'--';
         const startTs=emp.startTime?htFmtTime(emp.startTime):(emp.customStartStr||'');
         let meta='';
+        if(isPS9Core(emp.name))meta+='<span class="ht-ps9-tag" title="PS9 Twilight">PS9</span>';
         if(roleCfg)meta+='<span class="ht-role-tag '+roleCfg.tagCls+'">'+roleCfg.label+'</span>';
         if(emp.status==='cut')meta+='<span class="ht-cut-badge">Cut</span>';
         if(emp.manualRole)meta+='<span class="ht-tag-manual">\ud83d\udccc Pinned</span>';
-        else if(isBeltDefault)meta+='<span class="ht-tag-manual">\u2605 Default Belt</span>';
         if(startTs)meta+='<span class="ht-emp-ts">'+startTs+'</span>';
         const hrsHTML=emp.status!=='inactive'
             ?'<div class="ht-hrs">'+htFmtHrs(hrs)+'</div><div class="ht-hrs-lbl">hrs</div>'
@@ -3610,7 +3617,7 @@ v5.06:
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()">'+ctLbl+'</button>'+
                 '</div>';
         }else if(emp.status==='active'){
-            const ts=emp.startTime?htFmtTime(emp.startTime):'--';
+            const ts=emp.startTime?htFmtTimeShort(emp.startTime):'--';
             actHTML='<div class="ht-actions">'+
                 '<button class="ht-btn ht-btn-cut" onclick="htCutEmployee('+emp.id+');event.stopPropagation()">Cut</button>'+
                 '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+

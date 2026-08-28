@@ -1,5 +1,11 @@
 # Changelog
 
+### [7.01] - 2026-08-28
+
+- **New:** The **PS9 Twilight** badge now renders on DOP employee rows as a compact `PS9` chip (`.ht-ps9-tag`), leading the row's meta line ahead of the role tag and any Cut/Pinned badges. Same `isPS9Core()` predicate and same purple token as the Team Management badge, so the two views can't disagree. Verified at 393px and 375px: exactly nine rows badged, matching `PS9_CORE`.
+- **Fix:** Names truncated on **active** DOP rows ("Robert W" rendering clipped). The row overflowed its container by 5px, squeezing `.ht-emp-info` down to its 64px `min-width` floor. Cause was the active row's start-time button rendering the long `htFmtTime` form (`08:00 PM`) while cut rows had already moved to `htFmtTimeShort`; switching active rows to the short form reclaims the width. Rows now overflow 0px and no name truncates at either width. This was pre-existing and not introduced by the badge — measured identically (5px over, 2 names clipped) with the badge suppressed. The unabbreviated start time is still shown in full on the row beneath the button, so nothing is lost.
+- Removed dead code left over from v6.79's removal of the hardcoded belt default: `const isBeltDefault=false;` and its unreachable `else if(isBeltDefault)` meta branch.
+
 ### [7.00] - 2026-08-28
 
 - **New:** `PS9_CORE` — the nine core employees (Robert W, Matt R, Lorena R, Russell H, Trevon C, David F, Arce J, Fonseca J, Eddie F) now carry a **PS9 Twilight** badge in Team Management. `OBS_POOL` is redefined as `PS9_CORE`, so the observation rotation and the badged crew are the same list by construction and can't drift apart.
