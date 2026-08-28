@@ -1,5 +1,9 @@
 # Changelog
 
+### [6.96] - 2026-08-27
+
+- **UI:** Removed the "Eligible pool" chip editor from the Observation Tracker along with its render block and `obsTogglePool()`. The rotation logic is unchanged — `OBS_DEFAULT_POOL` still holds the eight identified employees and `obsEligible()` still intersects it with the live team list — the pool simply isn't surfaced or editable in the UI. Verified the sheet now shows only today's employee, Mark Observed / Skip, the manual override and recent history, while `obsEligible()` still returns the same eight names.
+
 ### [6.95] - 2026-08-27
 
 - **New:** Observation Tracker, reached via Tools → Methods (which is now a real section rather than a placeholder). Assigns one employee per shift day from a fixed eligible pool — Robert W, Matt R, Lorena R, Russell H, Trevon C, David F, Arce J, Fonseca J — drawn in order until every pool member has been observed, at which point the cycle restarts. The pool is editable from the tracker and is intersected with the live team list, so removing someone from Team Management also removes them from rotation.
