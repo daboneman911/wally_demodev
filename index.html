@@ -81,9 +81,13 @@
         .tab-content.tab-hours-flex.active{display:flex;flex-direction:column;}
 
         /* ── NAMEPLATE ────────────────────────────────────── */
-        .nameplate{position:relative;background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;margin-top:2px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,0.9);border:1px solid var(--glass-border)}
+        .nameplate{position:relative;background:linear-gradient(160deg,rgba(255,255,255,0.96) 0%,rgba(234,228,255,0.90) 100%);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--radius-lg);padding:14px 16px 12px;margin-bottom:6px;margin-top:2px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,0.9);border:1px solid var(--glass-border)}
         .nameplate-top{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px}
         .nameplate-title{font-size:21px;font-weight:800;color:var(--text-main);letter-spacing:-0.6px;line-height:1}
+        .nameplate-obs{display:none;align-items:center;justify-content:center;gap:5px;margin-top:2px;line-height:1.2;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);cursor:pointer}
+        .nameplate-obs.show{display:flex}
+        .nameplate-obs .obs-name{color:var(--text-sub)}
+        .nameplate-obs.done .obs-name{color:var(--accent-green)}
         .nameplate-sub{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.2px}
         .nameplate-actions{display:flex;justify-content:center;align-items:center;margin-top:12px}
         .shift-meter{display:none;flex-direction:column;gap:2px;padding:8px 18px;min-width:152px;border-radius:var(--radius-md);background:var(--surface-raised);border:3px solid var(--accent-green);cursor:pointer;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
@@ -598,6 +602,7 @@
             <div class="nameplate-top">
                 <div class="nameplate-title">Wally Dashboard</div>
                 <div class="nameplate-sub" id="nameplate-sub">by Fitz Joseph &nbsp;&middot;&nbsp; v6.63</div>
+                <div class="nameplate-obs" id="nameplate-obs" role="button" tabindex="0" title="Today's observation — tap to open" onclick="openObservation()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
             </div>
             <div class="nameplate-actions">
                 <button class="btn-shift start" id="btn-shift-action" onclick="handleShiftAction()">
@@ -895,12 +900,43 @@
     <div style="font-size:12px;color:var(--text-sub);margin-top:8px;">Team will be notified what is rolling to Door <span class="cpu-next-door-num-ref"></span> next.</div>
   </div>
 </div><label id="skip-share-row" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border-light);cursor:pointer;"><input type="checkbox" id="chk-skip-share" style="width:20px;height:20px;accent-color:#000;cursor:pointer;flex-shrink:0;"><span style="font-size:15px;font-weight:700;color:var(--text-main);">Skip share sheet</span></label><button class="btn-primary btn-danger" onclick="confirmCompleteDoor()">Complete Unload</button><div class="modal-actions-row"><button class="modal-icon-btn" id="btn-detail-note" onclick="openEditNoteFromActive()" style="flex:1;display:none;"><i class="ph ph-note-pencil"></i></button><button class="modal-icon-btn" onclick="openEditActiveModalFromDetail()" style="flex:1"><i class="ph ph-pencil-simple"></i></button><button class="modal-icon-btn" onclick="openMoveMenu()" style="flex:1;background:#fff;border:1px solid #e5e5ea;"><i class="ph ph-arrows-left-right"></i></button><button class="btn-primary btn-history" onclick="viewDoorLogs(detailDoor)" style="flex:3;margin:0;">View History</button></div><button class="btn-cancel" onclick="closeModal('active-detail-modal')">Close</button></div></div>
+<div class="modal-overlay z-high" id="obs-swap-modal"><div class="modal-sheet">
+    <h2 style="margin:0 0 10px;font-size:24px;text-align:center;">Observation Reassigned</h2>
+    <p id="obs-swap-text" style="text-align:center;color:var(--text-sub);margin-bottom:22px;font-size:15px;line-height:1.45;"></p>
+    <button class="btn-primary" onclick="closeModal('obs-swap-modal')">Got It</button>
+    <button class="btn-cancel" onclick="closeModal('obs-swap-modal');openObservation()">Open Tracker</button>
+</div></div>
+<div class="modal-overlay" id="observation-modal"><div class="modal-sheet" style="max-height:calc(100dvh - var(--safe-top) - 24px);overflow-y:auto;">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Observation</h2><button class="modal-close-btn" onclick="closeModal('observation-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div id="obs-today-card" style="background:var(--border-light);border-radius:var(--radius-md);padding:18px 16px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-sub);">Today</div>
+        <div id="obs-today-name" style="font-size:26px;font-weight:900;color:var(--text-main);letter-spacing:-0.8px;margin-top:6px;">&mdash;</div>
+        <div id="obs-today-sub" style="font-size:12px;color:var(--text-muted);font-weight:600;margin-top:4px;"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <button class="btn-primary" id="obs-done-btn" style="flex:1;margin:0;" onclick="obsMarkDone()">Mark Observed</button>
+        <button class="btn-primary btn-history" style="flex:0 0 auto;width:96px;margin:0;" onclick="obsSkip()">Skip</button>
+    </div>
+    <div class="note-editor-section-label">Change today&rsquo;s employee</div>
+    <select id="obs-manual-select" class="form-input" onchange="if(this.value)obsSetManual(this.value)"></select>
+    <div class="note-editor-section-label">Eligible pool</div>
+    <div style="font-size:12px;color:var(--text-sub);margin-bottom:10px;line-height:1.45;">Only these employees come up for observation. Tap to add or remove.</div>
+    <div class="note-tags-row" id="obs-pool-chips"></div>
+    <div class="note-editor-section-label" id="obs-history-label" style="display:none;">Recent</div>
+    <div id="obs-history-list"></div>
+    <button class="btn-cancel" onclick="closeModal('observation-modal')">Close</button>
+</div></div>
 <div class="modal-overlay" id="methods-modal"><div class="modal-sheet">
     <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Methods</h2><button class="modal-close-btn" onclick="closeModal('methods-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
-    <div style="text-align:center;padding:26px 0 30px;">
-        <i class="ph ph-list-checks" style="font-size:46px;color:var(--text-muted);"></i>
-        <div style="font-size:16px;font-weight:800;color:var(--text-main);margin-top:14px;">Coming soon</div>
-        <div style="font-size:14px;color:var(--text-sub);margin-top:6px;line-height:1.45;">This tool hasn\u2019t been built yet.</div>
+    <div class="settings-group" style="margin-bottom:16px;">
+        <div class="settings-row" role="button" tabindex="0" style="cursor:pointer;" onclick="openObservation()"
+             onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+            <span class="settings-label"><i class="ph ph-eye" style="margin-right:8px;"></i>Observation Tracker</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+                <span id="methods-obs-name" style="font-size:12px;font-weight:800;color:var(--text-sub);"></span>
+                <i class="ph ph-caret-right" style="color:var(--text-muted);"></i>
+            </span>
+        </div>
     </div>
     <button class="btn-cancel" onclick="closeModal('methods-modal')">Close</button>
 </div></div>
@@ -970,13 +1006,25 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.94',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='6.95',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v6.95:
+- New: Observation Tracker, under Tools > Methods. Picks one employee per
+  shift day from a fixed pool -- Robert W, Matt R, Lorena R, Russell H,
+  Trevon C, David F, Arce J, Fonseca J -- rotating in order until everyone
+  has been observed, then starting over. The pool is editable.
+- New: If the chosen employee isn't clocked in on DOP, the observation is
+  handed to the next eligible person who is, and a popup says who and why.
+- Skipping someone who isn't at work defers them rather than clearing them
+  -- they come back round later in the same cycle. You can also pick
+  anyone manually, including outside the pool.
+- The day's employee shows on the dashboard beneath the subtitle, and turns
+  green once marked observed. Tap it to open the tracker.
 v6.94:
 - Removed: The 16-hour unloader labour threshold. The UNLOAD tile no longer
   turns red, no "16h+" badge appears, and the warning banner is gone. The
@@ -2369,7 +2417,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -2432,6 +2480,213 @@ v5.06:
             setTimeout(()=>{if(demoActive&&doors[doorNum]&&doors[doorNum].logId===logId&&doors[doorNum].status==='active'){finalizeCompletion(doorNum,Date.now(),0)}},15000+randomExtra);
         }
     }
+    // -- OBSERVATION TRACKER --------------------------------
+    // One employee per shift day, drawn in order from a fixed eligible pool (not the
+    // whole roster). A cycle runs until everyone in the pool has been observed, then
+    // restarts. Skipping does NOT complete someone -- they stay owed and come back
+    // round later in the same cycle.
+    const OBS_DEFAULT_POOL=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J'];
+    let obsState={pool:[...OBS_DEFAULT_POOL],assignments:{},cycle:1};
+    function loadObsState(){
+        try{const s=JSON.parse(localStorage.getItem('ps9_observations'));
+            if(s&&typeof s==='object'){
+                obsState={pool:Array.isArray(s.pool)?s.pool:[...OBS_DEFAULT_POOL],
+                          assignments:s.assignments&&typeof s.assignments==='object'?s.assignments:{},
+                          cycle:s.cycle||1};
+            }}catch(e){/* keep defaults */}
+    }
+    function saveObsState(){localStorage.setItem('ps9_observations',JSON.stringify(obsState))}
+    // The observation day follows the shift day, so a shift running past midnight
+    // keeps the same observee all night.
+    function obsTodayKey(){
+        const d=new Date();
+        if(d.getHours()<12)d.setDate(d.getDate()-1);
+        return dateKeyFromTs(d.getTime());
+    }
+    // Only people still on the master team list can be observed.
+    function obsEligible(){
+        const team=(typeof teamNames!=='undefined'&&teamNames.length)?teamNames:DEFAULT_TEAM;
+        return obsState.pool.filter(n=>team.includes(n));
+    }
+    function obsCompletedThisCycle(){
+        return Object.values(obsState.assignments)
+            .filter(a=>a.cycle===obsState.cycle&&a.status==='done')
+            .map(a=>a.name);
+    }
+    // Next eligible person who hasn't been completed this cycle. When everyone has,
+    // the cycle advances and the pool opens up again.
+    function obsPickNext(exclude){
+        exclude=exclude||[];
+        const pool=obsEligible();
+        if(!pool.length)return null;
+        let done=obsCompletedThisCycle();
+        let avail=pool.filter(n=>!done.includes(n)&&exclude.indexOf(n)===-1);
+        if(!avail.length){
+            obsState.cycle++;
+            avail=pool.filter(n=>exclude.indexOf(n)===-1);
+        }
+        return avail.length?avail[0]:null;
+    }
+    function obsToday(){return obsState.assignments[obsTodayKey()]||null}
+    // Assign today's observee if the day doesn't have one yet.
+    function obsEnsureToday(){
+        const key=obsTodayKey();
+        if(obsState.assignments[key])return obsState.assignments[key];
+        const name=obsPickNext();
+        if(!name)return null;
+        obsState.assignments[key]={name,status:'pending',cycle:obsState.cycle,auto:false};
+        saveObsState();
+        return obsState.assignments[key];
+    }
+    function obsSetManual(name){
+        const key=obsTodayKey();
+        const cur=obsState.assignments[key];
+        obsState.assignments[key]={name,status:'pending',cycle:obsState.cycle,auto:false,
+                                   skipped:cur?cur.skipped:undefined};
+        saveObsState();obsRenderAll();
+    }
+    // Skip defers rather than completes: the person is not marked done, so they come
+    // up again later in this same cycle.
+    function obsSkip(){
+        const key=obsTodayKey(),cur=obsState.assignments[key];
+        if(!cur)return;
+        const passed=(cur.skipped||[]).concat([cur.name]);
+        const next=obsPickNext(passed);
+        obsState.assignments[key]=next
+            ?{name:next,status:'pending',cycle:obsState.cycle,auto:false,skipped:passed}
+            :{name:cur.name,status:'pending',cycle:obsState.cycle,auto:false,skipped:passed};
+        saveObsState();obsRenderAll();
+        if(!next)alert('No other eligible employee is available to observe.');
+    }
+    function obsMarkDone(){
+        const key=obsTodayKey(),cur=obsState.assignments[key];
+        if(!cur)return;
+        cur.status='done';saveObsState();obsRenderAll();showSaveToast();
+    }
+    function obsReopen(){
+        const key=obsTodayKey(),cur=obsState.assignments[key];
+        if(!cur)return;
+        cur.status='pending';saveObsState();obsRenderAll();
+    }
+    function obsTogglePool(name){
+        const i=obsState.pool.indexOf(name);
+        if(i>-1)obsState.pool.splice(i,1);else obsState.pool.push(name);
+        saveObsState();obsRenderAll();
+    }
+    // -- DOP cross-check -------------------------------------
+    // The observee has to actually be working. Once anyone is clocked in on DOP, if
+    // today's pick isn't among them, hand the observation to the next eligible person
+    // who is -- and say so, rather than silently swapping.
+    function obsActiveNames(){
+        if(typeof hoursState==='undefined'||!hoursState||!Array.isArray(hoursState.employees))return [];
+        return hoursState.employees.filter(e=>e.status==='active').map(e=>e.name);
+    }
+    function obsValidateAgainstDOP(){
+        const cur=obsToday();
+        if(!cur||cur.status==='done')return false;
+        const active=obsActiveNames();
+        if(!active.length)return false;              // nobody clocked in yet -- too early to judge
+        if(active.includes(cur.name))return false;   // still fine
+        const passed=(cur.skipped||[]).concat([cur.name]);
+        const pool=obsEligible().filter(n=>passed.indexOf(n)===-1&&active.includes(n));
+        const done=obsCompletedThisCycle();
+        const next=pool.filter(n=>!done.includes(n))[0]||pool[0]||null;
+        if(!next)return false;
+        const key=obsTodayKey();
+        obsState.assignments[key]={name:next,status:'pending',cycle:obsState.cycle,auto:true,skipped:passed};
+        saveObsState();obsRenderAll();
+        const t=byId('obs-swap-text');
+        if(t)t.textContent=cur.name+' isn\u2019t clocked in on DOP, so the observation moved to '+next+'.';
+        const m=byId('obs-swap-modal');
+        if(m)m.style.display='flex';
+        return true;
+    }
+
+    function openObservation(){
+        closeModal('methods-modal');
+        obsEnsureToday();obsRenderAll();
+        byId('observation-modal').style.display='flex';
+    }
+    function obsRenderAll(){
+        const cur=obsToday(),active=obsActiveNames();
+
+        // dashboard line
+        const line=byId('nameplate-obs');
+        if(line){
+            if(cur){
+                line.classList.add('show');
+                line.classList.toggle('done',cur.status==='done');
+                line.innerHTML='<i class="ph ph-eye"></i>Observing <span class="obs-name">'+cur.name+'</span>'
+                    +(cur.status==='done'?' <i class="ph ph-check-circle"></i>':'');
+            }else{line.classList.remove('show');line.innerHTML=''}
+        }
+        const mn=byId('methods-obs-name');
+        if(mn)mn.textContent=cur?cur.name:'';
+
+        // tracker sheet
+        const nameEl=byId('obs-today-name');
+        if(nameEl){
+            nameEl.textContent=cur?cur.name:'\u2014';
+            const sub=byId('obs-today-sub');
+            if(sub){
+                const bits=[];
+                if(!cur)bits.push('No eligible employees in the pool');
+                else{
+                    bits.push(cur.status==='done'?'Observed':'Pending');
+                    if(cur.auto)bits.push('auto-reassigned from DOP');
+                    if(cur.skipped&&cur.skipped.length)bits.push('skipped: '+cur.skipped.join(', '));
+                    if(active.length)bits.push(active.includes(cur.name)?'on the clock':'not clocked in');
+                }
+                sub.textContent=bits.join(' \u00b7 ');
+            }
+            const done=byId('obs-done-btn');
+            if(done){
+                const isDone=!!cur&&cur.status==='done';
+                done.textContent=isDone?'Observed \u2713':'Mark Observed';
+                done.onclick=isDone?obsReopen:obsMarkDone;
+            }
+        }
+
+        // manual override list -- whole team, so you can observe anyone on the day
+        const sel=byId('obs-manual-select');
+        if(sel){
+            const team=(typeof teamNamesSorted!=='undefined'&&teamNamesSorted.length)?teamNamesSorted:DEFAULT_TEAM;
+            sel.innerHTML='<option value="">Choose someone else\u2026</option>'
+                +team.map(n=>'<option value="'+n+'"'+(cur&&cur.name===n?' selected':'')+'>'+n
+                    +(active.includes(n)?' \u2022 on the clock':'')+'</option>').join('');
+        }
+
+        // eligible pool
+        const chips=byId('obs-pool-chips');
+        if(chips){
+            const team=(typeof teamNamesSorted!=='undefined'&&teamNamesSorted.length)?teamNamesSorted:DEFAULT_TEAM;
+            const doneNames=obsCompletedThisCycle();
+            chips.innerHTML=team.map(n=>{
+                const inPool=obsState.pool.includes(n);
+                return'<div class="note-tag-chip'+(inPool?' selected':'')+'" onclick="obsTogglePool(\''+n.replace(/'/g,"\\'")+'\')">'
+                    +n+(inPool&&doneNames.includes(n)?' \u2713':'')+'</div>';
+            }).join('');
+        }
+
+        // recent history, newest first
+        const list=byId('obs-history-list'),lbl=byId('obs-history-label');
+        if(list){
+            const keys=Object.keys(obsState.assignments).sort().reverse().slice(0,8);
+            if(lbl)lbl.style.display=keys.length?'block':'none';
+            list.innerHTML=keys.map(k=>{
+                const a=obsState.assignments[k];
+                const badge=a.status==='done'
+                    ?'<span style="font-size:10px;font-weight:900;color:var(--accent-green);">OBSERVED</span>'
+                    :'<span style="font-size:10px;font-weight:900;color:var(--text-muted);">PENDING</span>';
+                return'<div class="note-history-entry"><div class="note-history-entry-date">'+k+'</div>'
+                    +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">'
+                    +'<span style="font-size:14px;font-weight:800;color:var(--text-main);">'+a.name+'</span>'+badge+'</div>'
+                    +(a.skipped&&a.skipped.length?'<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:3px;">skipped: '+a.skipped.join(', ')+'</div>':'')
+                    +'</div>';
+            }).join('');
+        }
+    }
+
     // -- WEEKLY SHIFT SCHEDULE -------------------------------
     // Mon/Tue 20:00, Wed/Thu 20:15, Fri 19:30. Sat/Sun are unused but kept
     // editable so the schedule stays complete if weekend shifts ever start.
@@ -3191,6 +3446,7 @@ v5.06:
         setEl('ht-kpi-bulk-sub','hrs \u00b7 '+bulk.length+' people');
         setEl('ht-kpi-unload-sub','hrs \u00b7 '+unload.length+' people');
         updateNameplateHours();
+        obsValidateAgainstDOP();
     }
 
     // -- Render employee row -------------------------------

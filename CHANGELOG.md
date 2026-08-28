@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.95] - 2026-08-27
+
+- **New:** Observation Tracker, reached via Tools → Methods (which is now a real section rather than a placeholder). Assigns one employee per shift day from a fixed eligible pool — Robert W, Matt R, Lorena R, Russell H, Trevon C, David F, Arce J, Fonseca J — drawn in order until every pool member has been observed, at which point the cycle restarts. The pool is editable from the tracker and is intersected with the live team list, so removing someone from Team Management also removes them from rotation.
+- **New:** DOP cross-check. `obsValidateAgainstDOP()` runs whenever the DOP KPIs re-render, so as soon as anyone is clocked in it verifies the day's observee is among them; if not, the observation moves to the next eligible employee who *is* on the clock and a modal names both the original pick and the replacement. It deliberately holds off while nobody is clocked in, so it can't fire before the shift has really started, and won't re-fire once the pick is valid.
+- **New:** Skipping defers rather than completes — the skipped employee is recorded against the day but is *not* marked done, so they resurface later in the same cycle. Verified an 8-day run assigns all eight pool members with no repeats before restarting, and that a skipped employee remains owed.
+- **New:** The day's employee appears on the dashboard beneath the subtitle in small centred type, turning green with a tick once marked observed, and opens the tracker when tapped. Assignments are keyed to the *shift* day (before noon counts as the previous day), so an overnight shift keeps the same observee all night, and persist in `ps9_observations`.
+- Dashboard still fits without scrolling on every tested device after adding the line (trimmed nameplate spacing to hold the budget; 23px clear at 375×812).
+
 ### [6.94] - 2026-08-26
 
 - **Removed:** The 16-hour unloader labour threshold and its alert. Deleted `HT_LABOR_THRESHOLD`, `htLaborAlertFired`, `htCheckLaborThreshold()`, `htDismissLaborAlert()`, the call from `htRenderKPI()`, the `#ht-labor-alert` banner markup, and the eight associated CSS rules (`.ht-threshold-badge`, `.ht-kpi-card.ht-threshold-exceeded`, `.ht-labor-alert*`). The UNLOAD tile now simply reports hours — no red border, no "16h+" badge, no banner.
