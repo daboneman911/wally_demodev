@@ -282,7 +282,8 @@
         .settings-section-body.open{display:block}
         .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border-light);background:var(--surface-raised);transition:background 0.15s}
         .settings-row:last-child{border-bottom:none}
-        .settings-label{font-size:15px;font-weight:700;color:var(--text-main);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px}
+        .ps9-core-tag{display:inline-block;margin-left:7px;padding:2px 7px;border-radius:6px;background:var(--accent-purple-bg);color:var(--accent-purple);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.4px;vertical-align:middle;white-space:nowrap}
+        .settings-label{font-size:15px;font-weight:700;color:var(--text-main);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px;display:flex;align-items:center}
         .settings-input-inline{background:var(--border-light);border:none;padding:7px 10px;border-radius:8px;font-size:16px;width:140px;text-align:right;color:var(--text-main);font-weight:600}
         .settings-btn-inline{background:var(--text-main);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
         .settings-note{font-size:12px;color:var(--text-sub);padding:0 18px;margin-bottom:16px;line-height:1.5}
@@ -1024,13 +1025,26 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='6.99',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=["Robert W","David F","Lorena R","Matt R","Trevon C","Russell H","Fonseca J","Eddie F","Juan F","Arce J","Jeff","Solis","Anthony","Josh","Damian","Jarrett"];
+    const APP_VERSION='7.00',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.00:
+- New: The nine core employees are tagged "PS9 Twilight" in Team
+  Management. These are the same nine the observation rotation uses.
+- Change: The roster is now Robert W, Matt R, Lorena R, Russell H,
+  Trevon C, David F, Arce J, Fonseca J, Eddie F, plus Solis, Damian,
+  Johnny and Evan. Johnny and Evan were added; Juan F, Jeff, Anthony, Josh
+  and Jarrett were removed.
+- New: Those thirteen are permanent -- they survive a reset. Anyone else
+  added to the roster is treated as temporary and is cleared when the
+  shift ends, so one-off names don't pile up.
+- Removing the five is one-time only: if you deliberately re-add any of
+  them later they stay, though as non-permanent names they will drop off
+  at the next shift end.
 v6.99:
 - Fix: The observation reassignment fired as soon as the first employee
   clocked in, which was far too early -- most of the crew hadn't arrived,
@@ -2432,6 +2446,7 @@ v5.06:
         saveHistory();
         // Share total wallies if requested
         const shareTotal=!!(byId('chk-share-total')&&byId('chk-share-total').checked);
+        purgeTemporaryEmployees();
         closeModal('end-shift-modal');
         updateNameplate();renderDashboard();renderActiveTab();updateTabBadges();
         showToast(keepBays?`Shift ended \u2014 ${completedW+completedC} completions synced`:`Shift ended \u2014 ${closedCount} bay${closedCount!==1?'s':''} closed`);
@@ -2461,7 +2476,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -2504,7 +2519,7 @@ v5.06:
     function toggleSection(id){const body=byId(id);const caret=byId('caret-'+id);if(!body)return;const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(caret){caret.className=isOpen?'ph ph-caret-down':'ph ph-caret-up';const btn=caret.closest('button');if(btn)btn.setAttribute('aria-expanded',String(!isOpen))}}
     function openAddTeamMemberInline(){const inp=byId('add-team-inline');if(!inp)return;inp.style.display=inp.style.display==='none'?'block':'none';if(inp.style.display==='block')setTimeout(()=>{const f=byId('inline-team-name');if(f)f.focus()},100)}
     function confirmAddTeamInline(){const raw=byId('inline-team-name').value.trim();if(!raw)return;const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();byId('inline-team-name').value='';byId('add-team-inline').style.display='none';showSaveToast()}
-    function renderTeamManagement(){const list=byId('team-management-list');if(!list)return;list.innerHTML='';if(teamNamesSorted.length===0){list.innerHTML='<div style="padding:15px 0;color:#8e8e93;text-align:center;">No team members yet</div>';return}teamNamesSorted.forEach((name)=>{const div=document.createElement('div');div.className='settings-row';div.innerHTML=`<span class="settings-label">${name}</span><div style="display:flex;gap:20px;align-items:center;"><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:#000;" onclick="editTeamMember('${name}')"></i><i class="ph ph-minus-circle delete-acct-btn" onclick="deleteTeamMember('${name}')"></i></div>`;list.appendChild(div)})}
+    function renderTeamManagement(){const list=byId('team-management-list');if(!list)return;list.innerHTML='';if(teamNamesSorted.length===0){list.innerHTML='<div style="padding:15px 0;color:#8e8e93;text-align:center;">No team members yet</div>';return}teamNamesSorted.forEach((name)=>{const div=document.createElement('div');div.className='settings-row';div.innerHTML=`<span class="settings-label">${name}${isPS9Core(name)?'<span class="ps9-core-tag">PS9 Twilight</span>':''}</span><div style="display:flex;gap:20px;align-items:center;"><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:#000;" onclick="editTeamMember('${name}')"></i><i class="ph ph-minus-circle delete-acct-btn" onclick="deleteTeamMember('${name}')"></i></div>`;list.appendChild(div)})}
     function deleteTeamMember(name){
         const warn=htHasActivity(name)?`\n\n${name} has hours recorded on the DOP tab. Removing them discards those hours.`:'';
         if(confirm(`Remove ${name} from your saved team list?\nThis also removes them from the DOP roster.${warn}`)){
@@ -2524,12 +2539,47 @@ v5.06:
             setTimeout(()=>{if(demoActive&&doors[doorNum]&&doors[doorNum].logId===logId&&doors[doorNum].status==='active'){finalizeCompletion(doorNum,Date.now(),0)}},15000+randomExtra);
         }
     }
+    // -- ROSTER -------------------------------------------
+    // PS9 Twilight: the core crew. Badged in Team Management and the pool the
+    // observation rotation draws from.
+    const PS9_CORE=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F'];
+    // Everyone who survives a reset and a shift end. Anyone else on the roster is a
+    // temporary add and is cleared when the shift ends.
+    const PS9_PERMANENT=PS9_CORE.concat(['Solis','Damian','Johnny','Evan']);
+    // Removed from the roster in v7.00; retired one time only, so re-adding any of
+    // them later sticks rather than being stripped on the next load.
+    const PS9_RETIRED=['Juan F','Jeff','Anthony','Josh','Jarrett'];
+    function isPS9Core(name){return PS9_CORE.indexOf(name)!==-1}
+    function migrateTeamRoster(){
+        if(localStorage.getItem('ps9_roster_v7'))return false;
+        const before=teamNames.slice();
+        teamNames=teamNames.filter(n=>PS9_RETIRED.indexOf(n)===-1);
+        PS9_PERMANENT.forEach(n=>{if(teamNames.indexOf(n)===-1)teamNames.push(n)});
+        localStorage.setItem('ps9_roster_v7','1');
+        if(before.join('|')!==teamNames.join('|')){refreshTeamNamesSorted();saveTeam();return true}
+        return false;
+    }
+    // Called when a shift ends: temporary hires added for the night drop off, the
+    // permanent roster stays.
+    function purgeTemporaryEmployees(){
+        const before=teamNames.length;
+        teamNames=teamNames.filter(n=>PS9_PERMANENT.indexOf(n)!==-1);
+        const removed=before-teamNames.length;
+        if(removed>0){
+            refreshTeamNamesSorted();saveTeam();
+            if(typeof populateUnloaderSelect==='function')populateUnloaderSelect();
+            if(typeof renderTeamManagement==='function')renderTeamManagement();
+            if(typeof htReconcileRoster==='function')htReconcileRoster();
+        }
+        return removed;
+    }
+
     // -- OBSERVATION TRACKER --------------------------------
     // One employee per shift day, drawn in order from a fixed eligible pool (not the
     // whole roster). A cycle runs until everyone in the pool has been observed, then
     // restarts. Skipping does NOT complete someone -- they stay owed and come back
     // round later in the same cycle.
-    const OBS_POOL=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F'];
+    const OBS_POOL=PS9_CORE;   // the rotation is exactly the core crew
     let obsState={assignments:{},cycle:1};
     function loadObsState(){
         try{const s=JSON.parse(localStorage.getItem('ps9_observations'));

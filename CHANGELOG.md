@@ -1,5 +1,13 @@
 # Changelog
 
+### [7.00] - 2026-08-28
+
+- **New:** `PS9_CORE` — the nine core employees (Robert W, Matt R, Lorena R, Russell H, Trevon C, David F, Arce J, Fonseca J, Eddie F) now carry a **PS9 Twilight** badge in Team Management. `OBS_POOL` is redefined as `PS9_CORE`, so the observation rotation and the badged crew are the same list by construction and can't drift apart.
+- **Change:** Roster membership revised. Johnny and Evan added; Juan F, Jeff, Anthony, Josh and Jarrett removed. `DEFAULT_TEAM` is now the thirteen permanent members (the nine core plus Solis, Damian, Johnny, Evan).
+- **New:** `PS9_PERMANENT` survives resets and shift ends. `purgeTemporaryEmployees()` runs from `confirmEndShift()` and clears anyone not on that list, so names added for a single night don't accumulate on the roster; the DOP roster follows automatically via `htReconcileRoster()`.
+- Removing the five is a **one-time migration** (`migrateTeamRoster()`, flagged by `ps9_roster_v7`) rather than a filter applied on every load — otherwise deliberately re-adding one of them would have been silently undone on the next reload. Verified against a device seeded with the old sixteen-name roster: the five are removed, Johnny and Evan appear, and a re-added retired name persists across a reload (though as a non-permanent name it is cleared at the next shift end).
+- Verified the badge renders on exactly the nine core rows, the purge clears temporary adds while keeping all thirteen permanent members, and the DOP roster stays identical to the master list afterwards.
+
 ### [6.99] - 2026-08-28
 
 - **Fix:** `obsValidateAgainstDOP()` gated only on `active.length` — any single clock-in was enough to judge the day's observee absent and hand the observation to whoever happened to be on first, long before the crew had arrived. It now requires DOP to be met, gating on `htCalcDOP().delta >= 0` so every position is filled (and still firing when the crew is over DOP). Verified it holds at 1, 3, 5 and 8 staffed (one short of the 9 needed at `dopConfig` 6) and fires at 9 (met) and 10 (over), and that an observee who *is* on the clock at full staffing is left alone.
