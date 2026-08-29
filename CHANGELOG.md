@@ -1,5 +1,15 @@
 # Changelog
 
+### [7.04] - 2026-08-29
+
+- **New:** **Nightly Checklist** tool (`#checklist-modal`, `CHECKLIST_TASKS`) with seven tasks: Pre-sort DECR, Post-sort DECR, Observation, Validate staffing, Check slide, Walk belt, Gratings clear. Progress (`n/7`) shows on the Tools tile and in the sheet header. State persists under `ps9_checklist`.
+- The **Observation** row is deliberately *not* stored in checklist state — `checklistIsDone()` reads it from `obsToday().status` and toggling it calls `obsMarkDone()`/`obsReopen()`. Two-way sync as requested, implemented as a single source of truth so no sync bug is possible: the tracker's own button, the checklist row, and the past-entry editor all move the same fact. The row also names tonight's observee.
+- **Share on completion:** the tap that ticks the last box calls `checklistShare()` — that tap is a genuine user gesture, which is what iOS requires before it will open a share sheet. A Share button stays enabled afterwards to send again, and is disabled with an `n/7` label until then. Falls back to the clipboard where `navigator.share` is unavailable; a dismissed sheet (`AbortError`) is not treated as a failure.
+- Report body is the DECR lines and the observation with the observee's name, per the requested wording — the other four tasks gate completion but stay out of the message.
+- Cleared at shift end via `clearChecklist()` in `confirmEndShift()`, next to the temporary-employee purge. **Note:** this means a night where End Shift is never pressed carries its ticks into the following night.
+- Ticking Observation with nobody assigned is guarded rather than a silent no-op.
+- New `test_checklist.py`. Six test files (`test_cut_ranking`, `test_dop_dynamic`, `test_live_pph`, `test_pph`, `test_shift_meter`, `test_start_prompt`) were lost to a scratchpad clean and have been rebuilt from scratch; suite is now 20 tests, all passing.
+
 ### [7.03] - 2026-08-28
 
 - **New:** Entries in the Observation Tracker's Recent list are now tappable (`.obs-history-row`, caret affordance, press state) and open an `#obs-edit-modal` sheet scoped to that date. From it you can change the status between Pending and Observed, reassign the employee, or delete the record. Changes write through `saveObsState()` and re-render immediately, so the list behind and the dashboard line stay in sync.

@@ -362,6 +362,15 @@
         .note-custom-tag-add-btn{padding:0 16px;background:var(--text-main);color:white;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
         .note-entries-badge{background:var(--border-light);color:var(--text-sub);border-radius:10px;padding:2px 7px;font-size:10px;font-weight:800;margin-left:6px}
         .note-history-entry{background:var(--border-light);border-radius:12px;padding:10px 13px;margin-bottom:7px}
+        .cl-item{display:flex;align-items:center;gap:12px;background:var(--border-light);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:background 0.15s,transform 0.15s}
+        .cl-item:active{transform:scale(0.985)}
+        .cl-item:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px}
+        .cl-box{flex:0 0 auto;width:24px;height:24px;border-radius:8px;border:2px solid var(--border);background:var(--surface-raised);display:flex;align-items:center;justify-content:center;color:transparent;font-size:15px;transition:all 0.15s}
+        .cl-item.done .cl-box{background:var(--accent-green);border-color:var(--accent-green);color:#fff}
+        .cl-label{flex:1;min-width:0;font-size:15px;font-weight:700;color:var(--text-main)}
+        .cl-item.done .cl-label{color:var(--text-sub);text-decoration:line-through}
+        .cl-meta{flex:0 0 auto;font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px}
+        .tool-sub{font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px}
         .obs-history-row{cursor:pointer;transition:background 0.15s,transform 0.15s}
         .obs-history-row:active{transform:scale(0.985);background:var(--border)}
         .note-history-entry-date{font-size:11px;font-weight:800;color:var(--text-sub);margin-bottom:5px}
@@ -669,6 +678,7 @@
     <div class="tool-title">PPH Calculator</div></div>
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openManualAddModal()"><div class="tool-icon-wrapper"><i class="ph ph-pencil-simple-line"></i></div><div class="tool-title">Manual Add</div></div>
             <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openMethods()"><div class="tool-icon-wrapper"><i class="ph ph-list-checks"></i></div><div class="tool-title">Methods</div></div>
+            <div class="tool-card" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" onclick="openChecklist()"><div class="tool-icon-wrapper"><i class="ph ph-check-square-offset"></i></div><div class="tool-title">Nightly Checklist</div><div class="tool-sub" id="checklist-tool-sub"></div></div>
         </div>
     </div>
     <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-settings" tabindex="0" style="background:transparent;padding:0;">
@@ -962,6 +972,13 @@
     <button class="btn-primary" onclick="closeModal('obs-edit-modal')">Done</button>
     <button class="btn-primary btn-danger" onclick="obsEditDelete()">Delete Entry</button>
 </div></div>
+<div class="modal-overlay" id="checklist-modal"><div class="modal-sheet" style="max-height:calc(100dvh - var(--safe-top) - 24px);overflow-y:auto;">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Nightly Checklist</h2><button class="modal-close-btn" onclick="closeModal('checklist-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div id="checklist-progress" style="text-align:center;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-sub);margin-bottom:16px;"></div>
+    <div id="checklist-items" style="margin-bottom:16px;"></div>
+    <button class="btn-primary" id="checklist-share-btn" onclick="checklistShare()">Share Report</button>
+    <button class="btn-cancel" onclick="closeModal('checklist-modal')">Close</button>
+</div></div>
 <div class="modal-overlay" id="methods-modal"><div class="modal-sheet">
     <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Methods</h2><button class="modal-close-btn" onclick="closeModal('methods-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
     <div class="settings-group" style="margin-bottom:16px;">
@@ -1042,13 +1059,25 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.03',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
+    const APP_VERSION='7.04',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.04:
+- New: Nightly Checklist under Tools. Pre-sort DECR, Post-sort DECR,
+  Observation, Validate staffing, Check slide, Walk belt, Gratings clear.
+  The tile shows how many are done at a glance.
+- The Observation row is the Observation Tracker. Ticking it marks the night
+  observed and vice versa, so the two can never disagree, and the row shows
+  who tonight's observee is.
+- Once all seven are ticked the share sheet opens on its own, and a Share
+  button stays available to send it again. The report is the DECR lines and
+  the observation with the employee's name.
+- The checklist clears when you end the shift.
+
 v7.03:
 - New: Tap any day in the Observation Tracker's Recent list to edit it. You
   can flip it between Pending and Observed, put a different employee on it,
@@ -2483,6 +2512,7 @@ v5.06:
         // Share total wallies if requested
         const shareTotal=!!(byId('chk-share-total')&&byId('chk-share-total').checked);
         purgeTemporaryEmployees();
+        clearChecklist();
         closeModal('end-shift-modal');
         updateNameplate();renderDashboard();renderActiveTab();updateTabBadges();
         showToast(keepBays?`Shift ended \u2014 ${completedW+completedC} completions synced`:`Shift ended \u2014 ${closedCount} bay${closedCount!==1?'s':''} closed`);
@@ -2512,7 +2542,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -2690,12 +2720,12 @@ v5.06:
     function obsMarkDone(){
         const key=obsTodayKey(),cur=obsState.assignments[key];
         if(!cur)return;
-        cur.status='done';saveObsState();obsRenderAll();showSaveToast();
+        cur.status='done';saveObsState();obsRenderAll();checklistRenderAll();showSaveToast();
     }
     function obsReopen(){
         const key=obsTodayKey(),cur=obsState.assignments[key];
         if(!cur)return;
-        cur.status='pending';saveObsState();obsRenderAll();
+        cur.status='pending';saveObsState();obsRenderAll();checklistRenderAll();
     }
     // -- DOP cross-check -------------------------------------
     // The observee has to actually be working. Once anyone is clocked in on DOP, if
@@ -2774,7 +2804,7 @@ v5.06:
     function obsEditSetStatus(status){
         const a=obsState.assignments[obsEditKey];
         if(!a||a.status===status)return;
-        a.status=status;saveObsState();obsRenderEdit();obsRenderAll();showSaveToast();
+        a.status=status;saveObsState();obsRenderEdit();obsRenderAll();checklistRenderAll();showSaveToast();
     }
     function obsEditSetName(name){
         const a=obsState.assignments[obsEditKey];
@@ -2871,6 +2901,100 @@ v5.06:
             }).join('');
         }
     }
+
+    // -- NIGHTLY CHECKLIST -----------------------------------
+    // The Observation row is deliberately NOT stored here. It reads from, and writes
+    // to, the Observation Tracker, so the two can never disagree about whether the
+    // night's observation happened.
+    const CHECKLIST_TASKS=[
+        {id:'presort',   label:'Pre-sort DECR'},
+        {id:'postsort',  label:'Post-sort DECR'},
+        {id:'observation',label:'Observation', obs:true},
+        {id:'staffing',  label:'Validate staffing'},
+        {id:'slide',     label:'Check slide'},
+        {id:'belt',      label:'Walk belt'},
+        {id:'gratings',  label:'Gratings clear'}
+    ];
+    let checklistState={tasks:{},shared:false};
+    function loadChecklistState(){
+        try{const s=JSON.parse(localStorage.getItem('ps9_checklist'));
+            if(s&&typeof s==='object')checklistState={tasks:s.tasks&&typeof s.tasks==='object'?s.tasks:{},shared:!!s.shared};
+        }catch(e){/* keep defaults */}
+    }
+    function saveChecklistState(){localStorage.setItem('ps9_checklist',JSON.stringify(checklistState))}
+    function clearChecklist(){checklistState={tasks:{},shared:false};saveChecklistState();checklistRenderAll()}
+    function checklistIsDone(t){
+        if(t.obs){const cur=(typeof obsToday==='function')?obsToday():null;return !!cur&&cur.status==='done'}
+        return !!checklistState.tasks[t.id];
+    }
+    function checklistDoneCount(){return CHECKLIST_TASKS.filter(checklistIsDone).length}
+    function checklistComplete(){return checklistDoneCount()===CHECKLIST_TASKS.length}
+    function checklistToggle(id){
+        const t=CHECKLIST_TASKS.find(x=>x.id===id);
+        if(!t)return;
+        const wasComplete=checklistComplete();
+        if(t.obs){
+            const cur=(typeof obsToday==='function')?obsToday():null;
+            if(!cur){alert('No one is assigned to observe tonight. Open the Observation Tracker to pick someone.');return}
+            if(cur.status==='done')obsReopen();else obsMarkDone();
+        }else{
+            checklistState.tasks[id]=!checklistState.tasks[id];
+            saveChecklistState();
+        }
+        checklistRenderAll();
+        // the tap that ticks the last box is a real user gesture, which is what iOS
+        // requires before it will open a share sheet
+        if(!wasComplete&&checklistComplete())checklistShare();
+    }
+    function checklistObservee(){
+        const cur=(typeof obsToday==='function')?obsToday():null;
+        return cur?cur.name:null;
+    }
+    function checklistReportText(){
+        const who=checklistObservee();
+        const d=new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);
+        const day=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        return'Pre-sort DECR done. Post-sort DECR done.\n'
+            +'Observation done'+(who?' \u2014 '+who:'')+'.\n\n'+day;
+    }
+    async function checklistShare(){
+        if(!checklistComplete()){alert('Finish every task first \u2014 '+checklistDoneCount()+' of '+CHECKLIST_TASKS.length+' done.');return}
+        const text=checklistReportText();
+        try{
+            if(navigator.share){await navigator.share({text});checklistState.shared=true;saveChecklistState();checklistRenderAll();return}
+        }catch(e){if(e&&e.name==='AbortError')return}   // user dismissed the sheet
+        // no share sheet on this device -- put it on the clipboard instead
+        try{await navigator.clipboard.writeText(text);showSaveToast();alert('Report copied to the clipboard:\n\n'+text)}
+        catch(e){alert(text)}
+        checklistState.shared=true;saveChecklistState();checklistRenderAll();
+    }
+    function checklistRenderAll(){
+        const done=checklistDoneCount(),total=CHECKLIST_TASKS.length,complete=done===total;
+        const sub=byId('checklist-tool-sub');
+        if(sub)sub.textContent=done+'/'+total;
+        const prog=byId('checklist-progress');
+        if(prog)prog.textContent=complete?'All tasks complete':(done+' of '+total+' complete');
+        const list=byId('checklist-items');
+        if(list){
+            const who=checklistObservee();
+            list.innerHTML=CHECKLIST_TASKS.map(t=>{
+                const on=checklistIsDone(t);
+                return'<div class="cl-item'+(on?' done':'')+'" role="checkbox" tabindex="0" aria-checked="'+on+'"'
+                    +' onclick="checklistToggle(\''+t.id+'\')"'
+                    +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click()}">'
+                    +'<span class="cl-box"><i class="ph ph-check"></i></span>'
+                    +'<span class="cl-label">'+t.label+'</span>'
+                    +(t.obs&&who?'<span class="cl-meta">'+who+'</span>':'')+'</div>';
+            }).join('');
+        }
+        const btn=byId('checklist-share-btn');
+        if(btn){
+            btn.disabled=!complete;
+            btn.style.opacity=complete?'1':'0.45';
+            btn.textContent=complete?(checklistState.shared?'Share Again':'Share Report'):'Share Report \u00b7 '+done+'/'+total;
+        }
+    }
+    function openChecklist(){checklistRenderAll();byId('checklist-modal').style.display='flex'}
 
     // -- WEEKLY SHIFT SCHEDULE -------------------------------
     // Mon/Tue 20:00, Wed/Thu 20:15, Fri 19:30. Sat/Sun are unused but kept
