@@ -1,5 +1,17 @@
 # Changelog
 
+### [7.05] - 2026-08-29
+
+Palette consolidation. **135 hardcoded colour literals repointed at design tokens**; no layout or behaviour changes.
+
+- **The core problem:** two palettes for the same meanings coexisted — an iOS system set (`#007aff`, `#34c759`, `#ff3b30`, `#ff9500`, plus a third green `#4cd964` and a stray purple `#bf5af2`) alongside the tokenised set (`--accent-blue/green/red/orange`). Which one you got depended on which screen you were on. All now resolve to the tokens.
+- **Belt Tender was the only untokenised role.** Bulk used `--accent-blue`/`--accent-blue-bg` and Unloader used `--text-sub`/`--border-light` throughout, but Belt was raw hex across five ambers (`#f59e0b`, `#d97706`, `#fffbeb`, `#fef3c7`, `#fde68a`, `#92400e`). Added `--accent-amber`/`--accent-amber-bg`; `.ht-kpi-belt`, `.ht-emp-row.ht-role-belt`, `.ht-role-belt .ht-rank/.ht-role-icon/.ht-hrs`, `.ht-tag-belt` and `.ht-role-option.sel-belt` now mirror Bulk's structure slot for slot.
+- Near-duplicate greys collapsed onto the text/border tokens: `#8e8e93`/`#9ca3af`/`#999`/`#c0c0c8` → `--text-muted`; `#757575`/`#555`/`#333`/`#374151` → `--text-sub`; `#000`/`#1a1a1a` → `--text-main`; `#e5e5ea`/`#ebebeb`/`#d1d5db`/`#ccc` → `--border`; `#f9f9f9`/`#f8f9fa` → `--border-light`; `#f2f2f7` → `--bg`.
+- `ROLE_COLORS` (both copies) now carries token references rather than hex, and Unloader was corrected from `--text-muted` to `--text-sub` to agree with the KPI and tag rules it sits beside.
+- **Bay circle fills are deliberately untouched** (lines 146–150). Those gradients encode volume type, so the sweep excludes them by line number, as does the `:root` block itself.
+- **Deliberately left as literals:** `#fff`/`#ffffff` (white on coloured fills); the `:active` pressed-state darkenings `#1f2937`, `#111827`, `#b91c1c`, `#991b1b` (a consistent family, not duplicates); and the app background gradient `#d8e6ff`/`#e8d6ff`/`#d6eede`.
+- Verified: every `var()` in the stylesheet resolves, no console errors, all six tabs screenshotted, 20/20 tests pass.
+
 ### [7.04] - 2026-08-29
 
 - **New:** **Nightly Checklist** tool (`#checklist-modal`, `CHECKLIST_TASKS`) with seven tasks: Pre-sort DECR, Post-sort DECR, Observation, Validate staffing, Check slide, Walk belt, Gratings clear. Progress (`n/7`) shows on the Tools tile and in the sheet header. State persists under `ps9_checklist`.
