@@ -1,5 +1,12 @@
 # Changelog
 
+### [7.06] - 2026-08-29
+
+- **Change:** `checklistReportText()` now emits a single line — `DECR/OBS - <last name>` — as requested. The date and the per-task sentences are gone.
+- New `checklistObserveeLastName()` takes the last whitespace-delimited token of the observee's roster name. Roster names are stored `First LastInitial` ("Robert W") with some surname-only entries ("Solis"), so this yields the surname where one exists and the initial otherwise.
+- **Known limitation:** because the roster stores last *initials*, 6 of the 9 people in the observation pool produce a report line that does not uniquely identify them — `R` is Matt R or Lorena R, `F` is David F or Eddie F, `J` is Arce J or Fonseca J. The line is what was asked for; switching to the full stored name is a one-line change if the ambiguity matters in practice.
+- Test hardening: `test_cut_hours` asserted that hours hold steady across a 2-second window, which failed whenever a real minute rollover landed inside it (hours advance on whole minutes by design). It now waits clear of the minute boundary first. Confirmed stable over repeated runs.
+
 ### [7.05] - 2026-08-29
 
 Palette consolidation. **135 hardcoded colour literals repointed at design tokens**; no layout or behaviour changes.
