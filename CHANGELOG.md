@@ -1,5 +1,22 @@
 # Changelog
 
+### [7.07] - 2026-08-29
+
+**Fix: `resetData()` destroyed far more than its prompt admitted.** It ran `localStorage.clear()` and rescued only notes and the schedule, so it also wiped the team roster (including night hires), the entire observation history *and its cycle counter*, the checklist and the PPH log — while telling the user "This will clear all active trailers and logs. Notes are preserved." Losing the cycle counter silently restarts the observation rotation, so people already observed come round again.
+
+- Replaced with an explicit `RESET_CLEARS` **removal** list. The old shape meant every newly added key was destroyed the moment it was introduced and nobody noticed — which is exactly how the roster, rotation and checklist came to be swept. Keys now survive by default and have to be named to be cleared.
+- Prompt rewritten to state both halves: what goes (trailers, logs, volume counts, checklist) and what stays (team, notes, rotation, schedule, settings).
+
+**New: whole-device backup and restore** (Settings → Shift Management). Previously only logs could leave the device, and `init()` prunes `historyLog` to 24 hours on every load, so even that export could never hold more than a day. Roster, observation history, notes, hours and checklist had no export at all and existed solely in one browser's localStorage.
+
+- `exportBackup()` writes `wally-backup-<shift-date>.json` carrying all 19 storage keys, stamped with app id, format version and export time. Verified the key list is exhaustive against every `ps9_*` key in the file.
+- `importBackup()` validates before touching anything: app id, a format version not newer than this build, and that every value still parses. A damaged or foreign file is refused with the device untouched. It names the backup's date and version in the confirm prompt, then clears and rewrites atomically.
+- Verified by round trip: seed a device, back up, `localStorage.clear()`, restore — roster, observation history and cycle, notes, checklist, volume log, doors and schedule all return.
+
+**Fix:** a `#restore-file-input` had been sitting in `<body>` since some earlier version wired to `restoreData(this)`, a function that was never written. Its duplicate id also shadowed the working input added here. Removed; the id is now unique.
+
+**Tests moved into the repo** at `tests/` — 21 files, previously living only in an ephemeral scratch directory that was wiped twice during development. Paths and the server port are no longer hardcoded (`WALLY_TEST_PORT`), `tests/run.sh` serves the repo and runs all or a filtered subset, and `tests/README.md` documents setup, coverage and the two clock-related traps that have caused false failures.
+
 ### [7.06] - 2026-08-29
 
 - **Change:** `checklistReportText()` now emits a single line — `DECR/OBS - <last name>` — as requested. The date and the per-task sentences are gone.

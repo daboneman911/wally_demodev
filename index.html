@@ -601,7 +601,6 @@
     </style>
 </head>
 <body>
-<input type="file" id="restore-file-input" accept=".json" onchange="restoreData(this)">
 <div id="save-toast" class="save-toast"><i class="ph ph-check-circle" style="color:var(--accent-green);font-size:16px;"></i><span>Saved</span></div>
 <div class="status-bar-tray">
     <div id="demo-banner" class="demo-banner"><i class="ph ph-flask"></i><span>DEMO MODE</span></div>
@@ -695,6 +694,9 @@
             <div id="sec-shift" class="settings-section-body">
                 <div class="settings-group">
                     <div class="settings-row" onclick="handleShiftAction()" style="cursor:pointer;"><span class="settings-label">Start New Shift</span><i class="ph ph-arrow-clockwise" style="color:var(--text-main);font-size:20px;"></i></div>
+                    <div class="settings-row" onclick="exportBackup()" style="cursor:pointer;"><span class="settings-label">Back Up Everything</span><i class="ph ph-download-simple" style="color:var(--text-main);font-size:20px;"></i></div>
+                    <div class="settings-row" onclick="byId('restore-file-input').click()" style="cursor:pointer;"><span class="settings-label">Restore From Backup</span><i class="ph ph-upload-simple" style="color:var(--text-main);font-size:20px;"></i></div>
+                    <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none;" onchange="importBackup(this)">
                     <div class="settings-row" onclick="resetData()" style="cursor:pointer;"><span class="settings-label">Reset All Data</span><i class="ph ph-trash" style="color:var(--accent-red);font-size:20px;"></i></div>
                     <div class="settings-row"><span class="settings-label">Shift Start Time</span><input type="time" id="setting-shift-start" class="settings-input-inline" onchange="saveShiftStart(this.value)" value="20:00"></div>
                     <div class="settings-row"><span class="settings-label">Enable Grace Period</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Enable Grace Period" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('en-window')" id="switch-en-window" onclick="toggleSwitch('en-window')"></div></div>
@@ -1061,13 +1063,27 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.06',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
+    const APP_VERSION='7.07',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.07:
+- Fix: Reset All Data was quietly deleting far more than it said. It wiped
+  your team list, the whole observation rotation including which cycle you
+  were on, the checklist and the volume counts -- while the prompt only
+  mentioned trailers and logs. Reset now clears the night's work and keeps
+  the setup around it, and the prompt says exactly what goes.
+- New: Back Up Everything, in Settings under Shift Management. Saves one file
+  with the lot -- trailers, logs, team, notes, observation rotation, hours,
+  schedule and settings.
+- New: Restore From Backup, beside it. It tells you when the backup was made
+  before replacing anything, and refuses a file that isn't a Wally backup or
+  that is damaged.
+- Fix: A Restore control had been sitting in the app wired to nothing.
+
 v7.06:
 - Change: The checklist share report is now a single line -- "DECR/OBS - W"
   -- using the last name of whoever was observed. The date is gone.
@@ -2580,16 +2596,81 @@ v5.06:
     function loadPreferences(){const saved=localStorage.getItem('ps9_preferences');if(saved){try{const prefs=JSON.parse(saved);if(prefs.shareOnComplete!==undefined)config.shareOnComplete=prefs.shareOnComplete}catch(e){}}setTimeout(()=>{const el=byId('switch-share-on-complete');if(el){if(config.shareOnComplete)el.classList.add('checked');else el.classList.remove('checked')}},50)}
     function savePreferences(){localStorage.setItem('ps9_preferences',JSON.stringify({shareOnComplete:config.shareOnComplete}))}
     function saveDoors(){localStorage.setItem('ps9_doors',JSON.stringify(doors))}function saveHistory(){localStorage.setItem('ps9_history',JSON.stringify(historyLog))}function saveTeam(){localStorage.setItem('ps9_team',JSON.stringify(teamNames))}function saveData(){saveDoors();saveHistory();saveTeam()}function refreshTeamNamesSorted(){teamNamesSorted=[...teamNames].sort((a,b)=>a.localeCompare(b))}
+    // -- BACKUP / RESTORE ------------------------------------
+    // Everything lives in this browser's localStorage and nothing but the logs was
+    // recoverable if the device wiped its site data. This captures the lot -- roster,
+    // observation rotation, notes, hours, schedule, settings -- as one JSON file.
+    const BACKUP_KEYS=['ps9_doors','ps9_history','ps9_team','ps9_wally_notes','ps9_observations',
+        'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_shift_schedule','ps9_shift_start',
+        'ps9_shift_state','ps9_shift_end_time','ps9_last_sort_start','ps9_is_first_onboard',
+        'ps9_attribution_config_v2','ps9_roster_v7','ps9_webhook_queue','ps9_v3','ps9_v4'];
+    const BACKUP_FORMAT=1;
+    function buildBackup(){
+        const data={};
+        BACKUP_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
+        return{app:'wally-dashboard',format:BACKUP_FORMAT,version:APP_VERSION,
+               exportedAt:new Date().toISOString(),data};
+    }
+    function exportBackup(){
+        try{
+            const blob=new Blob([JSON.stringify(buildBackup(),null,2)],{type:'application/json'});
+            const url=URL.createObjectURL(blob),a=document.createElement('a');
+            const d=new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);
+            a.href=url;a.download='wally-backup-'+dateKeyFromTs(d.getTime())+'.json';
+            document.body.appendChild(a);a.click();a.remove();
+            setTimeout(()=>URL.revokeObjectURL(url),1000);
+            showSaveToast();
+        }catch(e){alert('Could not create the backup: '+e.message)}
+    }
+    function importBackup(input){
+        const file=input&&input.files&&input.files[0];
+        input.value='';                       // so re-picking the same file still fires
+        if(!file)return;
+        const reader=new FileReader();
+        reader.onerror=()=>alert('Could not read that file.');
+        reader.onload=()=>{
+            let b;
+            try{b=JSON.parse(reader.result)}catch(e){return alert('That is not a valid backup file.')}
+            if(!b||b.app!=='wally-dashboard'||!b.data||typeof b.data!=='object')
+                return alert('That file is not a Wally backup.');
+            if(b.format>BACKUP_FORMAT)
+                return alert('That backup was made by a newer version of the app (format '+b.format+'). Update first, then restore.');
+            // every value must still parse, or a half-written restore leaves the app broken
+            const bad=Object.keys(b.data).filter(k=>{
+                if(BACKUP_KEYS.indexOf(k)===-1)return false;
+                const v=b.data[k];
+                if(typeof v!=='string')return true;
+                if(k==='ps9_shift_start'||k==='ps9_shift_state'||k==='ps9_shift_end_time'
+                   ||k==='ps9_last_sort_start'||k==='ps9_is_first_onboard'||k==='ps9_roster_v7')return false;
+                try{JSON.parse(v);return false}catch(e){return true}
+            });
+            if(bad.length)return alert('That backup looks damaged and was not restored.\n\nUnreadable: '+bad.join(', '));
+            const when=b.exportedAt?new Date(b.exportedAt).toLocaleString():'an unknown date';
+            const keys=Object.keys(b.data).filter(k=>BACKUP_KEYS.indexOf(k)!==-1);
+            if(!confirm('Restore the backup from '+when+' (v'+(b.version||'?')+')?\n\n'
+                +'This replaces everything currently on this device \u2014 trailers, logs, team list, '
+                +'notes, observation rotation and settings.'))return;
+            BACKUP_KEYS.forEach(k=>localStorage.removeItem(k));
+            keys.forEach(k=>localStorage.setItem(k,b.data[k]));
+            alert('Restored '+keys.length+' items. The app will reload.');
+            setTimeout(()=>location.reload(),300);
+        };
+        reader.readAsText(file);
+    }
+
+    // A reset clears the night's work, not the setup around it. This is an explicit
+    // list of what to REMOVE rather than a localStorage.clear() with a couple of keys
+    // rescued afterwards -- under the old approach every new key was silently
+    // destroyed the moment it was added, which is how the roster, the observation
+    // rotation and the checklist all came to be wiped without the prompt saying so.
+    const RESET_CLEARS=['ps9_doors','ps9_history','ps9_shift_state','ps9_shift_end_time',
+                        'ps9_last_sort_start','ps9_is_first_onboard','ps9_pph_log',
+                        'ps9_checklist','ps9_v3','ps9_v4'];
     function resetData(){
-        if(confirm("Reset all data? This will clear all active trailers and logs. Notes are preserved.")){
-            const savedNotes=localStorage.getItem('ps9_wally_notes');
-            const savedSchedule=localStorage.getItem('ps9_shift_schedule');
-            localStorage.clear();
-            localStorage.removeItem('ps9_v4');
-            if(savedSchedule)localStorage.setItem('ps9_shift_schedule',savedSchedule);
+        if(confirm("Reset all data? This clears active trailers, logs, the volume counts and tonight's checklist.\n\nYour team list, notes, observation rotation, shift schedule and settings are kept.")){
+            RESET_CLEARS.forEach(k=>localStorage.removeItem(k));
             const resetStart=getScheduledShiftStart();
             localStorage.setItem('ps9_shift_start',resetStart);
-            if(savedNotes)localStorage.setItem('ps9_wally_notes',savedNotes);
             attemptWebhook({dataType:'NEW_SHIFT',dateKey:dateKeyFromTs(Date.now()),shiftStart:resetStart});
             setTimeout(function(){location.reload();},500);
         }
