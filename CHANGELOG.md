@@ -1,5 +1,33 @@
 # Changelog
 
+### [7.08] - 2026-09-13
+
+**New: Luis and Gilbert added to the roster as PS9 Twilight blue vests.**
+
+- Added to `PS9_CORE`, which makes them permanent (`PS9_PERMANENT` is derived from it, so `purgeTemporaryEmployees()` keeps them), badged `PS9`, and — because `OBS_POOL === PS9_CORE` — part of the observation rotation. **A full observation cycle is now 11 shift days, not 9.** Nothing hardcodes the pool size; `obsPickNext()` advances the cycle when the pool is exhausted, so the longer cycle needs no other change.
+- Stored without a last initial (`'Luis'`, `'Gilbert'`), matching the existing surname-only entries Solis, Damian, Johnny and Evan.
+- New `PS9_BLUE_VEST` / `isBlueVest()` and a `.blue-vest-tag` chip — `BV`, `title="Blue Vest — probationary"` — rendered *in addition to* the PS9 chip in Team Management and on DOP rows. The rule mirrors `.ps9-core-tag` slot for slot on `--accent-blue`/`--accent-blue-bg` rather than introducing a fourth blue.
+- **Note:** on DOP rows the blue `BV` chip sits in the same meta strip as the Bulk Sweep role tag, which uses the same blue tokens. They are distinguishable by size and text but not by colour.
+
+**Fix: a roster change could only ever reach a device once.** `migrateTeamRoster()` was gated on one flag, `ps9_roster_v7`, set the first time it ran. Every subsequent roster change would have been applied to fresh installs via `DEFAULT_TEAM` and silently skipped on every device already carrying a saved `ps9_team` — which is exactly the case Luis and Gilbert are. This was latent since v7.00 and would have shipped two invisible employees.
+
+- Replaced with a `ROSTER_MIGRATIONS` list, each step carrying its own flag and running at most once. v7's five retirements stay one-time, so re-adding a retired name by hand still sticks; `ps9_roster_v708` adds the two blue vests to devices that already ran v7.
+- `ps9_roster_v708` added to `BACKUP_KEYS` and to `importBackup()`'s non-JSON key list, so restoring a pre-7.08 backup does not re-run the step.
+
+**Three further fixes from the same review, each previously silent.**
+
+- **A roster name containing an apostrophe had a dead row in Team Management.** `renderTeamManagement()` baked the name into `onclick="editTeamMember('${name}')"`, so `O'Brien` produced `editTeamMember('O'Brien')` — a SyntaxError thrown by the click handler, leaving both the edit and delete icons inert with nothing on screen to explain it. The handlers are now bound as closures over the name instead of built as strings. A new `escHTML()` helper is applied at the eight other places a roster name reaches `innerHTML` (Team Management, the DOP row name and its undo-cut tooltip, the dashboard observation line, the observation history rows and skip list, and both observation `<option>` lists — the `value="..."` attributes there would have broken on a double quote).
+- **Renaming someone onto a name already on the roster duplicated them.** `editTeamMember()` had no duplicate guard, though `confirmAddTeamInline()` refuses exactly this for an add. `teamNames` ended up holding the name twice: two rows in Team Management, two entries in every unloader dropdown, and — verified against the unfixed build — two separate DOP rows for one person with the night's hours split between them. Now refused with the same wording as the add path; a genuine rename is unaffected.
+- **`importBackup()` accepted a backup with no `format` field.** The gate was `b.format > BACKUP_FORMAT`, and `undefined > 1` is false, so a file carrying the right app id but no version stamp was treated as current and restored over the device. Now requires a finite number. Confirmed against the unfixed build that such a file really did overwrite the roster — the earlier `test_reset_backup` case only appeared to pass because Playwright auto-dismissed the restore `confirm`.
+
+**Tests:** 22/22 passing.
+
+- New `test_team_edit.py` covers all three. Each check was verified to fail against the unfixed code — the apostrophe row reports `missing ) after argument list` on click, the rename leaves `Beta Two` on the roster twice, and both malformed backups wipe the device. It stubs `prompt`/`confirm`/`alert` in the page rather than using Playwright's dialog events, because an unhandled dialog is auto-dismissed, which makes "the guard refused it" and "nothing got that far" indistinguishable — the trap that hid the backup-format hole from `test_reset_backup`.
+
+- `test_roster.py` updated for the 11-name core and 15-name permanent roster, and extended to cover the new chip and the per-step migration — it now asserts that a device stuck on `ps9_roster_v7` alone still receives Luis and Gilbert, which is the regression the fix above exists to prevent, and that the `BV` chip appears *alongside* the `PS9` chip in Team Management and on DOP rows.
+- `test_observation.py` walked a hardcoded 11 days against a hardcoded 9-name pool, so its "cycle restarts" line was only ever printing days 10 and 11 of the first cycle and asserting nothing about the restart. Now derived from the pool length and asserting that the day after a full cycle returns to the top.
+- **Fixed a pre-existing failure in `test_reset_backup.py`** (failing on `main` before this change, not caused by it). `SEED` placed its two observation days at *calendar* today minus 1 and 2, but `obsTodayKey()` rolls back a day before noon — so on any morning run the "yesterday" seed landed on today's own shift day, `obsEnsureToday()` found it already present and added nothing, and the `obsDays + 1` assertion failed on the clock rather than on behaviour. Both the seed and the read-back now use the same shift-day anchor. This is the second variant of the clock trap `tests/README.md` warns about.
+
 ### [7.07] - 2026-08-29
 
 **Fix: `resetData()` destroyed far more than its prompt admitted.** It ran `localStorage.clear()` and rescued only notes and the schedule, so it also wiped the team roster (including night hires), the entire observation history *and its cycle counter*, the checklist and the PPH log — while telling the user "This will clear all active trailers and logs. Notes are preserved." Losing the cycle counter silently restarts the observation rotation, so people already observed come round again.

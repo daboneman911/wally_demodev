@@ -6,7 +6,8 @@ from playwright.sync_api import sync_playwright
 SEED = """()=>{
   if(!teamNames.includes('Night Hire A'))teamNames.push('Night Hire A');
   refreshTeamNamesSorted();saveTeam();
-  const k=(n)=>{const d=new Date();d.setDate(d.getDate()-n);return dateKeyFromTs(d.getTime())};
+  const k=(n)=>{const d=new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);
+                d.setDate(d.getDate()-n);return dateKeyFromTs(d.getTime())};
   obsState={assignments:{},cycle:3};
   obsState.assignments[k(2)]={name:'Robert W',status:'done',cycle:3};
   obsState.assignments[k(1)]={name:'Matt R',status:'done',cycle:3};
@@ -88,8 +89,10 @@ with sync_playwright() as p:
     # today's pick on top of the restored history.
     fields = [k for k in full if k != 'obsDays']
     same = all(back[k] == full[k] for k in fields)
-    seeded_back = pg.evaluate("""()=>{const k=(n)=>{const d=new Date();d.setDate(d.getDate()-n);
-        return dateKeyFromTs(d.getTime())};
+    # same shift-day anchor as SEED: obsTodayKey() rolls back a day before noon
+    seeded_back = pg.evaluate("""()=>{const k=(n)=>{const d=new Date();
+        if(d.getHours()<12)d.setDate(d.getDate()-1);
+        d.setDate(d.getDate()-n);return dateKeyFromTs(d.getTime())};
         return !!obsState.assignments[k(1)] && !!obsState.assignments[k(2)];}""")
     ok &= same and seeded_back and back['obsDays'] == full['obsDays'] + 1
     print(f'restore reproduces the device: {same}')

@@ -55,7 +55,8 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_obs_dop_gate` | Reassignment waits until DOP is met, not the first clock-in |
 | `test_obs_edit` | Editing a past observation, and what that does to the cycle |
 | `test_checklist` | Nightly checklist, observation two-way sync, share on completion |
-| `test_roster` | PS9 Twilight badging, permanent members, shift-end purge |
+| `test_roster` | PS9 Twilight badging, blue vests, permanent members, shift-end purge |
+| `test_team_edit` | Apostrophes in names, renaming onto an existing name, backup format gate |
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 
@@ -83,7 +84,15 @@ Two things worth knowing, both of which have caused false failures before:
 - **Hours advance on whole minutes.** A test that reads hours, waits, and
   reads again will see a jump if a real minute rolls over in between. Wait
   clear of the boundary first, as `test_cut_hours` does.
-- **Do not hardcode clock times.** A test that clocks someone in at 19:00
-  breaks when run in the morning. Use offsets from `Date.now()`.
+- **Do not hardcode clock times, and anchor to the shift day.** A test that clocks someone in at 19:00
+  breaks when run in the morning. Use offsets from `Date.now()`. Anything
+  keyed by observation day needs the same rollback `obsTodayKey()` does
+  (before noon the shift day is *yesterday*) — seeding against the plain
+  calendar date is what made `test_reset_backup` fail only before lunch.
+
+- **An unhandled dialog is auto-dismissed.** A `confirm()` nobody answers
+  returns false, so a guard that refuses and a path that never got that far
+  look identical. Stub `prompt`/`confirm`/`alert` in the page when the thing
+  under test is behind one, as `test_team_edit` does.
 
 Screenshots written by tests go to `tests/screenshots/`, which is ignored.

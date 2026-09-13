@@ -33,27 +33,30 @@ with sync_playwright() as p:
     # ---- 1. rotation draws from the fixed pool, not the whole roster ----
     pool = pg.evaluate("()=>obsEligible()")
     team = pg.evaluate("()=>teamNames.length")
-    expect = ['Robert W', 'Matt R', 'Lorena R', 'Russell H', 'Trevon C', 'David F', 'Arce J', 'Fonseca J', 'Eddie F']
+    expect = ['Robert W', 'Matt R', 'Lorena R', 'Russell H', 'Trevon C', 'David F',
+              'Arce J', 'Fonseca J', 'Eddie F', 'Luis', 'Gilbert']
     ok = _chk(ok, checks, pool == expect)
     print(f'1. pool = {len(pool)} of {team} on the team: {pool == expect}')
 
     # ---- 2. one per day, rotating in order, no repeats within a cycle ----
     reset(pg)
-    picks = pg.evaluate("""()=>{const out=[];
-        for(let i=0;i<11;i++){
+    n = len(expect)
+    picks = pg.evaluate("""(n)=>{const out=[];
+        for(let i=0;i<n+2;i++){
             const d=new Date(); d.setDate(d.getDate()+i);
             const key=dateKeyFromTs(d.getTime());
             const name=obsPickNext();
             obsState.assignments[key]={name,status:'done',cycle:obsState.cycle,auto:false};
             out.push(name);
         }
-        return out;}""")
-    n = len(expect)
+        return out;}""", n)
     firstN = picks[:n]
     ok = _chk(ok, checks, len(set(firstN)) == n)
     print(f'2. first {n} days, all distinct: {len(set(firstN)) == n}')
     print(f'   {" -> ".join(firstN)}')
-    print(f'   next day (cycle restarts): {picks[n:]}')
+    restarts = picks[n:] == expect[:2]
+    ok = _chk(ok, checks, restarts)
+    print(f'   next days restart the cycle at the top: {restarts}  {picks[n:]}')
 
     # ---- 3. skip defers rather than completes ----
     reset(pg)
