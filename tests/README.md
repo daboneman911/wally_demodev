@@ -62,6 +62,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
 | `test_corrupt_storage` | Damaged localStorage never blocks boot; recovery screen |
 | `test_webhook_queue` | A refused record parks instead of blocking the sync queue |
+| `test_shift_boundary` | Stats describe tonight only; pre-shift hour math |
 
 ## Writing one
 

@@ -1,5 +1,27 @@
 # Changelog
 
+### [7.13] - 2026-09-14
+
+**Fix: shift statistics counted the previous night, and the hour before a shift resolved to yesterday.** Bugs #3 and #4 from the v7.08 review — two symptoms, one root cause: nothing recorded which shift a log belonged to.
+
+`historyLog` is never cleared at End Shift and is pruned only at 24 hours, and `updateStats()` had **no date filter at all** — `tw`/`tc` were simply "everything in `historyLog`". Measured against the unfixed build with one completion from last night and one from tonight:
+
+```
+dashboard "Total Wally"  : 2      (tonight = 1)
+per-unloader table       : Ann=2
+SHIFT_END totalWallies   : 2
+hourly breakdown         : '-20th hour = 1', '2nd hour = 1'
+pre-shift (start +1h)    : start resolves 23h back, a completion now = hour 24
+```
+
+- **New `shiftKeyFromTs()` / `currentShiftKey()` / `thisShiftLogs()`.** `dateKey` cannot carry this — it is the calendar date, which splits an overnight shift in half at midnight. The shift key uses the same before-noon rollback as `obsTodayKey()` and `getShiftDayIndex()`, and is **stamped on each record at creation** rather than recomputed, since `historyLog` outlives the shift. `updateStats()`, `calculateAndRenderStats()`, `calculateAndRenderHourlyStats()`, the End Shift summary, the SHIFT_END payload and the live PPH figure all read `thisShiftLogs()`.
+- **`calculateAndRenderHourlyStats()` now uses the hour stored on the record** instead of recomputing it against the current shift start. The stored value is the hour the completion was actually attributed to, grace-window adjustment included, and cannot drift into negative buckets.
+- **`getShiftTimeWindows()` rolled the start back a day whenever `now < start`.** Correct after midnight; wrong in the hour *before* a shift begins, where it put the start 23 hours in the past. Now rolls back only when it is also before noon — the case that genuinely means "a shift already running". Assumes evening shifts, as every other shift-day calculation in this file does; noted in the code.
+- **Logs are not deleted.** The Logs tab still shows everything within the 24-hour prune; only the statistics changed.
+- Legacy records with no `shiftKey` fall back to deriving it from `end`, and `init()` backfills them.
+
+**Tests:** 26/26. New `test_shift_boundary.py` asserts the dashboard tile, per-unloader table, hourly rows and SHIFT_END payload all describe tonight only; that no negative hour bucket can render; that a shift start an hour ahead yields hour 1 rather than 24 (with the correct branch for a before-noon run, where the rollback *is* right); and that a pre-v7.13 record with no `shiftKey` is still counted. Its seed computes the key itself rather than calling the new helper, so the same file runs against older builds — verified to fail against v7.12 on all four counts.
+
 ### [7.12] - 2026-09-14
 
 **Fix: one rejected record blocked the entire sync queue, permanently.** Bug #2 from the v7.08 review, and the most costly of the five — it silently lost a whole night's data to the system of record. `processWebhookQueue()` always sent `queue[0]` and only removed it on success, with no attempt cap and nowhere else for a payload to go. `queuePayload()` sorts `end` payloads to the front, so a bad completion was the likeliest thing to get stuck there. Measured against the unfixed build:
