@@ -53,6 +53,19 @@ with sync_playwright() as p:
     ok &= stored
     print(f'2. index.html stored in the cache: {stored}')
 
+    # ---- 2b. the CDN assets must land on the FIRST load, not the second ----
+    # The worker is not controlling the page during its own first load, so the deferred
+    # <script> tags bypass the fetch handler entirely. They are precached at install for
+    # exactly that reason; without it nothing but the shell is stored until a second
+    # online load, and a first-ever launch in a dead zone came up with no icons.
+    pg.wait_for_timeout(1500)
+    urls = pg.evaluate("()=>caches.open('wally-'+APP_VERSION).then(c=>c.keys()).then(k=>k.map(r=>r.url))")
+    has_icons = any('phosphor' in u.lower() for u in urls)
+    has_pdf = any('jspdf' in u.lower() for u in urls)
+    ok &= has_icons and has_pdf
+    print(f'2b. after ONE load -- icon script cached: {has_icons}, jsPDF cached: {has_pdf}')
+    print(f'    {len(urls)} entries stored')
+
     # ---- 3. the real test: full network loss, then relaunch ----
     ctx.set_offline(True)
     errs.clear()

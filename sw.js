@@ -14,7 +14,7 @@
 // VERSION here would leave every phone running the old cached build, so the two move
 // together -- see the release checklist in CHANGELOG.md.
 
-const VERSION = '7.09';
+const VERSION = '7.10';
 const CACHE = 'wally-' + VERSION;
 
 // The app is a single file. A launch asks for './' or './index.html' depending on how
@@ -26,6 +26,22 @@ const SHELL = ['./', './index.html'];
 const CDN_HOSTS = ['unpkg.com', 'cdnjs.cloudflare.com',
                    'fonts.googleapis.com', 'fonts.gstatic.com'];
 
+// Pulled in at install time. On the FIRST load the worker is not controlling the page
+// yet -- it only takes over at activate -- so the deferred <script> tags go straight to
+// the network and the fetch handler never sees them. Without this, nothing but the
+// shell is stored until a second online load.
+//
+// Not a complete offline picture even so: the Phosphor script fetches its own
+// stylesheets and woff2 at runtime, and the Google CSS resolves to gstatic font files.
+// Those are discovered rather than listed, so they land via the fetch handler on the
+// next online load. The shell -- the part that decides whether the app opens at all --
+// is covered from the first load.
+const CDN_ASSETS = [
+    'https://unpkg.com/@phosphor-icons/web@2.1.1',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js'
+];
+
 const OFFLINE_HTML = `<!doctype html><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wally Dashboard</title>
@@ -36,10 +52,17 @@ const OFFLINE_HTML = `<!doctype html><meta charset="utf-8">
 </div>`;
 
 self.addEventListener('install', (e) => {
-    // Not waitUntil-fatal: if a CDN is unreachable at install time the worker should
-    // still install with whatever it managed to store, rather than failing outright
-    // and leaving the app with no offline copy at all.
-    e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {}));
+    e.waitUntil((async () => {
+        const cache = await caches.open(CACHE);
+        // The shell and the CDN assets are stored independently and neither is fatal.
+        // A single unreachable CDN must not take the shell down with it -- that would
+        // trade the white screen for a worse version of the same problem.
+        await cache.addAll(SHELL).catch(() => {});
+        await Promise.all(CDN_ASSETS.map(u =>
+            fetch(u, { mode: 'no-cors' })
+                .then(r => cache.put(new Request(u, { mode: 'no-cors' }), r))
+                .catch(() => {})));
+    })());
 });
 
 self.addEventListener('activate', (e) => {

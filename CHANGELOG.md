@@ -1,5 +1,16 @@
 # Changelog
 
+### [7.10] - 2026-09-14
+
+**Fix: v7.09 cached the shell on the first load but nothing else.** Caught by verifying the shipped worker against the live Pages site rather than trusting the localhost run — the cache held 2 entries, not the icons and PDF library v7.09 claimed.
+
+- **Cause:** during its own first load the worker is not yet controlling the page — it only takes over at `activate`, after `load` — so the deferred `<script>` tags went straight to the network and the `fetch` handler never saw them. Nothing but the shell was stored until a *second* online load. The reason icons still appeared offline in testing was the browser's own HTTP cache, which is precisely the unreliable mechanism this change exists to stop depending on.
+- `CDN_ASSETS` are now precached at install. The shell and the CDN assets are stored independently and neither is fatal, so one unreachable CDN cannot take the shell down with it — that would trade the white screen for a worse version of the same problem.
+- **Still not a complete offline picture, stated plainly:** the Phosphor script fetches its own stylesheets and `woff2` at runtime, and the Google Fonts CSS resolves to gstatic files. Those are discovered rather than listed, so they arrive via the fetch handler on the next online load. A first-ever launch in a dead zone may show the app without its icon font. **Whether the app opens at all was never affected** — that is the shell, and it is covered from the first load.
+- `test_offline` gains a check that the icon script and jsPDF are cached after exactly **one** load (5 entries: 2 shell + 3 CDN). It fails against v7.09, which is the point.
+
+**Tests:** 23/23.
+
 ### [7.09] - 2026-09-14
 
 **Fix: white screen on launch in low-coverage areas.** Reported from the field; reproduced and traced to a missing offline story rather than anything in the app's own code.
