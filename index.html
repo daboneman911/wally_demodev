@@ -1067,10 +1067,81 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.10',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert'];
+    const APP_VERSION='7.11',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
+    // -- CORRUPT STORAGE ------------------------------------
+    // Every one of these keys was being JSON.parsed without a guard somewhere, and a
+    // throw inside init() stops it dead: nothing renders, so Settings -- and with it
+    // Restore From Backup and Reset -- is unreachable. The only way out was clearing
+    // site data, which destroys the roster and the observation rotation too.
+    //
+    // Parsing is not enough on its own either. A value can parse and still be the wrong
+    // shape: ps9_team holding the string "Robert W" gives teamNames.length === 8 (the
+    // string's length), so truthiness guards downstream pass and the app misbehaves in
+    // ways that look nothing like a storage problem.
+    //
+    // Damaged values are never discarded. They are moved aside under ps9_corrupt_<key>
+    // so the data still exists if it turns out to be recoverable by hand.
+    const loadIssues=[];
+    function loadJSON(key,validate,fallback){
+        let raw=null;
+        try{raw=localStorage.getItem(key)}catch(e){return fallback()}
+        if(raw===null||raw==='')return fallback();
+        let val;
+        try{val=JSON.parse(raw)}
+        catch(e){quarantine(key,raw,'unreadable');return fallback()}
+        if(!validate(val)){quarantine(key,raw,'wrong shape');return fallback()}
+        return val;
+    }
+    function quarantine(key,raw,why){
+        loadIssues.push({key,why});
+        try{localStorage.setItem('ps9_corrupt_'+key,raw);localStorage.removeItem(key)}catch(e){}
+        console.error('[storage] '+key+' was '+why+' and has been set aside as ps9_corrupt_'+key);
+    }
+    const isArray=(v)=>Array.isArray(v);
+    const isNameList=(v)=>Array.isArray(v)&&v.every(n=>typeof n==='string');
+    const isObject=(v)=>!!v&&typeof v==='object'&&!Array.isArray(v);
+    // Shown once after a recovered load, so a silently dropped roster is never silent.
+    function reportLoadIssues(){
+        if(!loadIssues.length)return;
+        const names=loadIssues.map(i=>i.key.replace('ps9_','')+' ('+i.why+')').join(', ');
+        setTimeout(()=>alert('Some saved data could not be read and was set aside:\n\n'+names
+            +'\n\nThe app has started with defaults for those. Nothing was deleted \u2014 if you have a backup, '
+            +'Settings \u203a Shift Management \u203a Restore From Backup will put things right.'),600);
+    }
+    // Last line of defence. If boot throws for any reason at all, put a usable screen up
+    // rather than leaving a white page with no way to reach Restore or Reset.
+    function showRecoveryScreen(err){
+        console.error('[boot] failed:',err);
+        const html='<div style="position:fixed;inset:0;z-index:99999;background:#f2f2f7;color:#1a1a1a;'
+            +'font:400 16px -apple-system,system-ui,sans-serif;overflow:auto;padding:28px 22px;">'
+            +'<h1 style="font-size:22px;margin:0 0 12px;">The dashboard could not start</h1>'
+            +'<p style="color:#757575;line-height:1.5;">Something in this device\u2019s saved data could not be read. '
+            +'Your data has not been deleted.</p>'
+            +'<p style="color:#757575;font-size:13px;word-break:break-word;">'+String(err&&err.message||err)+'</p>'
+            +'<button id="rec-restore" style="width:100%;padding:15px;margin:18px 0 10px;border:none;border-radius:12px;'
+            +'background:#2563eb;color:#fff;font-size:16px;font-weight:700;">Restore From Backup</button>'
+            +'<button id="rec-reload" style="width:100%;padding:15px;margin-bottom:10px;border:2px solid #e5e5ea;'
+            +'border-radius:12px;background:#fff;font-size:16px;font-weight:700;">Try Again</button>'
+            +'<button id="rec-reset" style="width:100%;padding:15px;border:2px solid #e5e5ea;border-radius:12px;'
+            +'background:#fff;color:#b91c1c;font-size:16px;font-weight:700;">Clear the damaged data</button>'
+            +'<p style="color:#757575;font-size:13px;line-height:1.5;margin-top:16px;">Clearing keeps your notes, '
+            +'team list and observation history wherever they are still readable \u2014 it only removes what could not be loaded.</p></div>';
+        const w=document.createElement('div');w.innerHTML=html;document.body.appendChild(w);
+        byId('rec-reload').onclick=()=>location.reload();
+        byId('rec-restore').onclick=()=>{const i=byId('restore-file-input');if(i)i.click();else alert('Restore is unavailable on this screen.')};
+        byId('rec-reset').onclick=()=>{
+            if(!confirm('Remove only the saved data that could not be read?'))return;
+            try{Object.keys(localStorage).filter(k=>k.indexOf('ps9_corrupt_')===0)
+                    .forEach(k=>localStorage.removeItem(k));
+                ['ps9_team','ps9_history','ps9_doors','ps9_v4'].forEach(k=>{
+                    try{JSON.parse(localStorage.getItem(k)||'null')}catch(e){localStorage.removeItem(k)}});
+            }catch(e){}
+            location.reload();
+        };
+    }
     // -- OFFLINE LAUNCH ------------------------------------
     // GitHub Pages serves this file with Cache-Control: max-age=600 and that cannot be
     // changed on Pages, so ten minutes after a load the browser must reach the network
@@ -1136,6 +1207,18 @@
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.11:
+- Fix: The app can no longer be left in a state where it won't open. If any
+  of its saved data becomes unreadable, it now starts with defaults for just
+  that part instead of showing a blank screen with no way in.
+- Nothing damaged is ever deleted. It is set aside, and the app tells you
+  what it could not read and points you at Restore From Backup.
+- New: If the app ever fails to start for any other reason, you now get a
+  screen with Try Again, Restore From Backup, and Clear the damaged data --
+  rather than a white page and no way to reach Settings.
+- This mattered more after v7.09: the app now saves itself to the phone, so
+  a bad state would have stuck around longer than it used to.
+
 v7.10:
 - Fix: The icons and the PDF library are now saved on the first launch too.
   In v7.09 only the app itself was saved on the first run, so a very first
@@ -2692,7 +2775,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -2793,7 +2876,7 @@ v5.06:
         }
     }
     function showSaveToast(){const t=byId('save-toast');t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2000)}function viewChangelog(){byId('changelog-content').textContent=CHANGELOG;byId('changelog-modal').style.display='flex'}
-    function initAttributionSettings(){const saved=localStorage.getItem('ps9_attribution_config_v2');if(saved){const parsed=JSON.parse(saved);attributionConfig={enabled:parsed.enabled!==undefined?parsed.enabled:true}}updateAttributionUI()}
+    function initAttributionSettings(){const parsed=loadJSON('ps9_attribution_config_v2',isObject,()=>null);if(parsed)attributionConfig={enabled:parsed.enabled!==undefined?parsed.enabled:true};updateAttributionUI()}
     function updateAttributionUI(){const sw=byId('switch-en-window');if(sw){const enabled=attributionConfig.enabled;sw.classList.toggle('checked',!!enabled);sw.setAttribute('aria-checked',String(!!enabled))}
         const note=byId('grace-window-note');
         if(note)note.textContent='When enabled, Wallies completed in the first '+GRACE_WINDOW_MINUTES+' minutes after each hour boundary can be counted toward the previous hour. The window follows the shift start time \u2014 tonight it is '+getGraceWindowLabel()+'.'}
@@ -3437,9 +3520,14 @@ v5.06:
     // -- Boot: wrapped in DOMContentLoaded for reliable cross-browser execution --
     // Guarantees full DOM is parsed before init() runs, regardless of CDN timing.
     document.addEventListener('DOMContentLoaded', function() {
-        init();
-        htLoadState();
-        htSyncDOPButtons();
+        try{
+            init();
+            htLoadState();
+            htSyncDOPButtons();
+            reportLoadIssues();
+        }catch(err){
+            showRecoveryScreen(err);
+        }
     });
 
     // ======================================================

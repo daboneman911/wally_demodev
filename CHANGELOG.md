@@ -1,5 +1,27 @@
 # Changelog
 
+### [7.11] - 2026-09-14
+
+**Fix: corrupt localStorage bricked the app with no route to recovery.** Bug #1 from the v7.08 review. `init()` parsed `ps9_history` and `ps9_team` with no guard (and `initAttributionSettings()` likewise), while every other loader wrapped its parse. A throw stopped boot dead — 0 bay tiles, no rendered Settings, therefore no reachable **Restore From Backup** or **Reset**. The only escape was clearing site data, which also destroys the roster and the observation rotation. Measured against the unfixed build, 6 of 9 corruption shapes failed to boot:
+
+```
+ps9_team    "[[["         -> teamNames.filter is not a function
+ps9_team    "[1,2,3]"     -> a.localeCompare is not a function
+ps9_history "{{{not json" -> Expected property name or '}' in JSON...
+ps9_history '{"a":1}'     -> historyLog.forEach is not a function
+```
+
+- New `loadJSON(key, validate, fallback)` — **parsing is not enough on its own.** A value can parse and still be the wrong shape: `ps9_team` holding `"Robert W"` yields `teamNames.length === 8` (the string's length), so downstream truthiness guards pass and the app misbehaves in ways that look nothing like a storage fault. Each key now declares a shape (`isNameList`, `isArray`, `isObject`) and a fallback.
+- **Damaged values are never discarded.** They move to `ps9_corrupt_<key>` so the data still exists if it turns out to be recoverable by hand, and `reportLoadIssues()` names what was set aside rather than letting a dropped roster be silent.
+- `showRecoveryScreen()` wraps the whole boot block. If anything throws for any reason — not just the cases anticipated here — the user gets Try Again / Restore From Backup / Clear the damaged data, instead of a white page. "Clear" removes only what could not be parsed.
+- More urgent since v7.09: with a service worker the app is served from a local cache, so a bad state persists rather than being one reload away from a fresh copy.
+
+**The release-checklist guard earned itself.** `APP_VERSION` was bumped to 7.11 and `sw.js` was not; `test_offline` failed on the mismatched cache name and caught it before the push — exactly the failure it was added for in v7.09.
+
+**Tests:** 24/24. New `test_corrupt_storage.py` drives 9 corruption shapes across 4 keys, asserting for each that the app boots (8 bays, 6 tabs, a usable roster) and that the damaged value was set aside rather than deleted. It then confirms Team Management actually *renders* after a corrupt-roster boot — the static Settings markup is in the HTML either way, so its presence proves nothing; rendered rows prove boot finished. The recovery screen is exercised by a real throw raised from inside `init()` via a poisoned `Storage.prototype.getItem`, not by calling the screen directly. Verified to fail against v7.10.
+
+*Note: `test_hours_tile` failed once under full-suite load and passes in isolation and on re-run — a flake, not a regression.*
+
 ### [7.10] - 2026-09-14
 
 **Fix: v7.09 cached the shell on the first load but nothing else.** Caught by verifying the shipped worker against the live Pages site rather than trusting the localhost run — the cache held 2 entries, not the icons and PDF library v7.09 claimed.

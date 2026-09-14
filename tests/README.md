@@ -60,6 +60,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
+| `test_corrupt_storage` | Damaged localStorage never blocks boot; recovery screen |
 
 ## Writing one
 

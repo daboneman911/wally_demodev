@@ -14,7 +14,7 @@
 // VERSION here would leave every phone running the old cached build, so the two move
 // together -- see the release checklist in CHANGELOG.md.
 
-const VERSION = '7.10';
+const VERSION = '7.11';
 const CACHE = 'wally-' + VERSION;
 
 // The app is a single file. A launch asks for './' or './index.html' depending on how
