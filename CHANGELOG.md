@@ -1,5 +1,30 @@
 # Changelog
 
+### [7.09] - 2026-09-14
+
+**Fix: white screen on launch in low-coverage areas.** Reported from the field; reproduced and traced to a missing offline story rather than anything in the app's own code.
+
+- **Root cause.** GitHub Pages serves `index.html` with `Cache-Control: max-age=600` and that header cannot be configured on Pages. Ten minutes after a load the browser is required to revalidate over the network before rendering anything. On weak signal that request does not fail, it *hangs* — and a Home Screen web app has no browser UI to render a spinner or an error into, so the screen stays white for the length of the transfer. The intermittency people saw is that 10-minute timer.
+- Ruled out first: blocking all three CDNs (Phosphor, jsPDF, Google Fonts) while serving the page normally still renders 8 bay tiles and all 6 tabs with no errors. The external dependencies were not the cause. Also corrected an earlier estimate — Pages gzips the page, so the transfer is 94KB, not the 363KB on disk.
+- **New `sw.js`.** Cache-first for the app shell, so a launch never depends on the network, with a background revalidate so the next launch gets the newer build. The three CDN hosts are runtime-cached (opaque responses replay fine). Non-GET is never intercepted, which keeps the Apps Script webhook off the cache path entirely. If nothing is cached and there is no network, it returns a short "not saved for offline use yet" page rather than white.
+- Registered under `window.isSecureContext`, so it covers both Pages and localhost.
+
+**The opt-out is a stored flag, not an unregister — caught by its own test.** The first version of `disableOfflineMode()` unregistered the worker and reloaded, and the reload immediately re-registered it, so the kill switch did nothing. `ps9_offline_off` is now checked before registering. Deliberately **not** in `BACKUP_KEYS`: it describes one device, and restoring another phone's backup should not silently disable offline mode here.
+
+- Settings → Shift Management gains an **Offline Mode** status row (`Ready — v7.09` / `Installing…` / `Not saved yet` / `Off`) and a toggle that reads *Turn Off* or *Turn On* to match. A service worker is the one thing that can keep serving a broken build to a device, so there is a way off it that does not involve browser settings.
+
+**Update behaviour is deliberately deferred.** No `skipWaiting()`. A new version downloads and installs alongside the running one and takes over on the next cold start — the app will not swap itself out mid-shift with bays running. Verified end to end:
+
+```
+start:                      ['wally-7.09']
+after update, app open:     ['wally-7.09', 'wally-7.11']   <- old one still serving
+after closing and reopening: ['wally-7.11']                <- activated, old cache reclaimed
+```
+
+**`VERSION` in `sw.js` must be bumped with `APP_VERSION` in `index.html`.** A mismatch would leave every phone on the old cached build. `test_offline` asserts the live cache name equals `APP_VERSION`, so a forgotten bump fails the suite rather than shipping silently. **Add both to the release checklist.**
+
+**Tests:** 23/23. New `test_offline.py` — registration and control, the shell genuinely stored, a full-network-loss relaunch that asserts the app both renders (8 bays, 6 tabs, roster intact) *and* still works (DOP tab renders), that a POST offline fails rather than being served from cache, and that the opt-out survives its own reload and can be turned back on. The other 22 were unaffected: Playwright contexts are ephemeral, so workers do not leak between tests and `_boot.py` needed no change.
+
 ### [7.08] - 2026-09-13
 
 **New: Luis and Gilbert added to the roster as PS9 Twilight blue vests.**

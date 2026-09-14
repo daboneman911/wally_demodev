@@ -699,6 +699,8 @@
                     <div class="settings-row" onclick="exportBackup()" style="cursor:pointer;"><span class="settings-label">Back Up Everything</span><i class="ph ph-download-simple" style="color:var(--text-main);font-size:20px;"></i></div>
                     <div class="settings-row" onclick="byId('restore-file-input').click()" style="cursor:pointer;"><span class="settings-label">Restore From Backup</span><i class="ph ph-upload-simple" style="color:var(--text-main);font-size:20px;"></i></div>
                     <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none;" onchange="importBackup(this)">
+                    <div class="settings-row"><span class="settings-label">Offline Mode</span><span id="offline-status" style="font-size:13px;font-weight:600;color:var(--text-muted);">Checking…</span></div>
+                    <div class="settings-row" onclick="toggleOfflineMode()" style="cursor:pointer;"><span class="settings-label" id="offline-toggle-label">Turn Off Offline Mode</span><i class="ph ph-wifi-slash" style="color:var(--text-sub);font-size:20px;"></i></div>
                     <div class="settings-row" onclick="resetData()" style="cursor:pointer;"><span class="settings-label">Reset All Data</span><i class="ph ph-trash" style="color:var(--accent-red);font-size:20px;"></i></div>
                     <div class="settings-row"><span class="settings-label">Shift Start Time</span><input type="time" id="setting-shift-start" class="settings-input-inline" onchange="saveShiftStart(this.value)" value="20:00"></div>
                     <div class="settings-row"><span class="settings-label">Enable Grace Period</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Enable Grace Period" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('en-window')" id="switch-en-window" onclick="toggleSwitch('en-window')"></div></div>
@@ -1065,16 +1067,91 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.08',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert'];
+    const APP_VERSION='7.09',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
+    // -- OFFLINE LAUNCH ------------------------------------
+    // GitHub Pages serves this file with Cache-Control: max-age=600 and that cannot be
+    // changed on Pages, so ten minutes after a load the browser must reach the network
+    // before it renders anything. On weak signal the request hangs rather than failing,
+    // and a Home Screen app has no browser UI to show that in -- hence the white screen
+    // in low-coverage areas. sw.js serves the shell from cache so a launch never waits
+    // on the network. isSecureContext covers both https and localhost.
+    // Keep VERSION in sw.js in step with APP_VERSION above, or phones keep the old build.
+    // The opt-out is a stored flag, not just an unregister: unregistering and reloading
+    // would only re-register on the way back up. Deliberately NOT in BACKUP_KEYS -- it
+    // describes this device, and restoring another phone's backup should not turn off
+    // offline mode here.
+    function offlineModeOff(){try{return localStorage.getItem('ps9_offline_off')==='1'}catch(e){return false}}
+    if('serviceWorker' in navigator&&window.isSecureContext&&!offlineModeOff()){
+        window.addEventListener('load',()=>{
+            navigator.serviceWorker.register('sw.js')
+                .catch(e=>console.warn('Offline mode unavailable:',e));
+        });
+    }
+    // Settings escape hatch. A service worker is the one thing that can keep serving a
+    // broken build to a device, so there is a way off it that does not involve digging
+    // through browser settings.
+    async function toggleOfflineMode(){
+        if(offlineModeOff()){
+            localStorage.removeItem('ps9_offline_off');
+            alert('Offline mode is back on. The app will reload and save itself for offline use.');
+            setTimeout(()=>location.reload(),300);
+            return;
+        }
+        if(!confirm('Turn off offline mode?\n\nThe app will need a connection every time it opens. Your data is not affected.'))return;
+        try{
+            localStorage.setItem('ps9_offline_off','1');
+            if('serviceWorker' in navigator){
+                const regs=await navigator.serviceWorker.getRegistrations();
+                await Promise.all(regs.map(r=>r.unregister()));
+            }
+            if(window.caches){
+                const keys=await caches.keys();
+                await Promise.all(keys.filter(k=>k.startsWith('wally-')).map(k=>caches.delete(k)));
+            }
+            alert('Offline mode is off. The app will reload.');
+            setTimeout(()=>location.reload(),300);
+        }catch(e){alert('Could not turn off offline mode: '+e.message)}
+    }
+    // Shown in Settings so the state is visible rather than something you have to trust.
+    async function updateOfflineStatus(){
+        const el=byId('offline-status');if(!el)return;
+        const btn=byId('offline-toggle-label');
+        if(!('serviceWorker' in navigator)||!window.isSecureContext){el.textContent='Unavailable here';if(btn)btn.textContent='Turn Off Offline Mode';return}
+        if(offlineModeOff()){el.textContent='Off';if(btn)btn.textContent='Turn On Offline Mode';return}
+        if(btn)btn.textContent='Turn Off Offline Mode';
+        try{
+            const regs=await navigator.serviceWorker.getRegistrations();
+            const keys=window.caches?await caches.keys():[];
+            const mine=keys.filter(k=>k.startsWith('wally-'));
+            el.textContent=(regs.length&&mine.length)?('Ready \u2014 '+mine[0].replace('wally-','v')):
+                           regs.length?'Installing\u2026':'Not saved yet';
+        }catch(e){el.textContent='Unknown'}
+    }
     // Roster names are free text. Escape them wherever one reaches innerHTML -- an
     // apostrophe (O'Brien) or a quote otherwise breaks the markup built around it.
     const escHTML=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.09:
+- Fix: The app no longer goes to a white screen when you open it somewhere
+  with weak service. It now saves itself to the phone and opens from there,
+  so starting it never waits on a signal.
+- The cause: GitHub only lets the app stay "fresh" for ten minutes. Past
+  that, opening it had to reach the network first, and on a bad signal that
+  request doesn't fail -- it hangs, with nothing on screen while it waits.
+- The icons and the PDF library are saved too, so the app looks right in a
+  dead zone, not just loads.
+- Note: it has to be opened once with a signal before this takes effect.
+  After that, every launch is instant, signal or no signal.
+- New: Settings > Shift Management shows whether the app is saved for
+  offline use, and can turn it off if it ever misbehaves.
+- Note: updates now arrive on the NEXT launch rather than mid-use, so the
+  app will never swap itself out from under you during a shift.
+
 v7.08:
 - New: Luis and Gilbert are on the roster. Both are PS9 Twilight, so they
   carry the PS9 chip and join the observation rotation -- a full cycle is
@@ -2606,7 +2683,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);const sDoors=localStorage.getItem('ps9_doors');if(sDoors){try{doors=JSON.parse(sDoors)}catch(e){doors={}}}if(!doors||typeof doors!=='object')doors={};for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const sHistory=localStorage.getItem('ps9_history'),sTeam=localStorage.getItem('ps9_team'),shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';if(sHistory)historyLog=JSON.parse(sHistory);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];return true});if(pruned)saveHistory()}if(sTeam)teamNames=JSON.parse(sTeam);else teamNames=[...DEFAULT_TEAM];refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
