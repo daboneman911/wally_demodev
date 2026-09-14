@@ -1,5 +1,32 @@
 # Changelog
 
+### [7.12] - 2026-09-14
+
+**Fix: one rejected record blocked the entire sync queue, permanently.** Bug #2 from the v7.08 review, and the most costly of the five — it silently lost a whole night's data to the system of record. `processWebhookQueue()` always sent `queue[0]` and only removed it on success, with no attempt cap and nowhere else for a payload to go. `queuePayload()` sorts `end` payloads to the front, so a bad completion was the likeliest thing to get stuck there. Measured against the unfixed build:
+
+```
+attempts made:          ['POISON']
+after ~11s:             6 still pending, 3 attempts -- all on POISON
+good records delivered: False
+user saw:               'Tap to retry (6)'      <- could never succeed
+```
+
+**The fix turns on distinguishing who failed**, which the old code never did:
+
+| Outcome | Meaning | Handling |
+| --- | --- | --- |
+| `fetch` threw / offline | Transport. Nothing to do with this record. | Attempt count untouched; whole queue waits, with exponential backoff 5s → 60s |
+| Server answered `ok:false` | It read the record and refused it. Retrying unchanged cannot help. | Counted; parked after `MAX_REJECTS` (3) so the rest proceed |
+| Reply was not JSON | Ambiguous — an Apps Script error page looks like this and usually affects *every* record. | Counted far more slowly (`MAX_UNREADABLE`, 8) so an outage does not park the night's work |
+
+- **Nothing is deleted.** Parked records move to `ps9_webhook_failed`, added to `BACKUP_KEYS`, and `retryFailedWebhooks()` puts them back in the queue with their counters cleared once whatever was wrong is fixed.
+- The badge now states the real situation — `3 didn't sync — tap` — instead of an impossible retry, and tapping offers to resend. A transport stall reads `Waiting to retry (n)` and can be tapped to retry now.
+- Previously the failure path also stacked a fresh 5-second `setTimeout` per failure, hammering a dead connection. Now a single backing-off timer.
+
+**Tests:** 25/25. New `test_webhook_queue.py` covers the original scenario (one refused record, five good ones behind it — all five now delivered, bad one parked after exactly 3 attempts) plus the cases the fix must not break: a dead connection keeps the queue intact and parks nothing, backs off, and drains on its own when the connection returns; six consecutive non-JSON replies park nothing; a parked record resends successfully after the cause is fixed; and the badge reports parked records rather than an impossible retry. Verified to fail against v7.11, where all six records stay stuck with only `POISON` ever attempted.
+
+*Test note: `parkPayload()` logs a `console.error` deliberately — that diagnostic is the point of parking — so the test filters it rather than treating it as a failure.*
+
 ### [7.11] - 2026-09-14
 
 **Fix: corrupt localStorage bricked the app with no route to recovery.** Bug #1 from the v7.08 review. `init()` parsed `ps9_history` and `ps9_team` with no guard (and `initAttributionSettings()` likewise), while every other loader wrapped its parse. A throw stopped boot dead — 0 bay tiles, no rendered Settings, therefore no reachable **Restore From Backup** or **Reset**. The only escape was clearing site data, which also destroys the roster and the observation rotation. Measured against the unfixed build, 6 of 9 corruption shapes failed to boot:

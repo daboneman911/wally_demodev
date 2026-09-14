@@ -1067,7 +1067,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.11',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert'];
+    const APP_VERSION='7.12',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1207,6 +1207,19 @@
     function dateKeyFromTs(ts){const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.12:
+- Fix: One record the sheet wouldn't accept used to stop everything behind
+  it from syncing, for the rest of the night. The badge said "Tap to retry"
+  but retrying could never work. The rest of the night's records now go
+  through, and the one that failed is set aside rather than holding the
+  queue up.
+- Nothing is thrown away. Set-aside records stay on the phone; the badge
+  shows how many, and tapping it tries them again once whatever was wrong
+  has been sorted out.
+- Being out of signal is treated differently from the sheet refusing a
+  record. Losing signal no longer counts against anything -- the queue just
+  waits, and backs off instead of retrying every five seconds.
+
 v7.11:
 - Fix: The app can no longer be left in a state where it won't open. If any
   of its saved data becomes unreadable, it now starts with defaults for just
@@ -2278,56 +2291,134 @@ v5.06:
         try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(queue));}catch(e){console.error('Queue storage failed:',e);}
         updateSyncBadge();
     }
-    let isSyncingWebhook=false;
+    let isSyncingWebhook=false,syncBackoffMs=0,syncRetryTimer=null;
+    // -- QUEUE FAILURE HANDLING ------------------------------
+    // The queue used to send queue[0] and only ever remove it on success, with no
+    // attempt cap and nowhere else for a payload to go. One record the server refused
+    // therefore parked itself at the head and blocked every record behind it, for the
+    // rest of the night, while the badge said "Tap to retry" -- which could never work.
+    // Sorting 'end' payloads to the front made a bad completion the likeliest culprit.
+    //
+    // The distinction that matters is WHO failed:
+    //   - fetch threw, or we are offline  -> transport. Not this record's fault, so its
+    //     attempt count is untouched and the whole queue simply waits and backs off.
+    //   - the server answered ok:false    -> it read this record and refused it. Retrying
+    //     unchanged cannot help, so it is counted and parked after MAX_REJECTS.
+    //   - the reply was not JSON          -> ambiguous (an Apps Script error page looks
+    //     like this, and usually affects every record). Counted, but far more slowly,
+    //     so a site-wide outage does not park the night's work.
+    // Parked records are never deleted -- they move to ps9_webhook_failed for retry.
+    const MAX_REJECTS=3, MAX_UNREADABLE=8, MAX_QUEUE=500;
+    const readQ=(k)=>{try{return JSON.parse(localStorage.getItem(k)||'[]')||[]}catch(e){return[]}};
+    const writeQ=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.error('Queue storage failed:',e)}};
+    function parkPayload(payload,reason){
+        const failed=readQ('ps9_webhook_failed');
+        failed.push(Object.assign({},payload,{_parkedAt:Date.now(),_reason:reason}));
+        writeQ('ps9_webhook_failed',failed);
+        console.error('[sync] parked a record after repeated failures ('+reason+')',payload);
+    }
+    function retryFailedWebhooks(){
+        const failed=readQ('ps9_webhook_failed');
+        if(!failed.length)return 0;
+        const queue=readQ('ps9_webhook_queue');
+        failed.forEach(p=>{delete p._attempts;delete p._unreadable;delete p._parkedAt;delete p._reason;queue.push(p)});
+        writeQ('ps9_webhook_queue',queue);
+        writeQ('ps9_webhook_failed',[]);
+        syncBackoffMs=0;
+        updateSyncBadge();processWebhookQueue();
+        return failed.length;
+    }
     function updateSyncBadge(){
         const badge=byId('sync-badge'),text=byId('sync-badge-text');
         if(!badge)return;
-        let queue=[];
-        try{queue=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
-        if(queue.length===0){badge.classList.remove('visible','error');badge.onclick=null;return;}
-        // In error state, keep the tap-to-retry handler installed by the catch
-        // block and just refresh the pending count
-        if(badge.classList.contains('error')){if(text)text.textContent='Tap to retry ('+queue.length+')';return;}
-        badge.classList.add('visible');badge.classList.remove('error');badge.onclick=null;
-        text.textContent=queue.length===1?'Syncing...':'Syncing ('+queue.length+')...';
+        const queue=readQ('ps9_webhook_queue'),failed=readQ('ps9_webhook_failed');
+        if(!queue.length&&!failed.length){badge.classList.remove('visible','error');badge.onclick=null;return;}
+        badge.classList.add('visible');
+        // Parked records are the state worth acting on, so they win the label.
+        if(failed.length){
+            badge.classList.add('error');
+            if(text)text.textContent=failed.length+' didn\u2019t sync \u2014 tap';
+            badge.onclick=()=>{
+                if(confirm(failed.length+' record'+(failed.length===1?'':'s')+' could not be sent to the sheet and '
+                    +'have been set aside.\n\nTry sending them again?')) retryFailedWebhooks();
+            };
+            return;
+        }
+        if(syncBackoffMs>0){
+            badge.classList.add('error');
+            if(text)text.textContent='Waiting to retry ('+queue.length+')';
+            badge.onclick=()=>{syncBackoffMs=0;badge.classList.remove('error');badge.onclick=null;processWebhookQueue()};
+            return;
+        }
+        badge.classList.remove('error');badge.onclick=null;
+        if(text)text.textContent=queue.length===1?'Syncing...':'Syncing ('+queue.length+')...';
+    }
+    function scheduleRetry(){
+        // Transport failures back off rather than hammering a dead connection every 5s.
+        syncBackoffMs=syncBackoffMs?Math.min(syncBackoffMs*2,60000):5000;
+        updateSyncBadge();
+        if(syncRetryTimer)clearTimeout(syncRetryTimer);
+        syncRetryTimer=setTimeout(()=>{syncRetryTimer=null;syncBackoffMs=0;processWebhookQueue()},syncBackoffMs);
+    }
+    // Remove the record we just sent by its own id, never by position: dedup may have
+    // rewritten the queue while the request was in flight.
+    function dequeue(queueId){
+        const q=readQ('ps9_webhook_queue');
+        const i=queueId?q.findIndex(p=>p._queueId===queueId):0;
+        if(i>-1)q.splice(i,1);else if(!queueId)q.shift();
+        writeQ('ps9_webhook_queue',q);
+        return q;
+    }
+    function failHead(payload,field,limit,reason){
+        const q=readQ('ps9_webhook_queue');
+        const i=q.findIndex(p=>p._queueId===payload._queueId);
+        if(i<0)return;                                  // already gone; nothing to do
+        q[i][field]=(q[i][field]||0)+1;
+        if(q[i][field]>=limit){
+            const[bad]=q.splice(i,1);
+            writeQ('ps9_webhook_queue',q);
+            parkPayload(bad,reason);
+        }else{
+            writeQ('ps9_webhook_queue',q);
+        }
     }
     function processWebhookQueue(){
-        if(isSyncingWebhook||!navigator.onLine){updateSyncBadge();return;}
-        let queue=[];
-        try{queue=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
+        if(isSyncingWebhook||syncBackoffMs>0){updateSyncBadge();return;}
+        if(!navigator.onLine){updateSyncBadge();return;}
+        const queue=readQ('ps9_webhook_queue');
         if(queue.length===0){updateSyncBadge();return;}
         isSyncingWebhook=true;
         updateSyncBadge();
         const payload=queue[0];
         fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
-        .then(function(resp){return resp.json();})
-        .then(function(data){
-            if(!data.ok){throw new Error(data.error||'Apps Script reported failure');}
-            let cq=[];
-            try{cq=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
-            // Remove the specific sent item by _queueId to avoid dequeuing the wrong
-            // payload when dedup replaced a start with an end while the start was in-flight
-            const sentId=payload._queueId;
-            const idx=sentId?cq.findIndex(function(p){return p._queueId===sentId;}):0;
-            if(idx>-1)cq.splice(idx,1);else if(!sentId)cq.shift();
-            try{localStorage.setItem('ps9_webhook_queue',JSON.stringify(cq));}catch(e){}
+        .then(resp=>resp.json().then(
+            data=>({data}),
+            ()=>({unreadable:true})))          // an Apps Script error page is not JSON
+        .then(res=>{
             isSyncingWebhook=false;
+            if(res.unreadable){
+                failHead(payload,'_unreadable',MAX_UNREADABLE,'the sheet did not answer with JSON');
+                scheduleRetry();return;
+            }
+            if(!res.data||!res.data.ok){
+                // The server read this record and refused it. Retrying it unchanged
+                // cannot succeed, and it must not hold up everything behind it.
+                failHead(payload,'_attempts',MAX_REJECTS,(res.data&&res.data.error)||'the sheet rejected it');
+                syncBackoffMs=0;
+                updateSyncBadge();
+                setTimeout(processWebhookQueue,200);return;
+            }
+            dequeue(payload._queueId);
+            syncBackoffMs=0;
             updateSyncBadge();
             setTimeout(processWebhookQueue,200);
         })
-        .catch(function(err){
-            console.warn('[Sync failed]',err.message);
+        .catch(err=>{
+            // fetch itself failed: no signal, DNS, TLS. Nothing to do with this record,
+            // so its attempt count is deliberately left alone.
+            console.warn('[Sync failed]',err&&err.message);
             isSyncingWebhook=false;
-            const badge=byId('sync-badge');
-            if(badge){
-                let eq=[];
-                try{eq=JSON.parse(localStorage.getItem('ps9_webhook_queue')||'[]');}catch(e){}
-                badge.classList.add('visible','error');
-                const t=byId('sync-badge-text');
-                if(t)t.textContent='Tap to retry ('+eq.length+')';
-                badge.onclick=function(){badge.classList.remove('error');badge.onclick=null;processWebhookQueue();};
-            }
-            setTimeout(function(){if(!isSyncingWebhook&&badge&&badge.classList.contains('error')){badge.classList.remove('error');badge.onclick=null;updateSyncBadge();processWebhookQueue();}},5000);
+            scheduleRetry();
         });
     }
     function openMethods(){byId('methods-modal').style.display='flex'}
@@ -2800,7 +2891,8 @@ v5.06:
     const BACKUP_KEYS=['ps9_doors','ps9_history','ps9_team','ps9_wally_notes','ps9_observations',
         'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_shift_schedule','ps9_shift_start',
         'ps9_shift_state','ps9_shift_end_time','ps9_last_sort_start','ps9_is_first_onboard',
-        'ps9_attribution_config_v2','ps9_roster_v7','ps9_roster_v708','ps9_webhook_queue','ps9_v3','ps9_v4'];
+        'ps9_attribution_config_v2','ps9_roster_v7','ps9_roster_v708','ps9_webhook_queue','ps9_webhook_failed',
+        'ps9_v3','ps9_v4'];
     const BACKUP_FORMAT=1;
     function buildBackup(){
         const data={};

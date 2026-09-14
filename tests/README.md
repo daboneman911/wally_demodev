@@ -61,6 +61,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
 | `test_corrupt_storage` | Damaged localStorage never blocks boot; recovery screen |
+| `test_webhook_queue` | A refused record parks instead of blocking the sync queue |
 
 ## Writing one
 
