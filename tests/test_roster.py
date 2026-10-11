@@ -1,13 +1,15 @@
-"""Roster: PS9 Twilight badging, blue vests, permanent members, shift-end purge,
-and the per-step migration that carries roster changes onto existing devices."""
+"""Roster: PS9 Twilight badging, permanent members, shift-end purge, and the
+per-step migration that carries roster changes onto existing devices.
+
+The blue-vest (BV) designation was removed in v7.14; this asserts it is gone rather
+than quietly no longer being checked."""
 import os
 PORT = os.environ.get('WALLY_TEST_PORT', '8899')
 from playwright.sync_api import sync_playwright
 
 SHOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screenshots')
 CORE = ["Robert W", "Matt R", "Lorena R", "Russell H", "Trevon C",
-        "David F", "Arce J", "Fonseca J", "Eddie F", "Luis", "Gilbert"]
-BLUE_VEST = ["Luis", "Gilbert"]
+        "David F", "Arce J", "Fonseca J", "Eddie F", "Luis", "Gilbert", "Pablo"]
 EXTRA = ["Solis", "Damian", "Johnny", "Evan"]
 RETIRED = ["Juan F", "Jeff", "Anthony", "Josh", "Jarrett"]
 
@@ -22,7 +24,7 @@ with sync_playwright() as p:
 
     # seed a device holding the OLD 16-name roster, then reload to migrate
     pg.evaluate("""(old)=>{localStorage.setItem('ps9_team',JSON.stringify(old));
-        localStorage.removeItem('ps9_roster_v7');localStorage.removeItem('ps9_roster_v708');}""",
+        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714'].forEach(k=>localStorage.removeItem(k));}""",
         CORE[:1] + RETIRED + CORE[1:9] + ["Solis", "Damian"])
     pg.reload()
     pg.wait_for_selector('text=Home', timeout=10000)
@@ -38,15 +40,14 @@ with sync_playwright() as p:
     print(f'   retired removed (Juan F, Jeff, Anthony, Josh, Jarrett): {retired_gone}')
     print(f'   Johnny + Evan present: {added}   all {len(CORE)} core present: {core_ok}')
 
-    # a device that already ran the v7 step must still receive a later roster change
-    pg.evaluate("""(bv)=>{localStorage.setItem('ps9_roster_v7','1');
-        localStorage.removeItem('ps9_roster_v708');
-        teamNames=teamNames.filter(n=>!bv.includes(n));saveTeam();}""", BLUE_VEST)
+    # a device that already ran the earlier steps must still receive a later one
+    pg.evaluate("""()=>{['ps9_roster_v7','ps9_roster_v708'].forEach(k=>localStorage.setItem(k,'1'));
+        localStorage.removeItem('ps9_roster_v714');
+        teamNames=teamNames.filter(n=>n!=='Pablo');saveTeam();}""")
     pg.reload(); pg.wait_for_selector('text=Home', timeout=10000); pg.wait_for_timeout(400)
-    late = pg.evaluate("()=>teamNames.slice()")
-    late_ok = all(n in late for n in BLUE_VEST)
+    late_ok = pg.evaluate("()=>teamNames.includes('Pablo')")
     ok &= late_ok
-    print(f'   v708 step reaches a device already on v7 (Luis, Gilbert): {late_ok}')
+    print(f'   v714 step reaches a device already on v7 + v708 (Pablo): {late_ok}')
 
     # the migration is one-time: re-adding a retired name must stick
     pg.evaluate("()=>{teamNames.push('Jeff');refreshTeamNamesSorted();saveTeam();}")
@@ -65,15 +66,12 @@ with sync_playwright() as p:
     ok &= badge_ok
     print(f'\nPS9 Twilight badge on {len(badged)} rows, exactly the {len(CORE)} core: {badge_ok}')
 
-    # the blue-vest chip is additional to the PS9 chip, not instead of it
-    vests = pg.eval_on_selector_all('#team-management-list .settings-row',
-        """els=>els.filter(e=>e.querySelector('.blue-vest-tag'))
-                  .map(e=>({name:e.querySelector('.settings-label').firstChild.textContent.trim(),
-                            ps9:!!e.querySelector('.ps9-core-tag')}))""")
-    vest_ok = (sorted(v['name'] for v in vests) == sorted(BLUE_VEST)
-               and all(v['ps9'] for v in vests))
+    # the blue-vest designation was removed in v7.14 -- no chip, no helper, no list
+    gone = pg.evaluate("""()=>({chips:document.querySelectorAll('.blue-vest-tag').length,
+        helper:typeof isBlueVest, list:typeof PS9_BLUE_VEST})""")
+    vest_ok = gone == {'chips': 0, 'helper': 'undefined', 'list': 'undefined'}
     ok &= vest_ok
-    print(f'blue-vest BV chip on exactly {BLUE_VEST}, each still PS9-chipped: {vest_ok}')
+    print(f'blue-vest designation fully removed: {vest_ok}  {gone}')
     pg.screenshot(path=f'{SHOT}/roster_badges.png', full_page=True)
 
     # shift-end purge: temporary adds go, permanent stays
@@ -101,13 +99,11 @@ with sync_playwright() as p:
     ok &= rot_ok
     print(f'\nobservation rotation == the {len(CORE)} core (cycle is {len(CORE)} days): {rot_ok}')
 
-    # blue vests show the BV chip on DOP rows too
-    dop_vests = pg.evaluate("()=>{htRenderAll();return [...document.querySelectorAll('.ht-emp-row')]"
-                            ".filter(r=>r.querySelector('.blue-vest-tag'))"
-                            ".map(r=>r.querySelector('.ht-emp-name').textContent.trim());}")
-    dop_ok = sorted(dop_vests) == sorted(BLUE_VEST)
-    ok &= dop_ok
-    print(f'BV chip on DOP rows for exactly {BLUE_VEST}: {dop_ok}  (got {dop_vests})')
+    # and none on the DOP rows either
+    dop_vests = pg.evaluate("()=>{htRenderAll();"
+                            "return document.querySelectorAll('.ht-emp-row .blue-vest-tag').length;}")
+    ok &= dop_vests == 0
+    print(f'no BV chip on any DOP row: {dop_vests == 0}')
 
     print('\nALL PASS' if ok else '\nFAILURES')
     print('errors:', errs if errs else 'none')

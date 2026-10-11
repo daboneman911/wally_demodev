@@ -1,5 +1,17 @@
 # Changelog
 
+### [7.14] - 2026-10-11
+
+**Pablo added as PS9 Twilight; the blue-vest designation removed.**
+
+- `PS9_CORE` is now 12. Pablo is therefore permanent (`PS9_PERMANENT` derives from it), PS9-badged, and — since `OBS_POOL === PS9_CORE` — in the observation rotation. **A full cycle is now 12 shift days, not 11.** Master roster goes to 16.
+- Blue vests gone: `PS9_BLUE_VEST`, `isBlueVest()`, the `.blue-vest-tag` rule and both render sites are deleted. Luis and Gilbert keep their PS9 chip. This also retires the one place two blues sat side by side on a Bulk Sweep row, noted as a caveat in 7.08.
+- New `ps9_roster_v714` migration step so devices with a saved roster receive Pablo, added to `BACKUP_KEYS` and to `importBackup()`'s non-JSON key list.
+
+**Fixed while here: `ROSTER_MIGRATIONS` entries pointed at live config.** The steps carried `add: PS9_PERMANENT` and `add: PS9_BLUE_VEST` — references, not literals — so what a historical migration "did" silently changed every time the roster was edited, and deleting `PS9_BLUE_VEST` for this release would have broken the migration outright. Each step is now a frozen literal recording what that release actually did. **Add a step; never edit one.**
+
+**Tests:** 26/26. `test_roster` covers the 12-name core and 16-name permanent roster, and its blue-vest checks are inverted into a removal guard — asserting `PS9_BLUE_VEST`, `isBlueVest` and every `.blue-vest-tag` are *absent*, rather than quietly dropping the assertions. The per-step migration check now proves a device already carrying `ps9_roster_v7` and `ps9_roster_v708` still receives Pablo. `test_observation` updated for the 12-name pool.
+
 ### [7.13] - 2026-09-14
 
 **Fix: shift statistics counted the previous night, and the hour before a shift resolved to yesterday.** Bugs #3 and #4 from the v7.08 review — two symptoms, one root cause: nothing recorded which shift a log belonged to.
