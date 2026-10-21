@@ -1,5 +1,21 @@
 # Changelog
 
+### [7.16] - 2026-10-21
+
+**Roster membership is editable in the app instead of only in the source.** Previously, making someone PS9 Twilight or permanent meant editing `PS9_CORE` in `index.html` — a version bump, a migration step, a test update, a deploy and a service worker cache bump *per hire*. That happened three times in recent releases (Luis & Gilbert, Pablo, Elliot) for what is fundamentally data, not code.
+
+- New `ps9_roster_flags`: `{name: {core, permanent}}`, with `isPS9Core()` and the new `isPermanentMember()` reading it. **It is an overlay, not a replacement** — only names the user has actually changed get an entry, and everyone else falls through to `PS9_CORE` / `PS9_PERMANENT`. That is why this needs no migration: the fallback *is* the default, and the existing crew keeps exactly the roles it had. Verified: with nothing stored, core is still 13, permanent 17, rotation 13.
+- `OBS_POOL` (a frozen `const` alias for `PS9_CORE`) is gone; `obsEligible()` now filters the roster by `isPS9Core()`, so a promotion reaches the rotation immediately. Roster order already matched `PS9_CORE` order, so nobody was reshuffled.
+- `purgeTemporaryEmployees()` filters on `isPermanentMember()` rather than the hardcoded list.
+- UI: a sliders button on each Team Management row opens `#team-role-modal` with the two switches and a line explaining what the current combination means. Rename carries the flags across; delete clears them, so no orphan entries accumulate.
+- `ps9_roster_flags` added to `BACKUP_KEYS`. An unreadable blob falls back to the defaults rather than throwing — consistent with the v7.11 loader work.
+
+**Caught by its own test: the two flags could silently undo each other.** `setRosterFlags()` applied both implications unconditionally, so a call setting `permanent:false` had "core implies permanent" put it straight back — the Permanent toggle appeared to do nothing for a core member. The implication is now applied only to the field the caller actually set, in the order given.
+
+**Tests:** 27/27. New `test_roster_editing.py` pins the overlay property (defaults intact with nothing stored), promotion and demotion in both directions including demoting a hardcoded core member, the coherence rule in both directions, that the shift-end purge follows the flags rather than the hardcoded list, that flags survive a rename and are cleared on delete, that the sheet drives it and persists across a reload, and that a corrupt blob falls back instead of throwing.
+
+*The `sw.js` version guard fired again during this release — `APP_VERSION` was bumped and `sw.js` was not, and `test_offline` failed on the mismatched cache name before it could ship. Third time it has done its job.*
+
 ### [7.15] - 2026-10-21
 
 **Elliot added as PS9 Twilight.** Same tier as the last three additions (Luis, Gilbert, Pablo), which is the assumption this was built on.

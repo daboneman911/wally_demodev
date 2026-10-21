@@ -63,6 +63,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_corrupt_storage` | Damaged localStorage never blocks boot; recovery screen |
 | `test_webhook_queue` | A refused record parks instead of blocking the sync queue |
 | `test_shift_boundary` | Stats describe tonight only; pre-shift hour math |
+| `test_roster_editing` | PS9 Twilight / Permanent editable in-app; flags overlay defaults |
 
 ## Writing one
 

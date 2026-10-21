@@ -964,6 +964,15 @@
     <div id="obs-history-list"></div>
     <button class="btn-cancel" onclick="closeModal('observation-modal')">Close</button>
 </div></div>
+<div class="modal-overlay z-high" id="team-role-modal"><div class="modal-sheet">
+    <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;" id="team-role-name">Role</h2><button class="modal-close-btn" onclick="closeModal('team-role-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div class="settings-group" style="margin-top:4px;">
+        <div class="settings-row"><span class="settings-label">PS9 Twilight</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="PS9 Twilight" tabindex="0" id="switch-team-core" onclick="toggleTeamRole('core')" onkeydown="if(event.key==='Enter'||event.key===' ')toggleTeamRole('core')"></div></div>
+        <div class="settings-row"><span class="settings-label">Permanent</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Permanent" tabindex="0" id="switch-team-permanent" onclick="toggleTeamRole('permanent')" onkeydown="if(event.key==='Enter'||event.key===' ')toggleTeamRole('permanent')"></div></div>
+    </div>
+    <p id="team-role-note" style="font-size:13px;line-height:1.5;color:var(--text-sub);margin:14px 2px 0;"></p>
+    <button class="btn-primary" onclick="closeModal('team-role-modal')" style="margin-top:18px;">Done</button>
+</div></div>
 <div class="modal-overlay z-high" id="obs-edit-modal"><div class="modal-sheet">
     <div class="modal-header-row"><h2 style="margin:0;font-size:24px;text-align:center;">Edit Observation</h2><button class="modal-close-btn" onclick="closeModal('obs-edit-modal')" aria-label="Close"><i class="ph ph-x"></i></button></div>
     <div id="obs-edit-date" style="text-align:center;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-sub);margin-bottom:16px;"></div>
@@ -1065,7 +1074,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.15',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert','Pablo','Elliot'];
+    const APP_VERSION='7.16',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Fonseca J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Gilbert','Pablo','Elliot'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1217,6 +1226,18 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.16:
+- New: You can now set who is PS9 Twilight and who is permanent, from the
+  app. Team Management rows have a sliders button that opens a sheet with
+  two switches, and the sheet spells out what each one means.
+- PS9 Twilight gives the PS9 chip and puts someone in the observation
+  rotation. Permanent means they stay on the roster when the shift ends.
+  Turning PS9 Twilight on makes someone permanent automatically, and
+  turning Permanent off takes PS9 Twilight off with it.
+- Adding a new person no longer needs an app update. Add them in Team
+  Management, flip the switches, done.
+- Nothing changed for the current crew -- everyone keeps the role they had.
+
 v7.15:
 - New: Elliot is on the roster as PS9 Twilight -- PS9 chip, permanent, and
   in the observation rotation. A full cycle is now thirteen shift days
@@ -2928,7 +2949,7 @@ v5.06:
     // recoverable if the device wiped its site data. This captures the lot -- roster,
     // observation rotation, notes, hours, schedule, settings -- as one JSON file.
     const BACKUP_KEYS=['ps9_doors','ps9_history','ps9_team','ps9_wally_notes','ps9_observations',
-        'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_shift_schedule','ps9_shift_start',
+        'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_roster_flags','ps9_shift_schedule','ps9_shift_start',
         'ps9_shift_state','ps9_shift_end_time','ps9_last_sort_start','ps9_is_first_onboard',
         'ps9_attribution_config_v2','ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715',
         'ps9_webhook_queue','ps9_webhook_failed',
@@ -3026,9 +3047,10 @@ v5.06:
         teamNamesSorted.forEach((name)=>{
             const div=document.createElement('div');
             div.className='settings-row';
-            div.innerHTML=`<span class="settings-label">${escHTML(name)}${isPS9Core(name)?'<span class="ps9-core-tag" title="PS9 Twilight">PS9</span>':''}</span><div style="display:flex;gap:20px;align-items:center;"><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:var(--text-main);"></i><i class="ph ph-minus-circle delete-acct-btn"></i></div>`;
+            div.innerHTML=`<span class="settings-label">${escHTML(name)}${isPS9Core(name)?'<span class="ps9-core-tag" title="PS9 Twilight">PS9</span>':''}</span><div style="display:flex;gap:16px;align-items:center;"><i class="ph ph-sliders-horizontal role-btn" style="font-size:21px;cursor:pointer;color:var(--text-sub);" title="Role"></i><i class="ph ph-pencil-simple" style="font-size:22px;cursor:pointer;color:var(--text-main);"></i><i class="ph ph-minus-circle delete-acct-btn"></i></div>`;
             // bound as closures rather than baked into onclick strings: a name holding
             // an apostrophe used to break the handler and kill both buttons on the row
+            div.querySelector('.role-btn').onclick=()=>openTeamRoleModal(name);
             div.querySelector('.ph-pencil-simple').onclick=()=>editTeamMember(name);
             div.querySelector('.delete-acct-btn').onclick=()=>deleteTeamMember(name);
             list.appendChild(div)
@@ -3037,14 +3059,14 @@ v5.06:
     function deleteTeamMember(name){
         const warn=htHasActivity(name)?`\n\n${name} has hours recorded on the DOP tab. Removing them discards those hours.`:'';
         if(confirm(`Remove ${name} from your saved team list?\nThis also removes them from the DOP roster.${warn}`)){
-            teamNames=teamNames.filter(n=>n!==name);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();
+            teamNames=teamNames.filter(n=>n!==name);forgetRosterFlags(name);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();
             htReconcileRoster();
             showSaveToast()}}
     // A rename onto a name already on the list used to go through, leaving teamNames
     // holding it twice: two rows in Team Management, two entries in every unloader
     // dropdown, and two separate DOP rows for one person with the night's hours split
     // between them. Refused the way confirmAddTeamInline() already refuses an add.
-    function editTeamMember(oldName){const newName=prompt(`Edit name for ${oldName}:`,oldName);if(!newName||newName.trim()===''||newName===oldName)return;const formattedName=newName.trim().toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(formattedName!==oldName&&teamNames.includes(formattedName)){alert(`"${formattedName}" is already on the team list. Remove one of them instead of renaming onto the other.`);return}const index=teamNames.indexOf(oldName);if(index>-1)teamNames[index]=formattedName;else teamNames.push(formattedName);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();htRenameEmployee(oldName,formattedName);if(confirm(`Update all existing active trailers and past logs from "${oldName}" to "${formattedName}"?`)){let updatedCount=0;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'){let doorUpdated=false;if(doors[i].unloader===oldName){doors[i].unloader=formattedName;doorUpdated=true}if(doors[i].assignments){doors[i].assignments.forEach(a=>{if(a.name===oldName){a.name=formattedName;doorUpdated=true}})}if(doorUpdated){const updatePayload={stage:'update',door:i,id:doors[i].id,account:doors[i].account||'',type:doors[i].type,unloader:doors[i].unloader||'',assistants:doors[i].assignments?doors[i].assignments.map(a=>a.name).filter(n=>n!==doors[i].unloader):[],start:doors[i].start,end:null,dateKey:dateKeyFromTs(doors[i].start),durationMinutes:null,statOffset:0,logId:doors[i].logId,duplicate:doors[i].isDuplicate||false,completionHour:null,cpuOptions:doors[i].cpuOptions||[],status:'active',manual:false,shiftStart:getShiftStartTime()};sendToWebhook(updatePayload,'update')}}}historyLog.forEach(l=>{let logUpdated=false;if(l.unloader===oldName){l.unloader=formattedName;logUpdated=true}if(l.assistants&&l.assistants.includes(oldName)){l.assistants=l.assistants.map(a=>a===oldName?formattedName:a);logUpdated=true}if(logUpdated){updatedCount++;sendToWebhook(l,'end')}});saveDoors();saveHistory();renderDashboard();renderActiveTab();if(byId('tab-logs').classList.contains('active'))renderLogs();alert(`Successfully updated ${updatedCount} completed logs to "${formattedName}".`)}}
+    function editTeamMember(oldName){const newName=prompt(`Edit name for ${oldName}:`,oldName);if(!newName||newName.trim()===''||newName===oldName)return;const formattedName=newName.trim().toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(formattedName!==oldName&&teamNames.includes(formattedName)){alert(`"${formattedName}" is already on the team list. Remove one of them instead of renaming onto the other.`);return}const index=teamNames.indexOf(oldName);if(index>-1)teamNames[index]=formattedName;else teamNames.push(formattedName);renameRosterFlags(oldName,formattedName);refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();htRenameEmployee(oldName,formattedName);if(confirm(`Update all existing active trailers and past logs from "${oldName}" to "${formattedName}"?`)){let updatedCount=0;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'){let doorUpdated=false;if(doors[i].unloader===oldName){doors[i].unloader=formattedName;doorUpdated=true}if(doors[i].assignments){doors[i].assignments.forEach(a=>{if(a.name===oldName){a.name=formattedName;doorUpdated=true}})}if(doorUpdated){const updatePayload={stage:'update',door:i,id:doors[i].id,account:doors[i].account||'',type:doors[i].type,unloader:doors[i].unloader||'',assistants:doors[i].assignments?doors[i].assignments.map(a=>a.name).filter(n=>n!==doors[i].unloader):[],start:doors[i].start,end:null,dateKey:dateKeyFromTs(doors[i].start),durationMinutes:null,statOffset:0,logId:doors[i].logId,duplicate:doors[i].isDuplicate||false,completionHour:null,cpuOptions:doors[i].cpuOptions||[],status:'active',manual:false,shiftStart:getShiftStartTime()};sendToWebhook(updatePayload,'update')}}}historyLog.forEach(l=>{let logUpdated=false;if(l.unloader===oldName){l.unloader=formattedName;logUpdated=true}if(l.assistants&&l.assistants.includes(oldName)){l.assistants=l.assistants.map(a=>a===oldName?formattedName:a);logUpdated=true}if(logUpdated){updatedCount++;sendToWebhook(l,'end')}});saveDoors();saveHistory();renderDashboard();renderActiveTab();if(byId('tab-logs').classList.contains('active'))renderLogs();alert(`Successfully updated ${updatedCount} completed logs to "${formattedName}".`)}}
     function toggleSwitch(id){const el=byId('switch-'+id);if(!el)return;el.classList.toggle('checked');const checked=el.classList.contains('checked');el.setAttribute('aria-checked',String(checked));if(id==='demo-mode'){demoActive=checked;if(!checked&&shiftState==='demo'){shiftState='idle';saveShiftState()}updateDemoBanner();updateNameplate();updateTabBadges()}if(id==='demo-replenish')config.replenish=checked;if(id==='demo-random')config.randomHistory=checked;if(id==='sim-window')config.simulateWindow=checked;if(id==='en-window'){attributionConfig.enabled=checked;saveAttributionSetting()}if(id==='share-on-complete'){config.shareOnComplete=checked;savePreferences()}if(id==='demo-autocomplete')config.autoComplete=checked;if(id==='demo-nowebhook')config.noWebhook=checked;renderDashboard()}
     function updateDemoBanner(){const b=byId('demo-banner');if(!b)return;if(demoActive)b.classList.add('visible');else b.classList.remove('visible')}
     function stepDoor(delta){let val=parseInt(byId('demo-door-val').innerText)+delta;if(val<1)val=1;if(val>8)val=8;byId('demo-door-val').innerText=val;config.doorCount=val}function setDemoType(t){config.demoType=t;byId('seg-wally').classList.toggle('selected',t==='Wally');byId('seg-cpu').classList.toggle('selected',t==='CPU')}
@@ -3067,7 +3089,90 @@ v5.06:
     // Removed from the roster in v7.00; retired one time only, so re-adding any of
     // them later sticks rather than being stripped on the next load.
     const PS9_RETIRED=['Juan F','Jeff','Anthony','Josh','Jarrett'];
-    function isPS9Core(name){return PS9_CORE.indexOf(name)!==-1}
+    // -- ROSTER FLAGS ---------------------------------------
+    // Core membership and permanence used to be editable only by changing PS9_CORE in
+    // this file, which meant every new hire was a release: version bump, migration step,
+    // test update, deploy and a service worker cache bump. They are per-person flags
+    // now, stored as an overlay.
+    //
+    // Only names the user has actually changed get an entry. Everyone else falls through
+    // to the lists below, so those stay the seed for a fresh install and the defaults for
+    // the existing crew -- and no migration is needed, because the fallback IS the
+    // default. ps9_roster_flags is in BACKUP_KEYS.
+    function getRosterFlags(){
+        try{const f=JSON.parse(localStorage.getItem('ps9_roster_flags'));
+            return(f&&typeof f==='object'&&!Array.isArray(f))?f:{}}catch(e){return{}}
+    }
+    function saveRosterFlags(f){try{localStorage.setItem('ps9_roster_flags',JSON.stringify(f))}catch(e){console.error('Roster flags not saved:',e)}}
+    function isPS9Core(name){
+        const f=getRosterFlags()[name];
+        return f&&typeof f.core==='boolean'?f.core:PS9_CORE.indexOf(name)!==-1;
+    }
+    function isPermanentMember(name){
+        const f=getRosterFlags()[name];
+        return f&&typeof f.permanent==='boolean'?f.permanent:PS9_PERMANENT.indexOf(name)!==-1;
+    }
+    // Core without permanence is incoherent -- a core member who is purged at shift end
+    // drops out of the observation rotation the same night. The two are kept consistent
+    // here rather than left to the caller.
+    function setRosterFlags(name,next){
+        const f=getRosterFlags();
+        const merged={core:isPS9Core(name),permanent:isPermanentMember(name)};
+        // The implication is applied to the field the caller actually set, in the order
+        // they were given. Applying both rules unconditionally lets one silently undo
+        // the other -- turning Permanent off used to be reverted by "core implies
+        // permanent" on the very same call, so the toggle appeared to do nothing.
+        if(Object.prototype.hasOwnProperty.call(next,'core')){
+            merged.core=!!next.core;
+            if(merged.core)merged.permanent=true;
+        }
+        if(Object.prototype.hasOwnProperty.call(next,'permanent')){
+            merged.permanent=!!next.permanent;
+            if(!merged.permanent)merged.core=false;
+        }
+        f[name]=merged;saveRosterFlags(f);
+        return merged;
+    }
+    let teamRoleName=null;
+    function openTeamRoleModal(name){
+        teamRoleName=name;
+        byId('team-role-name').textContent=name;
+        renderTeamRoleModal();
+        byId('team-role-modal').style.display='flex';
+    }
+    function renderTeamRoleModal(){
+        if(!teamRoleName)return;
+        const core=isPS9Core(teamRoleName),perm=isPermanentMember(teamRoleName);
+        const set=(id,on)=>{const el=byId(id);if(!el)return;
+            el.classList.toggle('checked',on);el.setAttribute('aria-checked',String(on))};
+        set('switch-team-core',core);
+        set('switch-team-permanent',perm);
+        const note=byId('team-role-note');
+        if(note)note.textContent=core
+            ?'Carries the PS9 chip, is in the observation rotation, and stays on the roster when the shift ends.'
+            :perm?'Stays on the roster when the shift ends. Not in the observation rotation.'
+                 :'Cleared from the roster when the shift ends, like any one-off night hire.';
+    }
+    function toggleTeamRole(which){
+        if(!teamRoleName)return;
+        const cur=which==='core'?isPS9Core(teamRoleName):isPermanentMember(teamRoleName);
+        setRosterFlags(teamRoleName,{[which]:!cur});
+        renderTeamRoleModal();
+        renderTeamManagement();
+        if(typeof obsRenderAll==='function')obsRenderAll();
+        if(typeof htRenderIfVisible==='function')htRenderIfVisible();
+        showSaveToast();
+    }
+    function renameRosterFlags(oldName,newName){
+        const f=getRosterFlags();
+        if(!Object.prototype.hasOwnProperty.call(f,oldName))return;
+        f[newName]=f[oldName];delete f[oldName];saveRosterFlags(f);
+    }
+    function forgetRosterFlags(name){
+        const f=getRosterFlags();
+        if(!Object.prototype.hasOwnProperty.call(f,name))return;
+        delete f[name];saveRosterFlags(f);
+    }
     // Roster changes reach devices that already have a saved team list through here.
     // Each step carries its own flag and runs at most once, so adding a step later
     // still lands on a device that ran every earlier one -- a single flag would have
@@ -3101,7 +3206,7 @@ v5.06:
     // permanent roster stays.
     function purgeTemporaryEmployees(){
         const before=teamNames.length;
-        teamNames=teamNames.filter(n=>PS9_PERMANENT.indexOf(n)!==-1);
+        teamNames=teamNames.filter(n=>isPermanentMember(n));
         const removed=before-teamNames.length;
         if(removed>0){
             refreshTeamNamesSorted();saveTeam();
@@ -3117,7 +3222,6 @@ v5.06:
     // whole roster). A cycle runs until everyone in the pool has been observed, then
     // restarts. Skipping does NOT complete someone -- they stay owed and come back
     // round later in the same cycle.
-    const OBS_POOL=PS9_CORE;   // the rotation is exactly the core crew
     let obsState={assignments:{},cycle:1};
     function loadObsState(){
         try{const s=JSON.parse(localStorage.getItem('ps9_observations'));
@@ -3134,10 +3238,13 @@ v5.06:
         if(d.getHours()<12)d.setDate(d.getDate()-1);
         return dateKeyFromTs(d.getTime());
     }
-    // Only people still on the master team list can be observed.
+    // The rotation is exactly the core crew, in roster order. Derived from the flags
+    // rather than a frozen list, so promoting someone to PS9 Twilight in Settings puts
+    // them in the rotation immediately. Roster order currently matches the old PS9_CORE
+    // order, so this did not reshuffle anyone when it replaced it.
     function obsEligible(){
         const team=(typeof teamNames!=='undefined'&&teamNames.length)?teamNames:DEFAULT_TEAM;
-        return OBS_POOL.filter(n=>team.includes(n));
+        return team.filter(n=>isPS9Core(n));
     }
     function obsCompletedThisCycle(){
         return Object.values(obsState.assignments)
