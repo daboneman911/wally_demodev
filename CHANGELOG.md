@@ -1,5 +1,17 @@
 # Changelog
 
+### [7.15] - 2026-10-21
+
+**Elliot added as PS9 Twilight.** Same tier as the last three additions (Luis, Gilbert, Pablo), which is the assumption this was built on.
+
+- `PS9_CORE` is now 13, so Elliot is permanent (`PS9_PERMANENT` derives from it), PS9-badged, and — since `OBS_POOL === PS9_CORE` — in the observation rotation. **A full cycle is now 13 shift days, not 12.** Master roster goes to 17.
+- Stored without a last initial, matching the other surname-only entries.
+- New `ps9_roster_v715` migration step — *added*, not an edit to an existing one, per the rule established in 7.14. Added to `BACKUP_KEYS` and `importBackup()`'s non-JSON key list.
+
+**Tests:** 26/26. `test_roster` covers the 13-name core and 17-name permanent roster, and its per-step migration check now proves a device already carrying `v7`, `v708` and `v714` still receives Elliot. `test_observation` updated for the 13-name pool.
+
+**Deploy verified against the live site, not just pushed** — see 7.14's note on the two being different facts.
+
 ### [7.14] - 2026-10-11
 
 **Pablo added as PS9 Twilight; the blue-vest designation removed.**

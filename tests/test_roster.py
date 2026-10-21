@@ -9,7 +9,8 @@ from playwright.sync_api import sync_playwright
 
 SHOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screenshots')
 CORE = ["Robert W", "Matt R", "Lorena R", "Russell H", "Trevon C",
-        "David F", "Arce J", "Fonseca J", "Eddie F", "Luis", "Gilbert", "Pablo"]
+        "David F", "Arce J", "Fonseca J", "Eddie F", "Luis", "Gilbert", "Pablo",
+        "Elliot"]
 EXTRA = ["Solis", "Damian", "Johnny", "Evan"]
 RETIRED = ["Juan F", "Jeff", "Anthony", "Josh", "Jarrett"]
 
@@ -24,7 +25,8 @@ with sync_playwright() as p:
 
     # seed a device holding the OLD 16-name roster, then reload to migrate
     pg.evaluate("""(old)=>{localStorage.setItem('ps9_team',JSON.stringify(old));
-        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714'].forEach(k=>localStorage.removeItem(k));}""",
+        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715']
+            .forEach(k=>localStorage.removeItem(k));}""",
         CORE[:1] + RETIRED + CORE[1:9] + ["Solis", "Damian"])
     pg.reload()
     pg.wait_for_selector('text=Home', timeout=10000)
@@ -41,13 +43,14 @@ with sync_playwright() as p:
     print(f'   Johnny + Evan present: {added}   all {len(CORE)} core present: {core_ok}')
 
     # a device that already ran the earlier steps must still receive a later one
-    pg.evaluate("""()=>{['ps9_roster_v7','ps9_roster_v708'].forEach(k=>localStorage.setItem(k,'1'));
-        localStorage.removeItem('ps9_roster_v714');
-        teamNames=teamNames.filter(n=>n!=='Pablo');saveTeam();}""")
+    pg.evaluate("""()=>{['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714']
+            .forEach(k=>localStorage.setItem(k,'1'));
+        localStorage.removeItem('ps9_roster_v715');
+        teamNames=teamNames.filter(n=>n!=='Elliot');saveTeam();}""")
     pg.reload(); pg.wait_for_selector('text=Home', timeout=10000); pg.wait_for_timeout(400)
-    late_ok = pg.evaluate("()=>teamNames.includes('Pablo')")
+    late_ok = pg.evaluate("()=>teamNames.includes('Elliot')")
     ok &= late_ok
-    print(f'   v714 step reaches a device already on v7 + v708 (Pablo): {late_ok}')
+    print(f'   v715 step reaches a device already on every earlier step (Elliot): {late_ok}')
 
     # the migration is one-time: re-adding a retired name must stick
     pg.evaluate("()=>{teamNames.push('Jeff');refreshTeamNamesSorted();saveTeam();}")

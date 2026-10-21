@@ -34,7 +34,7 @@ with sync_playwright() as p:
     pool = pg.evaluate("()=>obsEligible()")
     team = pg.evaluate("()=>teamNames.length")
     expect = ['Robert W', 'Matt R', 'Lorena R', 'Russell H', 'Trevon C', 'David F',
-              'Arce J', 'Fonseca J', 'Eddie F', 'Luis', 'Gilbert', 'Pablo']
+              'Arce J', 'Fonseca J', 'Eddie F', 'Luis', 'Gilbert', 'Pablo', 'Elliot']
     ok = _chk(ok, checks, pool == expect)
     print(f'1. pool = {len(pool)} of {team} on the team: {pool == expect}')
 
