@@ -1,5 +1,17 @@
 # Changelog
 
+### [7.20] - 2026-11-25
+
+**Employee names can be edited reliably after they are entered.**
+
+- **Renaming someone from the default crew undid itself at End Shift.** Default-crew members have no `ps9_roster_flags` entry; they are core/permanent because their name is in `PS9_CORE` / `PS9_PERMANENT`. `renameRosterFlags()` had nothing to carry over, so "Robert W" renamed to "Robert Williams" lost the PS9 badge, dropped out of the observation rotation, and was deleted by `purgeTemporaryEmployees()` as a temporary hire at the next End Shift. `editTeamMember()` now reads both roles before the rename and stores them for the new name when the fallback would not supply them.
+- **Capitalization-only edits did nothing.** Every entry point lowercased each word and capitalized its first letter, so "McDonald" became "Mcdonald" again, matched the old name, and the edit was silently dropped. New shared `formatPersonName()`: all-lowercase or all-caps input is title-cased as before; anything with its own capitals is kept as typed (only first letters are raised); runs of spaces collapse. Used by Team Management add and rename, the Add Unloader modal and the DOP tab add.
+- **Duplicate check is case-insensitive** (`teamHasName()`), since mixed-case names are now kept.
+- **Observation history follows a rename.** `obsState.assignments` stored the old name, so a renamed core member counted as not yet observed this cycle.
+- **Editing a past log blanked an off-team unloader.** `openEditLogModal()` only listed team names, so a custom or since-removed unloader selected nothing and was saved as empty. That name is now offered as "(not on team)" and kept unless changed.
+
+**Tests:** 27/30 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_name_edit.py`; on 7.19 it fails at its first check (renamed crew member purged at End Shift).
+
 ### [7.19] - 2026-11-25
 
 **Three shift-day fixes.**
