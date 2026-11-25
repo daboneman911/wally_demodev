@@ -1,5 +1,15 @@
 # Changelog
 
+### [7.19] - 2026-11-25
+
+**Three shift-day fixes.**
+
+- **Start Shift used yesterday's start time if the app was not reloaded.** `syncShiftStartToSchedule()` only ran in `init()` and on schedule edits, so a Home Screen app left open from Thursday started Friday's shift at 20:00 instead of 19:30 (and Monday's at 19:30), shifting every hour bucket, completion hour and grace window by 30 minutes. `confirmStartShift()` now syncs first, and the dashboard also re-syncs while idle when the app comes back to the foreground (`visibilitychange`).
+- **Shift Log dated late shifts a day late.** `SHIFT_END` sent `shiftDate: dateKeyFromTs(now)`, the calendar date at End, so a shift ended after midnight was filed under the next day. It now sends `currentShiftKey()`, matching `shiftKey` in the app and `getLogicalShiftDate` on the sheet.
+- **Shared wally total was one too high.** The End Shift share sent `completedW+1`; it now sends `completedW`, the same number the summary shows and the sheet records.
+
+**Tests:** 29/29 (in this sandbox `test_offline`, `test_team_edit` and `test_webhook_queue` fail only because the CDNs are unreachable). New `test_shift_day_fixes.py` fails all three checks on 7.18 and passes on 7.19.
+
 ### [7.18] - 2026-11-24
 
 **Shift start times: Monday–Thursday 20:00, Friday 19:30.** Wednesday and Thursday were 20:15.

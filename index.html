@@ -1074,7 +1074,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.18',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
+    const APP_VERSION='7.19',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1226,6 +1226,15 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.19:
+- Fix: Start Shift now uses tonight's scheduled start time even if the app
+  was left open since the previous shift. It could start Friday at 20:00
+  instead of 19:30 (or Monday at 19:30) until the app was reloaded.
+- Fix: the Shift Log sheet dates a shift by the evening it started. A shift
+  ended after midnight was filed under the next day.
+- Fix: sharing the wally total at End Shift sent one more than the actual
+  count.
+
 v7.18:
 - Change: Wednesday and Thursday now start at 20:00, the same as Monday
   and Tuesday. Friday stays at 19:30. If you had set a different time for
@@ -2808,6 +2817,10 @@ v5.06:
     }
 
     function confirmStartShift(keepBays){
+        // Pick up tonight's scheduled start before the shift locks it in. init() is the
+        // only other place this runs, and a Home Screen app is often left open from one
+        // shift to the next without a reload, so it could still hold yesterday's time.
+        syncShiftStartToSchedule();
         closeModal('start-shift-bays-modal');
         startPromptShown=false;
         clearPphLog();
@@ -2890,7 +2903,9 @@ v5.06:
         const completedW=endLogs.filter(l=>l.status==='completed'&&l.type==='Wally').length;
         const completedC=endLogs.filter(l=>l.status==='completed'&&l.type==='CPU').length;
         const incompleteN=endLogs.filter(l=>l.status==='incomplete').length;
-        queuePayload({dataType:'SHIFT_END',shiftDate:dateKeyFromTs(now),endTime:now,
+        // shiftDate is the shift day (the evening it began), not the calendar date at End --
+        // a shift ended after midnight was being filed under the next day in Shift Log.
+        queuePayload({dataType:'SHIFT_END',shiftDate:currentShiftKey(),endTime:now,
             shiftStart:getShiftStartTime(),totalWallies:completedW,totalCPUs:completedC,
             totalIncomplete:incompleteN,baysClosedNow:closedCount,keepBays,isDemo});
         processWebhookQueue();
@@ -2913,7 +2928,7 @@ v5.06:
         try{htEndShift();}catch(e){console.error('htEndShift error:',e);}finally{htSilentReset();}
         // htSilentReset() always runs via finally block above
         if(shareTotal&&navigator.share){
-            const wallyShareCount=completedW+1;
+            const wallyShareCount=completedW;
             navigator.share({text:`PS9 - ${wallyShareCount} number of wallies`}).catch(err=>console.log('Share dismissed:',err));
         }
     }
@@ -2936,7 +2951,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();migrateShiftSchedule();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];if(!l.shiftKey)l.shiftKey=shiftKeyFromTs(l.end);return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();migrateShiftSchedule();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];if(!l.shiftKey)l.shiftKey=shiftKeyFromTs(l.end);return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&syncShiftStartToSchedule()){renderShiftSchedule();renderDashboard();updateNameplate()}});processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();

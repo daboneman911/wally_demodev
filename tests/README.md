@@ -65,6 +65,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_shift_boundary` | Stats describe tonight only; pre-shift hour math |
 | `test_roster_editing` | PS9 Twilight / Permanent editable in-app; flags overlay defaults |
 | `test_shift_schedule` | Mon-Thu 20:00 / Fri 19:30 defaults; one-time move of stored Wed/Thu 20:15 |
+| `test_shift_day_fixes` | Start Shift re-reads tonight's schedule without a reload; SHIFT_END dated by shift day; shared wally total is exact |
 
 ## Writing one
 
