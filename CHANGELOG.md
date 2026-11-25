@@ -8,7 +8,7 @@
 - **Shift Log dated late shifts a day late.** `SHIFT_END` sent `shiftDate: dateKeyFromTs(now)`, the calendar date at End, so a shift ended after midnight was filed under the next day. It now sends `currentShiftKey()`, matching `shiftKey` in the app and `getLogicalShiftDate` on the sheet.
 - **Shared wally total was one too high.** The End Shift share sent `completedW+1`; it now sends `completedW`, the same number the summary shows and the sheet records.
 
-**Tests:** 29/29 (in this sandbox `test_offline`, `test_team_edit` and `test_webhook_queue` fail only because the CDNs are unreachable). New `test_shift_day_fixes.py` fails all three checks on 7.18 and passes on 7.19.
+**Tests:** 26/29 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests, the same as on 7.18. New `test_shift_day_fixes.py` fails all three checks on 7.18 and passes on 7.19.
 
 ### [7.18] - 2026-11-24
 
