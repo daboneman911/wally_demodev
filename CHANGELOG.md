@@ -1,5 +1,14 @@
 # Changelog
 
+### [7.21] - 2026-11-25
+
+**Fix: idle time between trailers on a door was never recorded.** `finalizeCompletion()` computes `idleBeforeMinutes` (sheet column T, "Idle Time", already read by the Live View) from the door's `lastCompletionTime`, but `confirmArrival()` and `continueWithDuplicate()` rebuilt the door with `lastCompletionTime:null`, so the value was blank for every real trailer. Only demo arrivals carried it over. Both now keep the door's previous completion time. A door that finishes at 22:00 and is onboarded at 22:30 logs 30 minutes on that trailer's completion.
+
+- Idle is only counted within one shift (`shiftKeyFromTs` of the previous completion must match the arrival), so the first trailer on a door each night has none, even when bays are kept across Start Shift.
+- No Apps Script change: the column and payload field already existed.
+
+**Tests:** 28/31 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_idle_time.py` drives the real arrival form; on 7.20 it records no idle time.
+
 ### [7.20] - 2026-11-25
 
 **Employee names can be edited reliably after they are entered.**
