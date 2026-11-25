@@ -7,12 +7,17 @@ only demo arrivals kept it. Driven through the real arrival form here.
 1. Door finishes 22:00, re-onboarded 22:30 -> the next completion logs 30 min idle.
 2. The first trailer on a door this shift has no idle time.
 3. A completion left over from last night is not counted as idle tonight.
+
+v7.22:
+5. Time the door is marked unavailable is left out of idle.
+6. The dashboard's live idle timer leaves it out too.
+7. A new Start Shift restarts idle, even within the same shift day.
 """
 import datetime, os
 from playwright.sync_api import sync_playwright
 
 PORT = os.environ.get('WALLY_TEST_PORT', '8899')
-T = lambda h, m, day=25: datetime.datetime(2026, 11, day, h, m)
+T = lambda h, m, day=25, sec=0: datetime.datetime(2026, 11, day, h, m, sec)
 
 
 def onboard(pg, door, wid):
@@ -68,6 +73,33 @@ with sync_playwright() as p:
     good = bool(sent) and sent[-1].get('idleBeforeMinutes') == 30
     ok &= good
     print(f"4. completion sent to the sheet carries Idle Time 30: {good}")
+
+    # 5. unavailable time is not idle: done 23:15, unavailable 23:25-23:45, onboarded 23:55
+    pg.clock.set_system_time(T(23, 25)); pg.evaluate("()=>{openArrivalModal(11);handleAvailabilityToggle()}")
+    pg.clock.set_system_time(T(23, 45)); pg.evaluate("()=>{openArrivalModal(11);handleAvailabilityToggle()}")
+    pg.clock.set_system_time(T(23, 55)); onboard(pg, 11, 'IDLE4')
+    pg.clock.set_system_time(T(0, 20, 26)); fourth = complete(pg, 11)
+    good = fourth['idleBeforeMinutes'] == 20
+    ok &= good
+    print(f"5. 40 min gap with 20 min unavailable -> idle {fourth['idleBeforeMinutes']} (want 20): {good}")
+
+    # 6. still unavailable when the dashboard shows the empty door: timer leaves it out
+    pg.clock.set_system_time(T(0, 30, 26)); pg.evaluate("()=>{openArrivalModal(11);handleAvailabilityToggle()}")
+    pg.clock.set_system_time(T(0, 50, 26)); pg.evaluate("()=>{openArrivalModal(11);handleAvailabilityToggle()}")
+    pg.clock.set_system_time(T(0, 55, 26, 30)); pg.evaluate("()=>renderDashboard()")
+    timer = pg.evaluate("""()=>{const b=document.querySelector('#open-bays-grid .bay-circle[data-door="11"] .bay-timer');
+        return b?b.textContent:null}""")
+    good = timer == '15m'
+    ok &= good
+    print(f"6. dashboard idle timer leaves out unavailable time: {timer} (want 15m): {good}")
+
+    # 7. a new Start Shift, even within the same shift day, restarts idle
+    pg.clock.set_system_time(T(1, 0, 26)); pg.evaluate("()=>confirmStartShift(true)")
+    pg.clock.set_system_time(T(1, 10, 26)); onboard(pg, 11, 'IDLE5')
+    pg.clock.set_system_time(T(1, 40, 26)); fifth = complete(pg, 11)
+    good = fifth['idleBeforeMinutes'] is None
+    ok &= good
+    print(f"7. completion before Start Shift not counted after it: {good} ({fifth['idleBeforeMinutes']})")
 
     print('\nALL PASS' if ok else '\nFAILURES')
     print('errors:', errs if errs else 'none')
