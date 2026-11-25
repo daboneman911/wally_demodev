@@ -1,5 +1,17 @@
 # Changelog
 
+### [7.24] - 2026-11-25
+
+**Dwell time (arrival -> labor start) is measured correctly and summarised on the Logs tab.**
+
+- **Fix: assigning an unloader to a staged bay through Edit recorded 0 dwell.** `openEditActiveModal()` pre-fills Labor Start with the arrival time when the door has no labor start, and `saveActiveEdit()` saved that placeholder as the labor start. The field now carries `data-autofill`; if it is still the placeholder and the door had no labor start, labor starts at the moment of assignment. A time typed by hand is still respected.
+- **Fix: saving Edit on a door that stays staged set a labor start** (the arrival time), so a later assignment through `saveRequiredUnloader()` kept it and also gave 0 dwell. Staged doors now keep `laborStart: null`.
+- **Fix: a real 0 dwell reached the sheet as blank** (`dwellMinutes||null` in the webhook mapping), so trailers that never waited were indistinguishable from missing data in column S.
+- **Fix: `saveActiveEdit()` dropped `idleExcludeMs`**, so editing a bay lost the unavailable time 7.22 excludes from idle.
+- **New: Dwell Time section on the Logs tab**, under Idle Time. Shows how many completed trailers waited (of all completed), the average and longest wait with its door, and one row per door, worst first. Averages are over trailers that waited, so the zeros from direct onboards don't hide real waits.
+
+**Tests:** 31/34 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_dwell.py`; on 7.23 it gets 0 dwell for both staged-edit paths and a blank for a 0.
+
 ### [7.23] - 2026-11-25
 
 **New: Idle Time section on the Logs tab**, a collapsible section under Hourly Breakdown, so idle can be checked on the phone without the spreadsheet.

@@ -61,6 +61,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_idle_time` | Idle minutes between a door's completion and its next arrival; first trailer per shift and last night's completion get none; unavailable time excluded; restarts at Start Shift |
 | `test_idle_summary` | Apps Script Idle Summary sheet, run in Node against a mocked spreadsheet: shift-date grouping, totals, filters, by-door table, error isolation |
 | `test_idle_stats_tab` | Logs tab Idle Time section: empty state, totals, per-door rows worst first, other-shift logs ignored, fits 375px |
+| `test_dwell` | Dwell (arrival to labor) through staged onboarding and Edit Active; 0 dwell reaches the sheet; Logs tab Dwell Time section |
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
