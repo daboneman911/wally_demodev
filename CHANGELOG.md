@@ -1,5 +1,17 @@
 # Changelog
 
+### [7.23] - 2026-11-25
+
+**New: Idle Time section on the Logs tab**, a collapsible section under Hourly Breakdown, so idle can be checked on the phone without the spreadsheet.
+
+- Top row: tonight's total idle, average gap, and longest gap with its door.
+- Table: one row per door that had a gap, worst total first, with gaps, average, longest and total.
+- Built from `idleBeforeMinutes` on `thisShiftLogs()`, so it is this shift only, excludes unavailable time and resets at Start Shift (7.22 rules). Only completed gaps count; doors empty right now are already visible on the Dashboard.
+- It refreshes on `renderDashboard()` while open. `toggleStats()` now uses a lookup table for its three sections.
+- Not on the Dashboard: the 13 mini has 24px of spare height and a card row needs about 80, so it would break the no-scroll rule `test_layout_fit` enforces.
+
+**Tests:** 30/33 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_idle_stats_tab.py`.
+
 ### [Apps Script 6.19] - 2026-11-25
 
 **New "Idle Summary" sheet.** `updateIdleSummary()` in `apps-script/Code.gs` rebuilds it on every dashboard refresh from the existing Idle Time column (Wally Tracker col T). The app is unchanged (still 7.22).
