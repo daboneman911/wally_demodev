@@ -1,5 +1,14 @@
 # Changelog
 
+### [7.22] - 2026-11-25
+
+**Idle time leaves out unavailable time and never crosses a Start Shift.**
+
+- **Unavailable time is excluded.** `handleAvailabilityToggle()` now stamps `unavailableSince` when a door is marked unavailable and adds the span to `unavailableMs` when it is marked available again (`doorIdleExcludedMs()` also counts a span still open). Onboarding carries that total to the trailer as `idleExcludeMs`, and `finalizeCompletion()` subtracts it from `idleBeforeMinutes` (floored at 0). A door done at 22:00, unavailable 22:10-22:30 and onboarded 22:40 logs 20 minutes, not 40. The empty-door idle timer on the dashboard subtracts it too.
+- **Idle restarts at Start Shift.** `confirmStartShift()` clears every door's `lastCompletionTime` and unavailable totals, including bays kept open, so a completion before Start Shift is never counted after it, even within the same shift day. The 7.21 same-shift-day check stays as a second guard.
+
+**Tests:** 28/31 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. `test_idle_time.py` adds three checks (unavailable time excluded, dashboard timer, Start Shift restart); all three fail on 7.21.
+
 ### [7.21] - 2026-11-25
 
 **Fix: idle time between trailers on a door was never recorded.** `finalizeCompletion()` computes `idleBeforeMinutes` (sheet column T, "Idle Time", already read by the Live View) from the door's `lastCompletionTime`, but `confirmArrival()` and `continueWithDuplicate()` rebuilt the door with `lastCompletionTime:null`, so the value was blank for every real trailer. Only demo arrivals carried it over. Both now keep the door's previous completion time. A door that finishes at 22:00 and is onboarded at 22:30 logs 30 minutes on that trailer's completion.

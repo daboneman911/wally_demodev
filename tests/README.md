@@ -58,7 +58,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_roster` | PS9 Twilight badging, blue vests, permanent members, shift-end purge |
 | `test_team_edit` | Apostrophes in names, renaming onto an existing name, backup format gate |
 | `test_name_edit` | Rename keeps PS9/permanent roles through End Shift; capitalization edits stick; case-insensitive duplicates; observation history and off-team log names follow |
-| `test_idle_time` | Idle minutes between a door's completion and its next arrival; first trailer per shift and last night's completion get none |
+| `test_idle_time` | Idle minutes between a door's completion and its next arrival; first trailer per shift and last night's completion get none; unavailable time excluded; restarts at Start Shift |
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
