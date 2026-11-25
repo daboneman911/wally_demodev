@@ -1,7 +1,15 @@
 // ============================================================
-// WALLY DASHBOARD — APPS SCRIPT v6.18
+// WALLY DASHBOARD — APPS SCRIPT v6.19
 // ============================================================
-// CHANGES IN THIS VERSION (v6.18):
+// CHANGES IN THIS VERSION (v6.19):
+//
+// [NEW] "Idle Summary" sheet, rebuilt on every dashboard refresh by
+//   updateIdleSummary(): idle minutes per shift (gaps, total, average, longest
+//   gap and door, total per door 9-16) and per door over the last 14 shifts.
+//   Reads the existing Idle Time column (col T); no change to what the app
+//   sends or to any existing sheet.
+//
+// INHERITED FROM v6.18:
 //
 // [FIX] doPost now returns {ok:true} on success and {ok:false,error:"..."} on
 //   failure instead of {status:"success"}/{status:"error"}. This makes the
@@ -408,6 +416,9 @@ function refreshKPIDashboard() {
 function updateDashboards(ss) {
   var sourceSheet = ss.getSheetByName("Wally Tracker");
   if (!sourceSheet) return;
+
+  // Own try/catch: a problem in the idle summary must never stop the main dashboards.
+  try { updateIdleSummary(ss, sourceSheet); } catch (e) { Logger.log("Idle summary error: " + e.message); }
 
   var isNewKpiSheet  = false;
   var kpiSheet  = ss.getSheetByName("KPI Dashboard");
@@ -991,4 +1002,96 @@ function buildLeaderboardArray(title, obj) {
   if (list.length === 0) list.push(["No data yet.", "", "", "", "", ""]);
   return arr.concat(list);
 }
-// --- END OF SCRIPT v6.18 ---
+// ============================================================
+// IDLE SUMMARY (v6.19)
+// ============================================================
+// Idle = minutes a door sat empty between a completion and the next trailer's
+// arrival, as measured by the app (Wally Tracker col T, "Idle Time"). From app
+// v7.22 it excludes time the door was marked unavailable and never spans a
+// Start Shift, and the first trailer on a door each shift has none.
+//
+// Rebuilds the "Idle Summary" sheet on every dashboard refresh:
+//   By Shift: one row per shift date, newest first. Gaps, total, average,
+//             longest gap and its door, then total idle per door 9-16.
+//   By Door:  each door over the last IDLE_DOOR_WINDOW shifts.
+// The sheet is cleared and rewritten each time, so don't put your own
+// notes or formulas on it.
+var IDLE_SUMMARY_SHEET = "Idle Summary";
+var IDLE_DOORS = [9, 10, 11, 12, 13, 14, 15, 16];
+var IDLE_MAX_SHIFTS = 60;     // shift rows listed
+var IDLE_DOOR_WINDOW = 14;    // shifts covered by the By Door table
+var IDLE_MAX_MINS = 480;      // same sanity cap the Live View uses
+
+function updateIdleSummary(ss, sourceSheet) {
+  var data = sourceSheet.getDataRange().getValues();
+  var shifts = {};   // logicalDate -> {gaps,total,maxM,maxDoor,doors:{door:{c,m,max}}}
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var status = row[13];
+    if (status !== "completed" && status !== "incomplete") continue;
+    var idleRaw = row[19];
+    if (idleRaw === "" || idleRaw === null || idleRaw === undefined) continue;
+    var idle = parseFloat(idleRaw);
+    if (isNaN(idle) || idle < 0 || idle > IDLE_MAX_MINS) continue;
+    var door = parseInt(row[1], 10);
+    if (isNaN(door)) continue;
+
+    var rEnd = toTimeString(row[7]), rStart = toTimeString(row[6]);
+    var date = getLogicalShiftDate(toDateString(row[0]), rEnd !== "" ? rEnd : rStart, toTimeString(row[15]));
+    if (!date) continue;
+
+    var s = shifts[date] || (shifts[date] = {gaps: 0, total: 0, maxM: -1, maxDoor: "", doors: {}});
+    s.gaps++; s.total += idle;
+    if (idle > s.maxM) { s.maxM = idle; s.maxDoor = door; }
+    var d = s.doors[door] || (s.doors[door] = {c: 0, m: 0, max: 0});
+    d.c++; d.m += idle; if (idle > d.max) d.max = idle;
+  }
+
+  var dates = Object.keys(shifts).sort().reverse();
+  var width = 6 + IDLE_DOORS.length;
+  var pad = function (r) { while (r.length < width) r.push(""); return r; };
+
+  var out = [];
+  out.push(pad(["IDLE SUMMARY - minutes a door sat empty between a completion and the next arrival (unavailable time excluded)"]));
+  out.push(pad([]));
+  out.push(pad(["BY SHIFT"]));
+  var head = ["Shift Date", "Gaps", "Total Idle (m)", "Avg Idle (m)", "Longest Gap (m)", "Longest On Door"];
+  IDLE_DOORS.forEach(function (n) { head.push("Door " + n + " (m)"); });
+  out.push(head);
+  var byShiftHeaderRow = out.length;
+
+  if (dates.length === 0) out.push(pad(["No idle data yet. It fills in as trailers are completed with app v7.21 or later."]));
+  dates.slice(0, IDLE_MAX_SHIFTS).forEach(function (date) {
+    var s = shifts[date];
+    var r = [date, s.gaps, Math.round(s.total), Math.round(s.total / s.gaps), Math.round(s.maxM), "Door " + s.maxDoor];
+    IDLE_DOORS.forEach(function (n) { r.push(s.doors[n] ? Math.round(s.doors[n].m) : 0); });
+    out.push(r);
+  });
+
+  out.push(pad([]));
+  var windowDates = dates.slice(0, IDLE_DOOR_WINDOW);
+  out.push(pad(["BY DOOR - last " + windowDates.length + " shift" + (windowDates.length === 1 ? "" : "s")]));
+  out.push(pad(["Door", "Gaps", "Total Idle (m)", "Avg Idle (m)", "Longest Gap (m)", "Avg Idle per Shift (m)"]));
+  var byDoorHeaderRow = out.length;
+  IDLE_DOORS.forEach(function (n) {
+    var c = 0, m = 0, max = 0;
+    windowDates.forEach(function (date) {
+      var d = shifts[date].doors[n];
+      if (d) { c += d.c; m += d.m; if (d.max > max) max = d.max; }
+    });
+    out.push(pad(["Door " + n, c, Math.round(m), c ? Math.round(m / c) : "-", c ? Math.round(max) : "-",
+                  windowDates.length ? Math.round(m / windowDates.length) : "-"]));
+  });
+
+  var sheet = ss.getSheetByName(IDLE_SUMMARY_SHEET);
+  if (!sheet) sheet = ss.insertSheet(IDLE_SUMMARY_SHEET);
+  sheet.clear();
+  sheet.getRange(1, 1, out.length, width).setValues(out);
+  sheet.getRange(1, 1).setFontWeight("bold");
+  sheet.getRange(3, 1).setFontWeight("bold");
+  sheet.getRange(byShiftHeaderRow, 1, 1, width).setFontWeight("bold").setBackground("#cfe2f3");
+  sheet.getRange(byDoorHeaderRow - 1, 1).setFontWeight("bold");
+  sheet.getRange(byDoorHeaderRow, 1, 1, 6).setFontWeight("bold").setBackground("#cfe2f3");
+}
+// --- END OF SCRIPT v6.19 ---

@@ -1,5 +1,16 @@
 # Changelog
 
+### [Apps Script 6.19] - 2026-11-25
+
+**New "Idle Summary" sheet.** `updateIdleSummary()` in `apps-script/Code.gs` rebuilds it on every dashboard refresh from the existing Idle Time column (Wally Tracker col T). The app is unchanged (still 7.22).
+
+- **By Shift**, newest first (up to 60): gaps, total idle, average, longest gap and its door, then total idle for each door 9-16. Rows are grouped by shift date via `getLogicalShiftDate()`, so a completion after midnight counts toward the evening it began.
+- **By Door**, over the last 14 shifts: gaps, total, average, longest gap, average idle per shift.
+- Only completed and incomplete rows with a numeric idle of 0-480 min are counted (the Live View's cap). It runs in its own try/catch, so a problem in it cannot stop the existing dashboards.
+- **Needs a redeploy**: paste `Code.gs` into the Apps Script editor, then Deploy > Manage deployments > edit > New version, so the web app URL keeps working.
+
+**Tests:** 29/32 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_idle_summary.py` runs `Code.gs` in Node against a mocked spreadsheet.
+
 ### [7.22] - 2026-11-25
 
 **Idle time leaves out unavailable time and never crosses a Start Shift.**
