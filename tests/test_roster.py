@@ -9,10 +9,10 @@ from playwright.sync_api import sync_playwright
 
 SHOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screenshots')
 CORE = ["Robert W", "Matt R", "Lorena R", "Russell H", "Trevon C",
-        "David F", "Arce J", "Fonseca J", "Eddie F", "Luis", "Gilbert", "Pablo",
-        "Elliot"]
+        "David F", "Arce J", "Eddie F", "Luis", "Elliot"]
 EXTRA = ["Solis", "Damian", "Johnny", "Evan"]
 RETIRED = ["Juan F", "Jeff", "Anthony", "Josh", "Jarrett"]
+REMOVED_V717 = ["Pablo", "Gilbert", "Fonseca J"]
 
 with sync_playwright() as p:
     b = p.chromium.launch()
@@ -25,7 +25,7 @@ with sync_playwright() as p:
 
     # seed a device holding the OLD 16-name roster, then reload to migrate
     pg.evaluate("""(old)=>{localStorage.setItem('ps9_team',JSON.stringify(old));
-        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715']
+        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715','ps9_roster_v717']
             .forEach(k=>localStorage.removeItem(k));}""",
         CORE[:1] + RETIRED + CORE[1:9] + ["Solis", "Damian"])
     pg.reload()
@@ -51,6 +51,20 @@ with sync_playwright() as p:
     late_ok = pg.evaluate("()=>teamNames.includes('Elliot')")
     ok &= late_ok
     print(f'   v715 step reaches a device already on every earlier step (Elliot): {late_ok}')
+
+    # v717 removes Pablo and Gilbert from a device that already has them, and clears
+    # any role flags they carried
+    pg.evaluate("""(gone)=>{['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715']
+            .forEach(k=>localStorage.setItem(k,'1'));
+        localStorage.removeItem('ps9_roster_v717');
+        gone.forEach(n=>{if(!teamNames.includes(n))teamNames.push(n)});saveTeam();
+        setRosterFlags('Pablo',{core:true});}""", REMOVED_V717)
+    pg.reload(); pg.wait_for_selector('text=Home', timeout=10000); pg.wait_for_timeout(400)
+    rm = pg.evaluate("(gone)=>({team:gone.filter(n=>teamNames.includes(n)),"
+                     "flags:gone.filter(n=>n in getRosterFlags())})", REMOVED_V717)
+    rm_ok = rm == {'team': [], 'flags': []}
+    ok &= rm_ok
+    print(f'   v717 step removes Pablo, Gilbert + Fonseca J and their flags: {rm_ok}  {rm}')
 
     # the migration is one-time: re-adding a retired name must stick
     pg.evaluate("()=>{teamNames.push('Jeff');refreshTeamNamesSorted();saveTeam();}")

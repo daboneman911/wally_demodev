@@ -1,5 +1,15 @@
 # Changelog
 
+### [7.17] - 2026-11-24
+
+**Pablo, Gilbert and Fonseca J removed from the roster.**
+
+- Taken out of `DEFAULT_TEAM` and `PS9_CORE`. `PS9_CORE` is now 10 and the permanent roster 14. **A full observation cycle is now 10 shift days, not 13.**
+- New `ps9_roster_v717` migration step (`remove:['Pablo','Gilbert','Fonseca J']`) so devices with a saved roster drop them too. It is *added*, per the 7.14 rule; the frozen `ps9_roster_v7` step still lists Fonseca J in its `add`, which is history and stays. Added to `BACKUP_KEYS` and `importBackup()`'s non-JSON key list. Because it is a one-time step, re-adding any of them by hand later sticks.
+- `migrateTeamRoster()` now clears `ps9_roster_flags` entries for names a step removes, the same as deleting someone in Team Management.
+
+**Tests:** 27/27. `test_roster` covers the 10-name core and proves the v717 step removes all three, and their flags, from a device that already ran every earlier step. `test_roster_editing` counts updated and its hardcoded-core demotion check uses Luis instead of Gilbert. `test_observation` updated for the 10-name pool.
+
 ### [7.16] - 2026-10-21
 
 **Roster membership is editable in the app instead of only in the source.** Previously, making someone PS9 Twilight or permanent meant editing `PS9_CORE` in `index.html` — a version bump, a migration step, a test update, a deploy and a service worker cache bump *per hire*. That happened three times in recent releases (Luis & Gilbert, Pablo, Elliot) for what is fundamentally data, not code.

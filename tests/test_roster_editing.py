@@ -45,7 +45,7 @@ with sync_playwright() as p:
                 perm:teamNames.filter(isPermanentMember).length,
                 rotation:obsEligible()};}""")
     default_ok = (base['flags'] is None and base['core'] == base['rotation']
-                  and len(base['core']) == 13 and base['perm'] == 17)
+                  and len(base['core']) == 10 and base['perm'] == 14)
     ok &= default_ok
     print(f'1. no flags stored -> hardcoded defaults intact: {default_ok}')
     print(f'   core={len(base["core"])}, permanent={base["perm"]}, rotation={len(base["rotation"])}')
@@ -61,8 +61,8 @@ with sync_playwright() as p:
     print(f'   before {before["core"]=}/{before["inRotation"]=} -> after {after["core"]=}/{after["inRotation"]=}')
 
     rot = pg.evaluate("()=>obsEligible()")
-    ok &= len(rot) == 14 and 'Solis' in rot
-    print(f'   rotation grew to {len(rot)} and includes Solis: {len(rot) == 14}')
+    ok &= len(rot) == 11 and 'Solis' in rot
+    print(f'   rotation grew to {len(rot)} and includes Solis: {len(rot) == 11}')
 
     # the chip follows, with no reload (this path set the flag directly, so re-render
     # explicitly -- the real toggle in check 7 does that itself)
@@ -74,11 +74,11 @@ with sync_playwright() as p:
     print(f'   PS9 chip now renders on the Solis row: {chip}')
 
     # ---- 3. demoting a hardcoded core member works too, not just promoting ----
-    pg.evaluate("()=>setRosterFlags('Gilbert',{core:false})")
-    g = state(pg, 'Gilbert')
+    pg.evaluate("()=>setRosterFlags('Luis',{core:false})")
+    g = state(pg, 'Luis')
     demoted = not g['core'] and not g['inRotation']
     ok &= demoted
-    print(f'\n3. demoting Gilbert (hardcoded core) off PS9 Twilight: {demoted}  {g["stored"]}')
+    print(f'\n3. demoting Luis (hardcoded core) off PS9 Twilight: {demoted}  {g["stored"]}')
 
     # ---- 4. core and permanent cannot disagree ----
     # Core but not permanent is incoherent: the shift-end purge would drop them that
