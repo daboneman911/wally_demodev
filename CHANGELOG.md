@@ -1,5 +1,27 @@
 # Changelog
 
+### [7.20] - 2026-11-25
+
+**Employee names can be edited reliably after they are entered.**
+
+- **Renaming someone from the default crew undid itself at End Shift.** Default-crew members have no `ps9_roster_flags` entry; they are core/permanent because their name is in `PS9_CORE` / `PS9_PERMANENT`. `renameRosterFlags()` had nothing to carry over, so "Robert W" renamed to "Robert Williams" lost the PS9 badge, dropped out of the observation rotation, and was deleted by `purgeTemporaryEmployees()` as a temporary hire at the next End Shift. `editTeamMember()` now reads both roles before the rename and stores them for the new name when the fallback would not supply them.
+- **Capitalization-only edits did nothing.** Every entry point lowercased each word and capitalized its first letter, so "McDonald" became "Mcdonald" again, matched the old name, and the edit was silently dropped. New shared `formatPersonName()`: all-lowercase or all-caps input is title-cased as before; anything with its own capitals is kept as typed (only first letters are raised); runs of spaces collapse. Used by Team Management add and rename, the Add Unloader modal and the DOP tab add.
+- **Duplicate check is case-insensitive** (`teamHasName()`), since mixed-case names are now kept.
+- **Observation history follows a rename.** `obsState.assignments` stored the old name, so a renamed core member counted as not yet observed this cycle.
+- **Editing a past log blanked an off-team unloader.** `openEditLogModal()` only listed team names, so a custom or since-removed unloader selected nothing and was saved as empty. That name is now offered as "(not on team)" and kept unless changed.
+
+**Tests:** 27/30 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_name_edit.py`; on 7.19 it fails at its first check (renamed crew member purged at End Shift).
+
+### [7.19] - 2026-11-25
+
+**Three shift-day fixes.**
+
+- **Start Shift used yesterday's start time if the app was not reloaded.** `syncShiftStartToSchedule()` only ran in `init()` and on schedule edits, so a Home Screen app left open from Thursday started Friday's shift at 20:00 instead of 19:30 (and Monday's at 19:30), shifting every hour bucket, completion hour and grace window by 30 minutes. `confirmStartShift()` now syncs first, and the dashboard also re-syncs while idle when the app comes back to the foreground (`visibilitychange`).
+- **Shift Log dated late shifts a day late.** `SHIFT_END` sent `shiftDate: dateKeyFromTs(now)`, the calendar date at End, so a shift ended after midnight was filed under the next day. It now sends `currentShiftKey()`, matching `shiftKey` in the app and `getLogicalShiftDate` on the sheet.
+- **Shared wally total was one too high.** The End Shift share sent `completedW+1`; it now sends `completedW`, the same number the summary shows and the sheet records.
+
+**Tests:** 26/29 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests, the same as on 7.18. New `test_shift_day_fixes.py` fails all three checks on 7.18 and passes on 7.19.
+
 ### [7.18] - 2026-11-24
 
 **Shift start times: Monday–Thursday 20:00, Friday 19:30.** Wednesday and Thursday were 20:15.

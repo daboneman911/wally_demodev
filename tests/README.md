@@ -57,6 +57,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_checklist` | Nightly checklist, observation two-way sync, share on completion |
 | `test_roster` | PS9 Twilight badging, blue vests, permanent members, shift-end purge |
 | `test_team_edit` | Apostrophes in names, renaming onto an existing name, backup format gate |
+| `test_name_edit` | Rename keeps PS9/permanent roles through End Shift; capitalization edits stick; case-insensitive duplicates; observation history and off-team log names follow |
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
@@ -65,6 +66,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_shift_boundary` | Stats describe tonight only; pre-shift hour math |
 | `test_roster_editing` | PS9 Twilight / Permanent editable in-app; flags overlay defaults |
 | `test_shift_schedule` | Mon-Thu 20:00 / Fri 19:30 defaults; one-time move of stored Wed/Thu 20:15 |
+| `test_shift_day_fixes` | Start Shift re-reads tonight's schedule without a reload; SHIFT_END dated by shift day; shared wally total is exact |
 
 ## Writing one
 
