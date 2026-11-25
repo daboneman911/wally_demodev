@@ -64,6 +64,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_webhook_queue` | A refused record parks instead of blocking the sync queue |
 | `test_shift_boundary` | Stats describe tonight only; pre-shift hour math |
 | `test_roster_editing` | PS9 Twilight / Permanent editable in-app; flags overlay defaults |
+| `test_shift_schedule` | Mon-Thu 20:00 / Fri 19:30 defaults; one-time move of stored Wed/Thu 20:15 |
 
 ## Writing one
 

@@ -1,5 +1,14 @@
 # Changelog
 
+### [7.18] - 2026-11-24
+
+**Shift start times: Monday–Thursday 20:00, Friday 19:30.** Wednesday and Thursday were 20:15.
+
+- `SHIFT_SCHEDULE_DEFAULT` updated.
+- Editing any one day saves the whole week to `ps9_shift_schedule`, so most devices hold the old 20:15 as a stored value and would never pick up a new default. New one-time `migrateShiftSchedule()` (flag `ps9_schedule_v718`, in `BACKUP_KEYS` and `importBackup()`'s non-JSON key list) moves Wed/Thu only if they are still exactly `20:15`. Any other time was set by hand and is left alone, and setting 20:15 again later sticks. It runs before `syncShiftStartToSchedule()`, so an idle dashboard picks up the new time on that same load. A shift already running keeps the start time it began with.
+
+**Tests:** 28/28. New `test_shift_schedule.py` covers the fresh-install defaults, a stored 20:15 being moved while a hand-set time is kept, and a 20:15 re-entered by hand surviving a reload.
+
 ### [7.17] - 2026-11-24
 
 **Pablo, Gilbert and Fonseca J removed from the roster.**

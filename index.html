@@ -1074,7 +1074,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.17',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
+    const APP_VERSION='7.18',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1226,6 +1226,11 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.18:
+- Change: Wednesday and Thursday now start at 20:00, the same as Monday
+  and Tuesday. Friday stays at 19:30. If you had set a different time for
+  either day yourself, it is left as you set it.
+
 v7.17:
 - Change: Pablo, Gilbert and Fonseca J are off the roster. They no longer
   appear in Team Management, the unloader list or the observation
@@ -2931,7 +2936,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=raw.toLowerCase().split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');if(teamNames.includes(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];if(!l.shiftKey)l.shiftKey=shiftKeyFromTs(l.end);return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();migrateShiftSchedule();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];if(!l.shiftKey)l.shiftKey=shiftKeyFromTs(l.end);return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);processWebhookQueue()}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -2956,7 +2961,7 @@ v5.06:
     const BACKUP_KEYS=['ps9_doors','ps9_history','ps9_team','ps9_wally_notes','ps9_observations',
         'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_roster_flags','ps9_shift_schedule','ps9_shift_start',
         'ps9_shift_state','ps9_shift_end_time','ps9_last_sort_start','ps9_is_first_onboard',
-        'ps9_attribution_config_v2','ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715','ps9_roster_v717',
+        'ps9_attribution_config_v2','ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715','ps9_roster_v717','ps9_schedule_v718',
         'ps9_webhook_queue','ps9_webhook_failed',
         'ps9_v3','ps9_v4'];
     const BACKUP_FORMAT=1;
@@ -3000,7 +3005,7 @@ v5.06:
                 if(k==='ps9_shift_start'||k==='ps9_shift_state'||k==='ps9_shift_end_time'
                    ||k==='ps9_last_sort_start'||k==='ps9_is_first_onboard'
                    ||k==='ps9_roster_v7'||k==='ps9_roster_v708'
-                   ||k==='ps9_roster_v714'||k==='ps9_roster_v715'||k==='ps9_roster_v717')return false;
+                   ||k==='ps9_roster_v714'||k==='ps9_roster_v715'||k==='ps9_roster_v717'||k==='ps9_schedule_v718')return false;
                 try{JSON.parse(v);return false}catch(e){return true}
             });
             if(bad.length)return alert('That backup looks damaged and was not restored.\n\nUnreadable: '+bad.join(', '));
@@ -3589,15 +3594,29 @@ v5.06:
     function openChecklist(){checklistRenderAll();byId('checklist-modal').style.display='flex'}
 
     // -- WEEKLY SHIFT SCHEDULE -------------------------------
-    // Mon/Tue 20:00, Wed/Thu 20:15, Fri 19:30. Sat/Sun are unused but kept
-    // editable so the schedule stays complete if weekend shifts ever start.
-    const SHIFT_SCHEDULE_DEFAULT={0:'20:00',1:'20:00',2:'20:00',3:'20:15',4:'20:15',5:'19:30',6:'20:00'};
+    // Mon-Thu 20:00, Fri 19:30. Sat/Sun are unused but kept editable so the
+    // schedule stays complete if weekend shifts ever start.
+    const SHIFT_SCHEDULE_DEFAULT={0:'20:00',1:'20:00',2:'20:00',3:'20:00',4:'20:00',5:'19:30',6:'20:00'};
     const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     function getShiftSchedule(){
         let s={};try{s=JSON.parse(localStorage.getItem('ps9_shift_schedule'))||{}}catch(e){s={}}
         const out={};for(let d=0;d<7;d++)out[d]=/^\d{2}:\d{2}$/.test(s[d])?s[d]:SHIFT_SCHEDULE_DEFAULT[d];
         return out}
     function saveShiftSchedule(sched){localStorage.setItem('ps9_shift_schedule',JSON.stringify(sched))}
+    // Wed/Thu moved from 20:15 to 20:00 in v7.18. Editing any one day saves the whole
+    // week, so most devices carry the old 20:15 as a stored value and would never see the
+    // new default. One time only: a day still on exactly the old 20:15 is moved, anything
+    // else was set by hand and is left alone, and setting 20:15 again later sticks.
+    function migrateShiftSchedule(){
+        if(localStorage.getItem('ps9_schedule_v718'))return false;
+        let changed=false;
+        try{const s=JSON.parse(localStorage.getItem('ps9_shift_schedule'));
+            if(s&&typeof s==='object'){
+                [3,4].forEach(d=>{if(s[d]==='20:15'){s[d]='20:00';changed=true}});
+                if(changed)saveShiftSchedule(s);
+            }}catch(e){/* unreadable: getShiftSchedule() already falls back to defaults */}
+        localStorage.setItem('ps9_schedule_v718','1');
+        return changed}
     // Shifts start in the evening and run past midnight, so the "shift day" is the day
     // the shift STARTED. Before noon we are still in the tail of the previous day's shift.
     function getShiftDayIndex(ref){const d=ref?new Date(ref):new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);return d.getDay()}
