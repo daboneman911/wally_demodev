@@ -63,6 +63,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_idle_stats_tab` | Logs tab Idle Time section: empty state, totals, per-door rows worst first, other-shift logs ignored, fits 375px |
 | `test_dwell` | Dwell (arrival to labor) through staged onboarding and Edit Active; 0 dwell reaches the sheet; Logs tab Dwell Time section |
 | `test_idle_alert` | Dashboard idle timers: red past 10 min while a shift runs, all doors 9-16, Avg idle label, cleared at End Shift, none on unavailable doors |
+| `test_auto_shift` | Auto start at start time (bays kept), auto end at end time (bays incomplete), no restart after manual end, catch-up after the app was closed, Settings switch, end-time schedule layout |
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
