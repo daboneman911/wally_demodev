@@ -1,5 +1,19 @@
 # Changelog
 
+### [7.30] - 2026-11-26
+
+**DOP port, part 3 (docs/dop-port/PLAN.md sections 3-5): tap-to-toggle, options sheet, other lines, lock, later starts.**
+
+- **Tap a name** (`.ht-emp-info` → `htTapEmployee()`): inactive → `htActivateEmployee()`, active → new `htDeactivateEmployee()` (clears start, custom start, frozen hours, cut time, paused time, pins and line; `confirm()` first if hours ≥ 0.005). Cut, moved and locked people don't toggle: the row runs `@keyframes ht-shake` and Wally's toast says "X is cut — use ⋯ options". The whole-row tap that opened the role picker is gone, so a tap means one thing.
+- **⋯ button on every row** → `htOpenOptions(id)` (`#ht-opts-modal`, Wally sheet markup and tokens). It offers Role (the existing role picker), Start time / Use shift start, Edit times (cut), Cut, Put back on the clock, Move to another line (a PS1–PS12 grid without PS9), Return to PS9, Lock/Unlock, Remove from shift, and Delete (only if `!isPermanentMember`, via `deleteTeamMember()` with its hours warning).
+- **Rows carry one main action plus ⋯**: Start / Cut / undo / PS9. The Time button, the active start-time button and the cut start–end button moved into the sheet, because with ⋯ a three-button row ran about 30px past a 375px screen. The times still show under the name (a cut row shows its start–cut span).
+- **New status `moved`** (`htMoveEmployee`, `htReturnEmployee`, `HT_OTHER_LINES`): hours freeze like a cut, there is no role, and the person is not in `htAssignRoles()` or the DOP count. The row is muted with an orange "→ PS5" tag. Return banks the gap in `pausedMs` (same as uncut). `htCalcHours()` returns the frozen hours, `htBuildBreakdown()` includes them, and `htEndShift()` leaves them frozen.
+- **`emp.locked`** with a 🔒 tag; it blocks only the name tap.
+- **Later starts**: an active person whose `startTime` is in the future shows "Starts 9:30" and counts in `htCalcDOP()`. `htCalcHours()` already gave 0 until the start. Ranked last on equal hours.
+- Not done: section 6 (grouping inactive rows). It is optional and the owner did not ask for it.
+
+**Tests:** 35/38 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_dop_board.py` (tap toggle with confirm, cut shake and toast, move and return with the gap not credited, lock, later start, options per state, End Shift with a moved person, 375px fit). `test_cut_edit.py` now reaches Role and Edit times through the sheet.
+
 ### [7.29] - 2026-11-26
 
 **DOP port, part 2 (docs/dop-port/PLAN.md section 2): the owner's final roster.**

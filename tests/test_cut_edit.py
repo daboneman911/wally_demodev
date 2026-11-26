@@ -38,7 +38,9 @@ with sync_playwright() as p:
     print('cut state:', subj(pg, name))
 
     # ---- 1 & 2. edit START and END together in one editor ----
-    pg.click('.ht-emp-row.ht-cut .ht-btn-time'); pg.wait_for_timeout(450)
+    # v7.30: start/end editing is in the row's options sheet
+    pg.click('.ht-emp-row.ht-cut .ht-btn-more'); pg.wait_for_timeout(450)
+    pg.click("#ht-opts-modal .ht-role-option:has-text('Edit times')"); pg.wait_for_timeout(450)
     opened = pg.is_visible('#ht-edit-times-modal')
     times = pg.evaluate("""()=>{const pad=n=>String(n).padStart(2,'0');
         const f=ms=>{const d=new Date(Date.now()-ms);return pad(d.getHours())+':'+pad(d.getMinutes());};
@@ -54,9 +56,11 @@ with sync_playwright() as p:
     print(f"1. edit start+end {times['start']}-{times['end']} -> start {s['start']}, hrs {s['hrs']} (preview said {preview})  {'OK' if times_ok else 'FAIL'}")
 
     # ---- 3. edit ROLE on a cut employee ----
-    pg.click('.ht-emp-row.ht-cut'); pg.wait_for_timeout(450)
+    # v7.30: the role picker lives in the row's options sheet (a tap on the name toggles)
+    pg.click('.ht-emp-row.ht-cut .ht-btn-more'); pg.wait_for_timeout(450)
+    pg.click("#ht-opts-modal .ht-role-option:has-text('Role')"); pg.wait_for_timeout(450)
     role_modal = pg.is_visible('#ht-role-modal')
-    print(f'3. tapping a cut row opens the role picker: {role_modal}')
+    print(f'3. options > Role on a cut row opens the role picker: {role_modal}')
     if role_modal:
         pg.screenshot(path=f'{SHOT}/cut_role_modal.png')
         opts = pg.eval_on_selector_all('#ht-role-modal .ht-role-option', 'e=>e.length')

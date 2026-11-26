@@ -525,6 +525,17 @@
         .ht-cut .ht-emp-info{min-width:56px;}
         .ht-cut .ht-hrs-lbl{display:none;}
         .ht-actions-cut .ht-btn{flex-shrink:1;overflow:hidden;}
+        .ht-btn-more{background:transparent;border:1.5px solid var(--border);color:var(--text-sub);font-size:17px;padding:9px 8px;min-width:36px;line-height:1;font-weight:900;letter-spacing:0}
+        .ht-emp-info{cursor:pointer;-webkit-tap-highlight-color:transparent}
+        .ht-moved-tag{font-size:10px;font-weight:900;padding:2px 7px;border-radius:5px;background:var(--accent-orange-bg);color:var(--accent-orange);white-space:nowrap}
+        .ht-lock-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--border-light);color:var(--text-sub);white-space:nowrap}
+        .ht-sched-tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;background:var(--accent-blue-bg);color:var(--accent-blue);white-space:nowrap}
+        @keyframes ht-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+        .ht-emp-row.ht-shake{animation:ht-shake 0.38s ease-in-out}
+        #ht-opts-modal .h-modal-sheet{max-height:88vh;overflow-y:auto}
+        .ht-line-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+        .ht-line-btn{padding:14px 0;border-radius:var(--radius-md);border:1.5px solid var(--border);background:var(--border-light);font-size:15px;font-weight:900;color:var(--text-main);cursor:pointer}
+        .ht-line-btn:active{transform:scale(0.95)}
         .ht-cut-label{font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;padding:4px 6px;text-align:center;}
         .ht-clickable{cursor:pointer;}
         .ht-clickable:active{background:var(--border-light);}
@@ -1088,7 +1099,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.29',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert','Matt','Lorena','Russell','Tre','David','Eddie','Luis','Elliot','Solis','Damian','Johnny','Jeremiah'];
+    const APP_VERSION='7.30',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert','Matt','Lorena','Russell','Tre','David','Eddie','Luis','Elliot','Solis','Damian','Johnny','Jeremiah'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1240,6 +1251,21 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.30:
+- New: on the DOP tab, tap a name to put someone on the board; tap again to
+  take them off (it asks first if they have hours). Cut, moved and locked
+  people don't change on a tap -- the row shakes and says to use the
+  options.
+- New: a ... button on every DOP row with that person's options: role,
+  start time (or back to the shift start), cut / put back on the clock,
+  move to another line, return to PS9, lock / unlock, remove from shift,
+  and delete for people added tonight. The role picker moved here.
+- New: move someone to another line (PS1-PS12). Their PS9 clock stops and
+  keeps their hours, and they don't count toward the DOP until they come
+  back. Time away isn't counted.
+- New: someone given a later start time shows "Starts 21:30". They count
+  toward the DOP straight away and earn hours from their start time.
+
 v7.29:
 - Change: the roster is the final list. PS9 Twilight: Robert, Matt, Lorena,
   Russell, Tre, David, Eddie, Luis, Elliot. Doubles: Solis, Damian, Johnny,
@@ -4240,7 +4266,7 @@ v5.06:
     // accumulated and starts adding again from that moment.
     function htPausedHours(emp){return Math.max(0,(emp.pausedMs||0))/3600000}
     function htCalcHours(emp){
-        if(emp.status==='cut')return emp.frozenHours;
+        if(emp.status==='cut'||emp.status==='moved')return emp.frozenHours||0;
         if(emp.status!=='active'||!emp.startTime)return 0;
         return Math.max(0,htSpanHours(emp.startTime.getTime(),Date.now())-htPausedHours(emp));
     }
@@ -4292,7 +4318,7 @@ v5.06:
     // Next 2 highest → Bulk Sweep. Remainder → Unloader (lowest hours, least total).
     function htBuildBreakdown(){
         if(!hoursState.shiftStarted)return '';
-        const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut');
+        const engaged=hoursState.employees.filter(e=>e.status==='active'||e.status==='cut'||e.status==='moved');
         if(!engaged.length)return '';
         // Sort descending by hours — no special Robert default, pure merit-based
         const sorted=[...engaged].sort((a,b)=>htCalcHours(b)-htCalcHours(a));
@@ -4380,6 +4406,99 @@ v5.06:
             emp.startTime=null;
         }
         htSaveState();htRenderAll();htCheckOverDOP();
+    }
+    // -- Tap a name: put on / take off the board ----------------
+    // Cut, moved (working another line) and locked people do not toggle -- a stray tap
+    // must not wipe someone's night. Their row shakes and points at the options.
+    function htTapEmployee(id){
+        const emp=hoursState.employees.find(e=>e.id===id);if(!emp)return;
+        const why=emp.locked?'is locked':emp.status==='cut'?'is cut':emp.status==='moved'?'is on '+(emp.movedTo||'another line'):null;
+        if(why){
+            const row=document.getElementById('ht-row-'+id);
+            if(row){row.classList.remove('ht-shake');void row.offsetWidth;row.classList.add('ht-shake');setTimeout(()=>row.classList.remove('ht-shake'),420)}
+            showToast(emp.name+' '+why+' — use ⋯ options');return}
+        if(emp.status==='inactive')htActivateEmployee(id);
+        else if(emp.status==='active')htDeactivateEmployee(id);
+    }
+    // Back to inactive with a clean slate. Asks first if it would throw away hours.
+    function htDeactivateEmployee(id,opts){
+        const emp=hoursState.employees.find(e=>e.id===id);
+        if(!emp||emp.status==='inactive')return false;
+        const hrs=htCalcHours(emp);
+        if(!(opts&&opts.skipConfirm)&&hrs>=0.005&&!confirm('Take '+emp.name+' off the board? Their '+htFmtHrs(hrs)+' hours will be cleared.'))return false;
+        emp.status='inactive';emp.startTime=null;emp.customStartStr=null;emp.frozenHours=0;emp.cutTime=null;
+        emp.pausedMs=0;emp.manualRole=null;emp.movedTo=null;delete emp.preCutManualRole;emp.role=null;
+        htSaveState();htRenderAll();htCheckOverDOP();
+        return true;
+    }
+    // Working another PS line for a while: the PS9 clock stops (hours frozen, like a
+    // cut) and they drop out of the PS9 roles and the DOP count until they return.
+    const HT_OTHER_LINES=['PS1','PS2','PS3','PS4','PS5','PS6','PS7','PS8','PS10','PS11','PS12'];
+    function htMoveEmployee(id,line){
+        const emp=hoursState.employees.find(e=>e.id===id);
+        if(!emp||!HT_OTHER_LINES.includes(line))return false;
+        if(emp.status==='active'){
+            emp.preCutManualRole=emp.manualRole||null;
+            emp.frozenHours=htCalcHours(emp);emp.cutTime=Date.now();emp.manualRole=null;
+        }else if(emp.status!=='cut')return false;
+        emp.status='moved';emp.movedTo=line;emp.role=null;
+        htSaveState();htRenderAll();htCheckOverDOP();
+        return true;
+    }
+    // Back on the PS9 clock; the time away is banked so it is not credited.
+    function htReturnEmployee(id){
+        const emp=hoursState.employees.find(e=>e.id===id);
+        if(!emp||emp.status!=='moved')return false;
+        if(!emp.startTime){alert(emp.name+' has no start time to resume from.');return false}
+        if(emp.cutTime)emp.pausedMs=(emp.pausedMs||0)+Math.max(0,htFloorMin(Date.now())-htFloorMin(emp.cutTime));
+        emp.status='active';emp.cutTime=null;emp.frozenHours=0;emp.movedTo=null;
+        if(emp.preCutManualRole!==undefined){emp.manualRole=emp.preCutManualRole;delete emp.preCutManualRole;}
+        hoursState.shiftEnded=false;
+        htSaveState();htRenderAll();htCheckOverDOP();
+        return true;
+    }
+    function htToggleLock(id){
+        const emp=hoursState.employees.find(e=>e.id===id);if(!emp)return;
+        emp.locked=!emp.locked;htSaveState();htRenderAll();
+    }
+    function htUseShiftStart(id){
+        const emp=hoursState.employees.find(e=>e.id===id);if(!emp)return;
+        emp.customStartStr=null;
+        if(emp.status==='active'&&hoursState.shiftStartTime)emp.startTime=new Date(hoursState.shiftStartTime);
+        htSaveState();htRenderAll();
+    }
+    // -- Options sheet (the row's more button) ----------------
+    function htOpenOptions(id,view){
+        const emp=hoursState.employees.find(e=>e.id===id);if(!emp)return;
+        const opt=(icon,label,sub,act,danger)=>`<div class="ht-role-option" role="button" tabindex="0" onclick="${act}">
+            <div class="ht-role-opt-icon">${icon}</div><div><div class="ht-role-opt-label"${danger?' style="color:var(--accent-red);"':''}>${label}</div>
+            <div class="ht-role-opt-sub">${sub}</div></div></div>`;
+        const close="htCloseModal('ht-opts-modal');";
+        const st=emp.status;
+        document.getElementById('ht-opts-title').textContent=emp.name;
+        const sub=st==='inactive'?'Not working':st==='active'?(emp.startTime&&emp.startTime.getTime()>Date.now()?'Scheduled · starts '+htFmtTimeShort(emp.startTime):'Working · '+htFmtHrs(htCalcHours(emp))+' hrs'):
+            st==='cut'?'Cut · '+htFmtHrs(htCalcHours(emp))+' hrs':'On '+(emp.movedTo||'another line')+' · '+htFmtHrs(htCalcHours(emp))+' hrs on PS9';
+        document.getElementById('ht-opts-sub').textContent=sub+(emp.locked?' · Locked':'');
+        const list=document.getElementById('ht-opts-list');
+        if(view==='lines'){
+            list.innerHTML='<div class="ht-line-grid">'+HT_OTHER_LINES.map(l=>`<button class="ht-line-btn" onclick="${close}htMoveEmployee(${id},'${l}')">${l}</button>`).join('')+'</div>'+
+                opt('←','Back','',`htOpenOptions(${id})`);
+            htOpenModal('ht-opts-modal');return}
+        let h='';
+        if(st==='inactive')h+=opt('▶️','Mark working','Put on the board now',`${close}htActivateEmployee(${id})`);
+        if(st==='active'||st==='cut')h+=opt('🔄','Role','Auto, Belt Tender, Bulk Sweep or Unloader',`${close}htOpenRoleModal(${id})`);
+        if(st==='cut')h+=opt('\ud83d\udd52','Edit times','Change the start and cut times',`${close}htOpenEditTimes(${id})`);
+        else if(st!=='moved')h+=opt('🕒','Start time',emp.customStartStr?'Set to '+emp.customStartStr:'Uses the shift start',`${close}htOpenCustomTime(${id})`);
+        if(emp.customStartStr&&st!=='moved')h+=opt('↩️','Use shift start','Clear the custom start time',`${close}htUseShiftStart(${id})`);
+        if(st==='active')h+=opt('✂️','Cut','Stop the clock',`${close}htCutEmployee(${id})`);
+        if(st==='cut')h+=opt('⏯️','Put back on the clock','Start a new stretch; the gap is not counted',`${close}htUncutEmployee(${id})`);
+        if(st==='active'||st==='cut')h+=opt('➡️','Move to another line','Stops the PS9 clock and keeps the hours',`htOpenOptions(${id},'lines')`);
+        if(st==='moved')h+=opt('⬅️','Return to PS9','Back on the PS9 clock; the time away is not counted',`${close}htReturnEmployee(${id})`);
+        h+=opt(emp.locked?'🔓':'🔒',emp.locked?'Unlock':'Lock',emp.locked?'Tapping the name works again':'Stops a tap on the name from changing them',`${close}htToggleLock(${id})`);
+        if(st!=='inactive')h+=opt('⏹️','Remove from shift','Off the board; their hours are cleared',`${close}htDeactivateEmployee(${id})`,true);
+        if(!isPermanentMember(emp.name))h+=opt('🗑️','Delete','Remove this added employee from the team',`${close}deleteTeamMember(${JSON.stringify(emp.name).replace(/"/g,'&quot;')})`,true);
+        list.innerHTML=h;
+        htOpenModal('ht-opts-modal');
     }
     function htCutEmployee(id){
         const emp=hoursState.employees.find(e=>e.id===id);
@@ -4654,7 +4773,8 @@ v5.06:
             else if(bulkFilled<bulkMax){emp.role='bulk';bulkFilled++;}
             else{emp.role='unload';}
         });
-        hoursState.employees.filter(e=>e.status==='inactive').forEach(e=>{e.role=null;});
+        // Inactive and moved (working another line) hold no PS9 role.
+        hoursState.employees.filter(e=>e.status==='inactive'||e.status==='moved').forEach(e=>{e.role=null;});
     }
 
     // -- DOP calculation -----------------------------------
@@ -4735,48 +4855,55 @@ v5.06:
     function htRenderRow(emp,rank){
         const hrs=htCalcHours(emp);
         const roleCfg=emp.role?HT_ROLES[emp.role]:null;
+        const isMoved=emp.status==='moved';
         const rowCls=['ht-emp-row',
             emp.status==='active'?'ht-active':'',
-            emp.status==='cut'?'ht-cut':'',
-            emp.role?'ht-role-'+emp.role:'',
-            emp.status!=='inactive'?'ht-clickable':''].filter(Boolean).join(' ');
-        const rankTxt=emp.status!=='inactive'?rank+1:'--';
+            (emp.status==='cut'||isMoved)?'ht-cut':'',
+            isMoved?'ht-moved':'',
+            emp.role?'ht-role-'+emp.role:''].filter(Boolean).join(' ');
+        const rankTxt=(emp.status==='active'||emp.status==='cut')?rank+1:'--';
+        const future=emp.status==='active'&&emp.startTime&&emp.startTime.getTime()>Date.now();
         const startTs=emp.startTime?htFmtTime(emp.startTime):(emp.customStartStr||'');
         let meta='';
         if(isPS9Core(emp.name))meta+='<span class="ps9-core-tag" title="PS9 Twilight">PS9</span>';
         if(roleCfg)meta+='<span class="ht-role-tag '+roleCfg.tagCls+'">'+roleCfg.label+'</span>';
         if(emp.status==='cut')meta+='<span class="ht-cut-badge">Cut</span>';
-        if(emp.manualRole)meta+='<span class="ht-tag-manual">\ud83d\udccc Pinned</span>';
-        if(startTs)meta+='<span class="ht-emp-ts">'+startTs+'</span>';
+        if(isMoved)meta+='<span class="ht-moved-tag">→ '+escHTML(emp.movedTo||'')+'</span>';
+        if(emp.manualRole)meta+='<span class="ht-tag-manual">📌 Pinned</span>';
+        if(emp.locked)meta+='<span class="ht-lock-tag">🔒 Locked</span>';
+        if(future)meta+='<span class="ht-sched-tag">Starts '+htFmtTimeShort(emp.startTime)+'</span>';
+        else if((emp.status==='cut'||isMoved)&&emp.startTime&&emp.cutTime)meta+='<span class="ht-emp-ts">'+htFmtTimeShort(emp.startTime)+'–'+htFmtTimeShort(new Date(emp.cutTime))+'</span>';
+        else if(startTs)meta+='<span class="ht-emp-ts">'+startTs+'</span>';
         const hrsHTML=emp.status!=='inactive'
             ?'<div class="ht-hrs">'+htFmtHrs(hrs)+'</div><div class="ht-hrs-lbl">hrs</div>'
             :'<div class="ht-hrs" style="color:var(--text-muted);font-size:18px;">--</div>';
-        const rowClick=emp.status!=='inactive'?'onclick="htOpenRoleModal('+emp.id+',event)"':'';
+        const rowClick='';
+        const more='<button class="ht-btn ht-btn-more" onclick="htOpenOptions('+emp.id+');event.stopPropagation()" aria-label="Options for '+escHTML(emp.name)+'" title="Options">⋯</button>';
         let actHTML='';
+        // One main action per state plus the options button; start/end time edits live in
+        // the options sheet (the times still show under the name). With a third button
+        // the row overflowed a 375px screen.
         if(emp.status==='inactive'){
-            const ctLbl=emp.customStartStr?emp.customStartStr+' ✎':'Time';
             actHTML='<div class="ht-actions">'+
                 '<button class="ht-btn ht-btn-start" onclick="htActivateEmployee('+emp.id+');event.stopPropagation()">Start</button>'+
-                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()">'+ctLbl+'</button>'+
-                '</div>';
+                more+'</div>';
         }else if(emp.status==='active'){
-            const ts=emp.startTime?htFmtTimeShort(emp.startTime):'--';
             actHTML='<div class="ht-actions">'+
                 '<button class="ht-btn ht-btn-cut" onclick="htCutEmployee('+emp.id+');event.stopPropagation()">Cut</button>'+
-                '<button class="ht-btn ht-btn-time" onclick="htOpenCustomTime('+emp.id+');event.stopPropagation()" title="Edit start time">'+ts+' ✎</button>'+
-                '</div>';
-        }else{
-            const ts=emp.customStartStr?emp.customStartStr:(emp.startTime?htFmtTimeShort(emp.startTime):'--');
-            const cutTs=emp.cutTime?htFmtTimeShort(new Date(emp.cutTime)):'--';
+                more+'</div>';
+        }else if(isMoved){
             actHTML='<div class="ht-actions ht-actions-cut">'+
-                '<button class="ht-btn ht-btn-time ht-btn-compact" onclick="htOpenEditTimes('+emp.id+');event.stopPropagation()" title="Edit start and end times">'+ts+' \u2013 '+cutTs+' \u270e</button>'+
+                '<button class="ht-btn ht-btn-undo" onclick="htReturnEmployee('+emp.id+');event.stopPropagation()" title="Return '+escHTML(emp.name)+' to PS9" aria-label="Return to PS9">PS9</button>'+
+                more+'</div>';
+        }else{
+            actHTML='<div class="ht-actions ht-actions-cut">'+
                 '<button class="ht-btn ht-btn-undo" onclick="htUncutEmployee('+emp.id+');event.stopPropagation()" title="Undo cut -- put '+escHTML(emp.name)+' back to work" aria-label="Undo cut"><i class="ph ph-arrow-u-up-left"></i></button>'+
-                '</div>';
+                more+'</div>';
         }
         return'<div class="'+rowCls+'" id="ht-row-'+emp.id+'" '+rowClick+'>'+
             '<div class="ht-rank">'+rankTxt+'</div>'+
             '<div class="ht-role-icon">'+( roleCfg?roleCfg.icon:'\u00b7')+'</div>'+
-            '<div class="ht-emp-info">'+
+            '<div class="ht-emp-info" onclick="htTapEmployee('+emp.id+')" role="button" tabindex="0" aria-label="'+escHTML(emp.name)+(emp.status==='inactive'?', tap to put on the board':emp.status==='active'?', tap to take off the board':'')+'">'+
                 '<div class="ht-emp-name">'+escHTML(emp.name)+'</div>'+
                 '<div class="ht-emp-meta">'+meta+'</div>'+
             '</div>'+
@@ -4807,10 +4934,11 @@ v5.06:
             if(a.startTime&&b.startTime)return a.startTime-b.startTime;
             return 0;
         });
+        const moved=hoursState.employees.filter(e=>e.status==='moved');
         const actSect=document.getElementById('ht-active-section');
-        if(actSect)actSect.style.display=engaged.length?'flex':'none';
+        if(actSect)actSect.style.display=(engaged.length||moved.length)?'flex':'none';
         const actList=document.getElementById('ht-active-list');
-        if(actList)actList.innerHTML=sortedEngaged.map((e,i)=>htRenderRow(e,i)).join('');
+        if(actList)actList.innerHTML=sortedEngaged.map((e,i)=>htRenderRow(e,i)).join('')+moved.map(e=>htRenderRow(e,-1)).join('');
         const inactList=document.getElementById('ht-inactive-list');
         if(inactList)inactList.innerHTML=inactive.map(e=>htRenderRow(e,-1)).join('');
         hoursState.employees.forEach(e=>{e.prevRole=e.role;});
@@ -4921,6 +5049,19 @@ v5.06:
     <div class="h-modal-row">
       <button class="h-modal-cancel" onclick="htCloseModal('ht-time-modal')">Cancel</button>
       <button class="h-modal-confirm" onclick="htApplyCustomTime()">Set Time</button>
+    </div>
+  </div>
+</div>
+
+<!-- Employee options (the row's more button) -->
+<div class="h-modal-overlay" id="ht-opts-modal" onclick="htOverlayClick(event,'ht-opts-modal')">
+  <div class="h-modal-sheet">
+    <div class="h-modal-handle"></div>
+    <div class="h-modal-title" id="ht-opts-title">Options</div>
+    <p class="h-modal-note" id="ht-opts-sub"></p>
+    <div class="ht-role-options" id="ht-opts-list"></div>
+    <div class="h-modal-row">
+      <button class="h-modal-cancel" onclick="htCloseModal('ht-opts-modal')">Close</button>
     </div>
   </div>
 </div>
