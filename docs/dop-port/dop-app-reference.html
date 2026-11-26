@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>PS9 DOP Tracker</title>
+  <style>
+    :root {
+      --bg: #0b1020; --surface: #131a2e; --surface-2: #1a2340; --text: #eef2ff;
+      --muted: #8b95b5; --border: rgba(255, 255, 255, .08); --accent: #6366f1;
+      --good: #34d399; --good-bg: rgba(52, 211, 153, .14); --short: #fb7185;
+      --over: #fbbf24; --moved: #60a5fa; --moved-bg: rgba(96, 165, 250, .12);
+      --cut: #fb923c; --cut-bg: rgba(251, 146, 60, .10);
+      --g-regular: #6366f1; --g-double: #cbd5e1; --g-added: #f472b6;
+      --sched: #c084fc; --sched-bg: rgba(192, 132, 252, .12);
+      --role-unloader: #818cf8; --role-sweep: #fbbf24; --role-belt: #2dd4bf;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -200px, #1e2550 0%, var(--bg) 60%) fixed, var(--bg);
+      color: var(--text); margin: 0; min-height: 100vh;
+      padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+      display: flex; justify-content: center; -webkit-font-smoothing: antialiased;
+    }
+    .container { width: 100%; max-width: 520px; }
+    button { font: inherit; color: inherit; }
+
+    header { text-align: center; margin-bottom: 18px; }
+    h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+    h1 span { color: var(--accent); }
+    .date { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+    }
+    .section-label { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+
+    /* Shift start */
+    .start-card { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+      background: linear-gradient(135deg, rgba(99, 102, 241, .22), rgba(99, 102, 241, .06)), var(--surface);
+      border-color: rgba(99, 102, 241, .35); }
+    .start-time { display: flex; align-items: center; gap: 6px; font-size: 2.2rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    /* Each half of the time is a tile; an invisible select over it opens the native picker. */
+    .digit {
+      position: relative; display: grid; place-items: center; min-width: 2.6ch; padding: 8px 10px;
+      border-radius: 12px; background: rgba(11, 16, 32, .55); border: 1px solid rgba(255, 255, 255, .08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .digit:hover, .digit:focus-within { border-color: var(--accent); background: rgba(99, 102, 241, .18); }
+    .digit select {
+      position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+      -webkit-appearance: none; appearance: none; border: 0; font-size: 16px;
+    }
+    .colon { color: var(--muted); font-weight: 700; padding-bottom: 4px; }
+    .emp-start { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .emp-start .start-time { font-size: 1.5rem; }
+    .emp-start .digit { padding: 6px 8px; border-radius: 10px; }
+    .emp-start-note { color: var(--muted); font-size: .8rem; font-weight: 600; }
+    .emp-start-note.late { color: var(--cut); }
+    .emp-start-note.sched { color: var(--sched); }
+    .start-card .section-label { margin-bottom: 8px; }
+    .start-card .start-time { justify-content: center; }
+    .start-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .start-btns:empty { display: none; }
+    .start-status { color: var(--muted); font-size: .8rem; font-weight: 600; }
+    .start-status b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .start-btns { display: flex; gap: 6px; }
+    .pill-btn {
+      border: 0; border-radius: 99px; padding: 7px 12px; background: var(--accent); color: #fff;
+      font-size: .75rem; font-weight: 700; cursor: pointer;
+    }
+    .pill-btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+    /* Reset */
+    .reset-btn {
+      display: block; width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(251, 113, 133, .35);
+      background: transparent; color: var(--short); font-weight: 700; cursor: pointer; transition: background .15s, color .15s;
+    }
+    .reset-btn.armed { background: var(--short); color: #2a0a10; }
+
+    /* Hours */
+    .hours-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .hours-head .section-label { margin: 0; }
+    .role-hours { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+    .role-hours div { background: var(--surface-2); border-radius: 10px; padding: 8px 4px; min-width: 0; }
+    .role-hours .k { display: flex; justify-content: center; align-items: center; gap: 5px; font-size: .68rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .role-hours .v { font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .role-hours .total { background: rgba(99, 102, 241, .18); }
+    .role-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .role-dot.unloader { background: var(--role-unloader); }
+    .role-dot.sweep { background: var(--role-sweep); }
+    .role-dot.belt { background: var(--role-belt); }
+
+    /* Plan selector */
+    .segmented { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--bg); border-radius: 12px; padding: 4px; gap: 4px; }
+    .segmented button {
+      border: 0; background: transparent; padding: 10px; border-radius: 9px; font-weight: 700;
+      color: var(--muted); cursor: pointer; transition: background .15s, color .15s;
+    }
+    .segmented button small { display: block; font-size: 10px; font-weight: 600; line-height: 1.1; opacity: .8; }
+    .segmented button[aria-checked="true"] { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(99, 102, 241, .4); }
+
+    /* Tally */
+    .tally { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-top: 10px; }
+    .stat { background: var(--surface-2); border-radius: 12px; padding: 8px 6px; }
+    .stat .k { font-size: .65rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stat .v { font-size: 1.5rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .v.is-good { color: var(--good); } .v.is-short { color: var(--short); }
+    .progress { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+    .progress div { height: 100%; width: 0; background: var(--short); border-radius: 99px; transition: width .25s, background .25s; }
+    .progress div.is-good { background: var(--good); } .progress div.is-over { background: var(--over); }
+    .split { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+    .split span { display: inline-flex; align-items: center; gap: 5px; }
+    .split b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .split .status { color: var(--text); }
+
+    /* Roster */
+    .roster-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .hint { color: var(--muted); font-size: .78rem; margin-bottom: 10px; }
+    .roster { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .emp {
+      display: flex; align-items: stretch; background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; transition: background .15s, border-color .15s, transform .1s;
+    }
+    .emp-name {
+      flex: 1; display: flex; align-items: center; gap: 10px; border: 0; background: transparent;
+      padding: 10px; text-align: left; cursor: pointer; font-weight: 600; min-width: 0;
+    }
+    .emp-name:active { transform: scale(.98); }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; flex: none; display: grid; place-items: center;
+      background: rgba(255, 255, 255, .08); font-size: .8rem; font-weight: 800; color: var(--muted);
+    }
+    .emp-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .emp-sub { display: block; font-size: .7rem; font-weight: 600; color: var(--muted); }
+    .emp-sub .r-sweep { color: var(--role-sweep); } .emp-sub .r-belt { color: var(--role-belt); }
+    .emp-sub .auto { font-style: italic; opacity: .8; }
+    .emp-opts {
+      border: 0; border-left: 1px solid var(--border); background: transparent; width: 36px; flex: none;
+      cursor: pointer; color: var(--muted); font-size: 1.2rem; line-height: 1;
+    }
+    .add-emp { border-style: dashed; background: transparent; }
+    /* Staff group: a colored stripe down the left edge of the tile (PS9 regulars, doubles,
+       added for the shift), separate from the tile color, which shows working/cut/etc. */
+    .emp.g-regular { box-shadow: inset 4px 0 0 var(--g-regular); }
+    .emp.g-double { box-shadow: inset 4px 0 0 var(--g-double); }
+    .emp.g-added { box-shadow: inset 4px 0 0 var(--g-added); }
+    .roster-group {
+      grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 6px 0 -2px;
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    }
+    .roster-group:first-child { margin-top: 0; }
+    .roster-group i { width: 10px; height: 10px; border-radius: 3px; }
+    .roster-group span { color: var(--muted); font-weight: 600; letter-spacing: 0; text-transform: none; }
+    /* Added employees also get a "+" badge on the avatar. */
+    .emp.g-added .avatar { position: relative; }
+    .emp.g-added .avatar::after {
+      content: "+"; position: absolute; right: -4px; bottom: -4px; width: 15px; height: 15px; border-radius: 50%;
+      display: grid; place-items: center; background: var(--g-added); color: #3b0a24; font-size: .7rem; font-weight: 800;
+      line-height: 1; border: 2px solid var(--surface-2);
+    }
+    .emp-sub .added-tag { color: var(--g-added); }
+    .add-emp .avatar { background: rgba(99, 102, 241, .2); color: var(--accent); font-size: 1rem; }
+    .add-emp .emp-label { color: var(--muted); }
+    .add-form { display: flex; gap: 6px; padding: 6px; width: 100%; }
+    .add-form input {
+      flex: 1; min-width: 0; height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--accent);
+      background: var(--bg); color: var(--text); font: inherit; font-size: 16px; font-weight: 600;
+    }
+    .add-form input:focus { outline: none; }
+    .add-form button {
+      width: 34px; flex: none; border: 0; border-radius: 8px; background: var(--surface); color: var(--muted);
+      cursor: pointer; font-weight: 700;
+    }
+    .add-form button[type="submit"] { background: var(--accent); color: #fff; }
+    .emp-opts:hover { color: var(--text); background: rgba(255, 255, 255, .04); }
+    .emp.present { background: var(--good-bg); border-color: rgba(52, 211, 153, .5); }
+    .emp.present .avatar { background: var(--good); color: #052e1f; }
+    .emp.present .emp-sub { color: var(--good); }
+    .emp.scheduled { background: var(--sched-bg); border-color: rgba(192, 132, 252, .5); }
+    .emp.scheduled .avatar { background: var(--sched); color: #240b36; }
+    .emp.scheduled .emp-sub { color: var(--sched); }
+    .emp.cut { background: var(--cut-bg); border-color: rgba(251, 146, 60, .45); border-style: dashed; }
+    .emp.cut .avatar { background: var(--cut); color: #2a1204; }
+    .emp.cut .emp-sub { color: var(--cut); }
+    .emp.moved { background: var(--moved-bg); border-color: rgba(96, 165, 250, .35); border-style: dashed; }
+    .emp.moved .avatar { background: var(--moved); color: #0b1a33; }
+    .emp.moved .emp-sub { color: var(--moved); }
+    .emp.locked .emp-name { cursor: not-allowed; }
+    .lock { width: 12px; height: 12px; margin-left: auto; flex: none; color: var(--muted); }
+    .emp.shake { animation: shake .3s; }
+    @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+    /* Time sheet */
+    summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "▾"; color: var(--muted); transition: transform .15s; }
+    details[open] summary::after { transform: rotate(180deg); }
+    details[open] summary { margin-bottom: 10px; }
+    summary .section-label { margin: 0; }
+    .sheet-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; font-variant-numeric: tabular-nums; }
+    th { text-align: left; font-size: .65rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0 6px 6px; }
+    td { padding: 7px 6px; border-top: 1px solid var(--border); white-space: nowrap; }
+    th:last-child, td:last-child { text-align: right; }
+    td.muted { color: var(--muted); }
+    td .on { color: var(--good); font-weight: 700; }
+    td .sched { color: var(--sched); font-weight: 700; }
+    td .cut { color: var(--cut); }
+    td .moved { color: var(--moved); }
+    tfoot td { font-weight: 800; }
+    .not-working { color: var(--muted); font-size: .8rem; margin: 10px 0 0; }
+
+    /* Options sheet */
+    dialog {
+      border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 520px; background: var(--surface);
+      color: var(--text); border-radius: 22px 22px 0 0; box-shadow: 0 -20px 60px rgba(0, 0, 0, .5);
+    }
+    dialog::backdrop { background: rgba(5, 8, 20, .65); backdrop-filter: blur(4px); }
+    dialog[open] { animation: up .2s ease-out; }
+    @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+    @media (min-width: 560px) { dialog { margin: auto; border-radius: 22px; } }
+    .sheet { padding: 20px 18px max(20px, env(safe-area-inset-bottom)); }
+    .sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .sheet-head .avatar { width: 42px; height: 42px; font-size: 1rem; }
+    .sheet-head h2 { margin: 0; font-size: 1.15rem; }
+    .sheet-head p { margin: 2px 0 0; color: var(--muted); font-size: .85rem; }
+    .sheet-x {
+      margin-left: auto; align-self: flex-start; width: 36px; height: 36px; flex: none; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--surface-2); color: var(--muted);
+      font-size: 1rem; font-weight: 700; line-height: 1; cursor: pointer;
+    }
+    .sheet-x:hover { color: var(--text); border-color: rgba(255, 255, 255, .2); }
+    .sheet-x:focus:not(:focus-visible) { outline: none; }
+    .roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+    .roles button {
+      padding: 10px 4px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg);
+      cursor: pointer; font-weight: 700; font-size: .8rem;
+    }
+    .roles button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .actions { display: grid; gap: 8px; }
+    .action {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; text-align: left; font-weight: 600;
+    }
+    .action:hover { border-color: rgba(255, 255, 255, .18); }
+    .action .ico { width: 22px; text-align: center; }
+    .lines { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 4px; }
+    .lines button {
+      padding: 12px 0; border-radius: 10px; border: 1px solid var(--border); background: var(--bg);
+      cursor: pointer; font-weight: 700;
+    }
+    .lines button[aria-current="true"] { background: var(--moved); color: #0b1a33; border-color: var(--moved); }
+    .close-btn { width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
+      background: #e2e8f0; color: #0b1020; padding: 10px 16px; border-radius: 99px; font-size: .85rem; font-weight: 600;
+      opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span>PS9</span> DOP Tracker</h1>
+    <div class="date" id="date"></div>
+  </header>
+
+  <section class="card start-card">
+    <div>
+      <p class="section-label">Shift start</p>
+      <div class="start-time">
+        <label class="digit"><span id="startHText"></span><select id="startH" aria-label="Start hour"></select></label>
+        <span class="colon">:</span>
+        <label class="digit"><span id="startMText"></span><select id="startM" aria-label="Start minute"></select></label>
+      </div>
+    </div>
+    <div class="start-side">
+      <div class="start-status" id="startStatus"></div>
+      <div class="start-btns" id="startBtns"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="segmented" role="radiogroup" aria-label="Daily Operating Plan" id="plans"></div>
+    <div class="tally">
+      <div class="stat"><div class="k">DOP</div><div class="v" id="vDop">9</div></div>
+      <div class="stat"><div class="k">Working</div><div class="v" id="vWorking">0</div></div>
+      <div class="stat"><div class="k">Down</div><div class="v" id="vDown">0</div></div>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="split" id="split"></div>
+  </section>
+
+  <section class="card">
+    <div class="roster-head">
+      <p class="section-label">Roster</p>
+    </div>
+    <div class="roster" id="roster"></div>
+  </section>
+
+  <section class="card">
+    <div class="hours-head">
+      <p class="section-label">Hours</p>
+    </div>
+    <div class="role-hours">
+      <div><div class="k"><i class="role-dot unloader"></i>Unload</div><div class="v" id="h-unloader">0.00</div></div>
+      <div><div class="k"><i class="role-dot sweep"></i>Sweep</div><div class="v" id="h-sweep">0.00</div></div>
+      <div><div class="k"><i class="role-dot belt"></i>Belt</div><div class="v" id="h-belt">0.00</div></div>
+      <div class="total"><div class="k">Total</div><div class="v" id="h-total">0.00</div></div>
+    </div>
+  </section>
+
+  <details class="card">
+    <summary><span class="section-label">Time sheet</span></summary>
+    <div class="sheet-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Role</th><th>In</th><th>Out</th><th>Hrs</th></tr></thead>
+        <tbody id="tsBody"></tbody>
+        <tfoot><tr><td colspan="4">Total</td><td id="tsTotal">0.00</td></tr></tfoot>
+      </table>
+    </div>
+    <p class="not-working" id="notWorking"></p>
+  </details>
+
+  <button class="reset-btn" id="resetBtn" type="button">Reset everything</button>
+</div>
+
+<dialog id="sheet">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div class="avatar" id="sAvatar"></div>
+      <div><h2 id="sName"></h2><p id="sStatus"></p></div>
+      <!-- autofocus: opening the panel focuses this instead of the start-time picker,
+           which iOS would otherwise open straight away. -->
+      <button class="sheet-x" id="sX" type="button" aria-label="Close" autofocus>✕</button>
+    </div>
+    <div id="eStartWrap" hidden>
+      <p class="section-label" id="eStartLabel">Start time</p>
+      <div class="emp-start">
+        <div class="start-time">
+          <label class="digit"><span id="eHText"></span><select id="eH" aria-label="Employee start hour"></select></label>
+          <span class="colon">:</span>
+          <label class="digit"><span id="eMText"></span><select id="eM" aria-label="Employee start minute"></select></label>
+        </div>
+        <span class="emp-start-note" id="eStartNote"></span>
+        <button class="pill-btn ghost" id="eStartReset" type="button">Use shift start</button>
+      </div>
+    </div>
+    <p class="section-label">Role</p>
+    <div class="roles" id="sRoles"></div>
+    <div class="actions" id="sActions"></div>
+    <div id="sLines" hidden>
+      <p class="section-label" style="margin-top:16px">Move to PS line</p>
+      <div class="lines" id="lines"></div>
+    </div>
+    <button class="close-btn" id="sClose" type="button">Done</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+  // Bump on every change that ships, so the version on screen shows which build is loaded.
+  var VERSION = "2.14.1";
+  // Regular PS9 staff in seniority order, then doubles. Both stay on the roster every shift.
+  var REGULARS = ["Robert", "Russell", "David", "Matt", "Tre", "Eddie", "Gilbert", "Luis", "Pablo", "Elliot", "Lorena"];
+  var DOUBLES = ["Solis", "Damian", "Johnny"];
+  var STAFF = REGULARS.concat(DOUBLES);
+  // Default roles for people left on Auto: picking another role in their options wins.
+  var DEFAULT_ROLES = { Robert: "belt", Tre: "sweep", Eddie: "sweep" };
+  // A plan is written unloaders-sweeps, so 7-2 requires 7 + 2 = 9 people on the floor.
+  // The belt tender is timed and documented but is not part of the DOP.
+  var PLANS = {
+    "5-2": { unloaders: 5, sweeps: 2 },
+    "6-2": { unloaders: 6, sweeps: 2 },
+    "7-2": { unloaders: 7, sweeps: 2 },
+    "8-2": { unloaders: 8, sweeps: 2 },
+    "9-2": { unloaders: 9, sweeps: 2, note: "*peak" }
+  };
+  var ROLES = [
+    { key: "unloader", one: "Unloader" },
+    { key: "sweep", one: "Sweep" },
+    { key: "belt", one: "Belt tender" }
+  ];
+  var HOME = "PS9";
+  var OTHER_LINES = ["PS1", "PS2", "PS3", "PS4", "PS5", "PS6", "PS7", "PS8", "PS10", "PS11", "PS12"];
+  var STORE_KEY = "ps9-dop-tracker";
+  var LOCK_SVG = '<svg class="lock" viewBox="0 0 24 24" fill="currentColor" aria-label="Locked"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2Zm-7-2a2 2 0 0 1 4 0v2h-4V7Z"/></svg>';
+
+  // The shift runs past midnight, so anything before noon belongs to the previous
+  // day's shift. That keeps the board and hours intact at 00:00.
+  var ROLLOVER_HOUR = 12;
+  var shiftDay = new Date();
+  if (shiftDay.getHours() < ROLLOVER_HOUR) shiftDay.setDate(shiftDay.getDate() - 1);
+  shiftDay.setHours(0, 0, 0, 0);
+  var today = shiftDay.toDateString();
+
+  // Fridays start at 19:30; every other night starts at 20:00.
+  function defaultStart(day) {
+    return day.getDay() === 5 ? "19:30" : "20:00";
+  }
+
+  // Per-employee state:
+  //   present  on the PS9 board this shift
+  //   segs     clock segments [{ in, out }] in ms; in === null means "from shift start",
+  //            out === null means still on the clock. Cut closes the last one; back on
+  //            clock opens a new one.
+  //   at       when they were marked working, used to pick automatic sweeps and belt
+  //   role     "auto" or a role key, as set in options
+  //   roleLog  the role they actually held over time [{ role, at }] (at === null means
+  //            from shift start); hours are split by role along it, so a role switch
+  //            moves only the time after the switch
+  //   locked, moved (null | "PS5")
+  // Saved for the current shift only, so a refresh keeps the board and the next shift
+  // starts clean.
+  var state = load();
+  var openName = null;
+
+  function blankPerson() {
+    return { present: false, segs: [], at: 0, locked: false, moved: null, role: "auto", roleLog: [] };
+  }
+
+  function blank() {
+    var people = {};
+    STAFF.forEach(function (n) { people[n] = blankPerson(); });
+    // extra: people added for this shift who are not on the regular staff list.
+    return { date: today, plan: "7-2", started: null, extra: [], people: people };
+  }
+
+  function load() {
+    var s = blank();
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (saved && saved.date === today) {
+        if (PLANS[saved.plan]) s.plan = saved.plan;
+        if (saved.started) s.started = saved.started;
+        (saved.extra || []).forEach(function (n) {
+          if (!s.people[n]) { s.extra.push(n); s.people[n] = blankPerson(); }
+        });
+        roster(s).forEach(function (n) {
+          var p = saved.people && saved.people[n];
+          if (!p) return;
+          s.people[n] = Object.assign(blankPerson(), p);
+          // Before 2.4.0 there were no clock segments; working meant on since shift start.
+          if (!p.segs && p.present && !p.moved) s.people[n].segs = [{ in: null, out: null }];
+          // Before 2.6.0 there was no role history; count all their time under one role.
+          if (!p.roleLog && s.people[n].segs.length) {
+            s.people[n].roleLog = [{ role: p.lastRole || (p.role === "auto" ? "unloader" : p.role), at: null }];
+          }
+        });
+      }
+    } catch (e) {}
+    return s;
+  }
+
+  // Everyone on the board this shift: the regular staff, then anyone added.
+  function roster(st) {
+    return STAFF.concat((st || state).extra);
+  }
+
+  function save() {
+    syncRoleLogs();
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  // "HH:MM" on the shift day. A time before noon is after midnight, so it falls on
+  // the next calendar day.
+  function shiftTime(hhmm) {
+    var parts = hhmm.split(':');
+    var d = new Date(shiftDay);
+    d.setHours(+parts[0], +parts[1], 0, 0);
+    if (+parts[0] < ROLLOVER_HOUR) d.setDate(d.getDate() + 1);
+    return d;
+  }
+
+  function shiftStart() {
+    return state.started || shiftTime(defaultStart(shiftDay)).getTime();
+  }
+
+  // All time math is done in whole minutes (seconds dropped), so 20:00 to 20:30 is
+  // exactly 30 minutes and two people over it are exactly 60.
+  function minuteOf(ms) { return Math.floor(ms / 60000); }
+  function hrs(mins) { return (mins / 60).toFixed(2); }
+  function clock(ms) {
+    var d = new Date(ms);
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+
+  function lastSeg(p) { return p.segs[p.segs.length - 1]; }
+  function onClock(p) { return p.present && !p.moved && p.segs.length > 0 && lastSeg(p).out === null; }
+  // Marked working with a start that hasn't arrived yet (a staggered start). They count
+  // toward staffing now; their hours begin at their start.
+  function isScheduled(p) {
+    return onClock(p) && p.segs.length === 1 && p.segs[0].in !== null && Date.now() < empStart(p);
+  }
+  function isCut(p) { return p.present && !p.moved && p.segs.length > 0 && lastSeg(p).out !== null; }
+
+  function minutesFor(p, now) {
+    var start = minuteOf(shiftStart());
+    var end = minuteOf(now);
+    var total = 0;
+    p.segs.forEach(function (seg) {
+      var a = Math.max(start, seg.in === null ? start : minuteOf(seg.in));
+      var b = seg.out === null ? end : minuteOf(seg.out);
+      total += Math.max(0, b - a);
+    });
+    return total;
+  }
+
+  // Effective role for everyone on the clock. Explicit roles win, then DEFAULT_ROLES
+  // (belt tender is otherwise only set by hand); open sweep slots go to "auto" people. People already on the floor go
+  // before anyone still scheduled; then whoever already holds sweep keeps it, so a new
+  // check-in never reshuffles anyone's hours; the rest are filled latest check-in first.
+  // Remaining "auto" people are unloaders. "auto" marks the ones picked automatically.
+  function assignRoles() {
+    var plan = PLANS[state.plan];
+    var eff = {}, auto = {};
+    var working = roster().filter(function (n) { return onClock(state.people[n]); });
+    working.forEach(function (n) {
+      var r = state.people[n].role;
+      if (r === "auto" && DEFAULT_ROLES[n]) { eff[n] = DEFAULT_ROLES[n]; auto[n] = true; }
+      else eff[n] = r === "auto" ? "unloader" : r;
+    });
+    var pool = working
+      .filter(function (n) { return state.people[n].role === "auto" && !DEFAULT_ROLES[n]; })
+      .sort(function (a, b) { return state.people[b].at - state.people[a].at; });
+    ["sweep"].forEach(function (role) {
+      var need = plan.sweeps -
+        working.filter(function (n) { return eff[n] === role; }).length;
+      var holding = function (n) {
+        var log = state.people[n].roleLog;
+        return log.length && log[log.length - 1].role === role ? 1 : 0;
+      };
+      var here = function (n) { return isScheduled(state.people[n]) ? 0 : 1; };
+      pool.sort(function (a, b) {
+        return here(b) - here(a) || holding(b) - holding(a) || state.people[b].at - state.people[a].at;
+      });
+      while (need-- > 0 && pool.length) {
+        var n = pool.shift();
+        eff[n] = role; auto[n] = true;
+      }
+    });
+    return { eff: eff, auto: auto };
+  }
+
+  // Record a role switch for anyone on the clock whose effective role changed, so their
+  // hours from now on count under the new role. Runs on every save, which follows every
+  // change that can move roles (check-ins, cuts, role picks, plan changes).
+  function syncRoleLogs() {
+    var eff = assignRoles().eff;
+    var now = Date.now();
+    Object.keys(eff).forEach(function (n) {
+      var log = state.people[n].roleLog;
+      if (!log.length) log.push({ role: eff[n], at: null });
+      else if (log[log.length - 1].role !== eff[n]) log.push({ role: eff[n], at: now });
+    });
+  }
+
+  // Minutes on the clock split by the role held at the time.
+  function roleMinutes(p, now) {
+    var out = { unloader: 0, sweep: 0, belt: 0 };
+    var start = minuteOf(shiftStart());
+    var end = minuteOf(now);
+    var log = p.roleLog.length ? p.roleLog : [{ role: "unloader", at: null }];
+    function edge(e) { return e.at === null ? -Infinity : minuteOf(e.at); }
+    p.segs.forEach(function (seg) {
+      var a = Math.max(start, seg.in === null ? start : minuteOf(seg.in));
+      var b = seg.out === null ? end : minuteOf(seg.out);
+      log.forEach(function (e, i) {
+        var from = Math.max(a, edge(e));
+        var to = Math.min(b, i + 1 < log.length ? edge(log[i + 1]) : Infinity);
+        if (to > from) out[e.role] += to - from;
+      });
+    });
+    return out;
+  }
+
+  function roleLabel(key) {
+    for (var i = 0; i < ROLES.length; i++) if (ROLES[i].key === key) return ROLES[i].one;
+    return "Auto";
+  }
+
+  function requiredFor(key) {
+    var p = PLANS[key];
+    return p ? p.unloaders + p.sweeps : 0;
+  }
+
+  // Clock actions
+  function markWorking(p) {
+    p.present = true;
+    p.at = Date.now();
+    p.segs = [{ in: null, out: null }];
+    p.roleLog = [];
+  }
+  function removeFromShift(p) {
+    p.present = false;
+    p.at = 0;
+    p.segs = [];
+    p.roleLog = [];
+  }
+  function cut(name) {
+    var p = state.people[name];
+    if (!onClock(p)) return;
+    lastSeg(p).out = Date.now();
+  }
+  function backOnClock(p) {
+    p.segs.push({ in: Date.now(), out: null });
+  }
+
+  function statusText(p) {
+    var now = Date.now();
+    if (p.moved) return "Moved to " + p.moved + (p.segs.length ? ' · ' + hrs(minutesFor(p, now)) + ' on PS9' : '');
+    if (isCut(p)) return "Cut at " + clock(lastSeg(p).out) + " · " + hrs(minutesFor(p, now));
+    if (isScheduled(p)) return "Scheduled · starts " + clock(empStart(p));
+    if (onClock(p)) return "On the clock · " + hrs(minutesFor(p, now));
+    return "Not working";
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1800);
+  }
+
+  function renderPlans() {
+    var el = document.getElementById('plans');
+    el.innerHTML = '';
+    Object.keys(PLANS).forEach(function (key) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', key === state.plan ? 'true' : 'false');
+      b.textContent = key;
+      // Every button gets the note line (blank when there is no note) so the labels line up.
+      var note = document.createElement('small');
+      note.textContent = PLANS[key].note || '\u00a0';
+      b.appendChild(note);
+      b.addEventListener('click', function () { state.plan = key; save(); render(); });
+      el.appendChild(b);
+    });
+  }
+
+  function renderRoster(roles) {
+    var el = document.getElementById('roster');
+    el.innerHTML = '';
+    [
+      { key: 'regular', label: 'PS9', names: REGULARS },
+      { key: 'double', label: 'Doubles', names: DOUBLES },
+      { key: 'added', label: 'Added this shift', names: state.extra }
+    ].forEach(function (group) {
+      if (!group.names.length) return;
+      var head = document.createElement('div');
+      head.className = 'roster-group';
+      head.innerHTML = '<i style="background:var(--g-' + group.key + ')"></i>' + group.label + ' <span>' + group.names.length + '</span>';
+      el.appendChild(head);
+      group.names.forEach(function (name) { el.appendChild(rosterTile(name, group.key, roles)); });
+    });
+    el.appendChild(addTile());
+  }
+
+  function rosterTile(name, groupKey, roles) {
+    var p = state.people[name];
+    var tile = document.createElement('div');
+    tile.className = 'emp g-' + groupKey + (p.moved ? ' moved' : isCut(p) ? ' cut' : isScheduled(p) ? ' scheduled' : onClock(p) ? ' present' : '') + (p.locked ? ' locked' : '');
+
+    var nameBtn = document.createElement('button');
+    nameBtn.type = 'button';
+    nameBtn.className = 'emp-name';
+    nameBtn.setAttribute('aria-pressed', onClock(p) ? 'true' : 'false');
+    nameBtn.innerHTML = '<span class="avatar"></span><span class="emp-label"></span>' + (p.locked ? LOCK_SVG : '');
+    nameBtn.querySelector('.avatar').textContent = name.charAt(0);
+    var added = groupKey === 'added';
+    if (added) nameBtn.querySelector('.avatar').title = 'Added for this shift';
+    var label = nameBtn.querySelector('.emp-label');
+    label.textContent = name;
+
+    // Sub-line: moved line, cut time, else their role when it is not a plain unloader
+    // (the green tile already says working), else "Working".
+    var role = roles.eff[name] || (p.role !== "auto" ? p.role : null);
+    var subHtml = p.moved ? '→ ' + p.moved
+      : isCut(p) ? 'Cut ' + clock(lastSeg(p).out)
+      : isScheduled(p) ? 'Starts ' + clock(empStart(p))
+      : role && role !== 'unloader' ? '<span class="r-' + role + (roles.auto[name] ? ' auto' : '') + '">' + roleLabel(role) + '</span>'
+      : onClock(p) ? 'Working'
+      : added ? '<span class="added-tag">Added</span>' : '';
+    if (subHtml) {
+      var sub = document.createElement('span');
+      sub.className = 'emp-sub';
+      sub.innerHTML = subHtml;
+      label.appendChild(sub);
+    }
+
+    nameBtn.addEventListener('click', function () {
+      if (p.locked || p.moved || isCut(p)) {
+        tile.classList.remove('shake'); void tile.offsetWidth; tile.classList.add('shake');
+        toast(name + (p.moved ? ' is on ' + p.moved : isCut(p) ? ' is cut' : ' is locked') + ' — use ⋯ options');
+        return;
+      }
+      if (onClock(p)) removeFromShift(p); else markWorking(p);
+      save(); render();
+    });
+
+    var optBtn = document.createElement('button');
+    optBtn.type = 'button';
+    optBtn.className = 'emp-opts';
+    optBtn.setAttribute('aria-label', 'Options for ' + name);
+    optBtn.textContent = '⋯';
+    optBtn.addEventListener('click', function () { openSheet(name); });
+
+    tile.appendChild(nameBtn);
+    tile.appendChild(optBtn);
+    return tile;
+  }
+
+  // "+ Add employee" tile: opens an inline name field. Added people last for this shift.
+  // The roster redraws every 30 seconds, so the typed name is kept in addDraft.
+  var addOpen = false, addDraft = '';
+  function addTile() {
+    var tile = document.createElement('div');
+    tile.className = 'emp add-emp';
+    if (!addOpen) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'emp-name';
+      b.innerHTML = '<span class="avatar">+</span><span class="emp-label">Add employee</span>';
+      b.addEventListener('click', function () { addOpen = true; render(); });
+      tile.appendChild(b);
+      return tile;
+    }
+    var form = document.createElement('form');
+    form.className = 'add-form';
+    form.innerHTML = '<input type="text" maxlength="20" placeholder="Name" aria-label="New employee name" autocomplete="off" autocapitalize="words">' +
+      '<button type="submit" aria-label="Add">✓</button><button type="button" aria-label="Cancel">✕</button>';
+    var input = form.querySelector('input');
+    input.value = addDraft;
+    input.addEventListener('input', function () { addDraft = input.value; });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      // Capitalize the first letter of each word ("jose luis" -> "Jose Luis").
+      var name = input.value.trim().replace(/\s+/g, ' ')
+        .replace(/(^|[\s-])(\S)/g, function (m, sep, c) { return sep + c.toUpperCase(); });
+      if (!name) { input.focus(); return; }
+      var taken = roster().some(function (n) { return n.toLowerCase() === name.toLowerCase(); });
+      if (taken) { toast(name + ' is already on the roster'); input.select(); return; }
+      state.extra.push(name);
+      state.people[name] = blankPerson();
+      addOpen = false; addDraft = '';
+      save(); render();
+      toast(name + ' added for this shift');
+    });
+    form.querySelector('button[type="button"]').addEventListener('click', function () { addOpen = false; addDraft = ''; render(); });
+    tile.appendChild(form);
+    setTimeout(function () { input.focus(); }, 0);
+    return tile;
+  }
+
+  function pillBtn(text, ghost, fn) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pill-btn' + (ghost ? ' ghost' : '');
+    b.textContent = text;
+    b.addEventListener('click', fn);
+    return b;
+  }
+
+  // The start card: the hour/minute pickers show the effective start in 24-hour time.
+  // Picking a time, or Start now, overrides the scheduled start; Scheduled puts it back.
+  function renderStart() {
+    var start = shiftStart();
+    var now = Date.now();
+    setPicker('start', start);
+
+    var scheduled = defaultStart(shiftDay);
+    document.getElementById('startStatus').innerHTML =
+      now < start
+        ? 'Starts in <b>' + hrs(minuteOf(start) - minuteOf(now)) + '</b>'
+        : 'Running <b>' + hrs(minuteOf(now) - minuteOf(start)) + '</b>';
+
+    var btns = document.getElementById('startBtns');
+    btns.innerHTML = '';
+    if (now < start) {
+      btns.appendChild(pillBtn('Start now', false, function () {
+        state.started = minuteOf(Date.now()) * 60000;
+        save(); render();
+        toast('Shift started at ' + clock(state.started));
+      }));
+    }
+    if (state.started) {
+      btns.appendChild(pillBtn('Scheduled ' + scheduled, true, function () {
+        state.started = null;
+        save(); render();
+      }));
+    }
+  }
+
+  function fillPicker(hEl, mEl) {
+    for (var h = 0; h < 24; h++) hEl.add(new Option(('0' + h).slice(-2)));
+    for (var m = 0; m < 60; m++) mEl.add(new Option(('0' + m).slice(-2)));
+  }
+
+  function setPicker(prefix, ms) {
+    var d = new Date(ms);
+    var hh = ('0' + d.getHours()).slice(-2), mm = ('0' + d.getMinutes()).slice(-2);
+    var hEl = document.getElementById(prefix + 'H'), mEl = document.getElementById(prefix + 'M');
+    if (document.activeElement !== hEl) hEl.value = hh;
+    if (document.activeElement !== mEl) mEl.value = mm;
+    document.getElementById(prefix + 'HText').textContent = hh;
+    document.getElementById(prefix + 'MText').textContent = mm;
+  }
+
+  // An employee's own start, for a late arrival: it moves the start of their first clock
+  // segment. A time at or before the shift start means "from shift start".
+  function buildEmpStartPicker() {
+    var hEl = document.getElementById('eH');
+    var mEl = document.getElementById('eM');
+    fillPicker(hEl, mEl);
+    function onPick() {
+      var p = state.people[openName];
+      if (!p || p.moved) return;
+      // Picking a start for someone not yet on the board schedules them.
+      if (!p.segs.length) markWorking(p);
+      var t = shiftTime(hEl.value + ':' + mEl.value).getTime();
+      p.segs[0].in = t <= shiftStart() ? null : t;
+      save(); render();
+      toast(openName + ' starts ' + clock(empStart(p)));
+    }
+    hEl.addEventListener('change', onPick);
+    mEl.addEventListener('change', onPick);
+    document.getElementById('eStartReset').addEventListener('click', function () {
+      var p = state.people[openName];
+      if (!p || !p.segs.length) return;
+      p.segs[0].in = null;
+      save(); render();
+    });
+  }
+
+  function empStart(p) {
+    var start = shiftStart();
+    return p.segs[0].in === null ? start : Math.max(start, p.segs[0].in);
+  }
+
+  function buildStartPickers() {
+    var hEl = document.getElementById('startH');
+    var mEl = document.getElementById('startM');
+    fillPicker(hEl, mEl);
+    function onPick() {
+      var t = shiftTime(hEl.value + ':' + mEl.value).getTime();
+      state.started = t === shiftTime(defaultStart(shiftDay)).getTime() ? null : t;
+      save(); render();
+      toast('Shift start set to ' + clock(shiftStart()));
+    }
+    hEl.addEventListener('change', onPick);
+    mEl.addEventListener('change', onPick);
+  }
+
+  // Reset needs a second tap within a few seconds, since the page cannot show a confirm box.
+  function setupReset() {
+    var btn = document.getElementById('resetBtn');
+    var timer = null;
+    function disarm() {
+      clearTimeout(timer); timer = null;
+      btn.classList.remove('armed');
+      btn.textContent = 'Reset everything';
+    }
+    btn.addEventListener('click', function () {
+      if (!timer) {
+        btn.classList.add('armed');
+        btn.textContent = 'Tap again to clear the board and all hours';
+        timer = setTimeout(disarm, 4000);
+        return;
+      }
+      disarm();
+      state = blank();
+      save();
+      if (sheet.open) sheet.close();
+      render();
+      toast('Everything reset');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  function renderHours() {
+    var now = Date.now();
+    var byRole = { unloader: 0, sweep: 0, belt: 0 };
+    var rows = [], total = 0, idle = [];
+    roster().forEach(function (n) {
+      var p = state.people[n];
+      if (!p.segs.length) { if (!p.moved) idle.push(n); return; }
+      var split = roleMinutes(p, now);
+      var mins = 0;
+      ROLES.forEach(function (r) { byRole[r.key] += split[r.key]; mins += split[r.key]; });
+      total += mins;
+      // Roles that have time on them, in the order held, for the time sheet
+      // (e.g. "Unloader → Sweep").
+      var held = [];
+      p.roleLog.forEach(function (e) { if (split[e.role] && held.indexOf(e.role) < 0) held.push(e.role); });
+      if (!held.length && p.roleLog.length) held.push(p.roleLog[p.roleLog.length - 1].role);
+      rows.push({ name: n, p: p, roles: held.length ? held : ["unloader"], mins: mins });
+    });
+
+    ROLES.forEach(function (r) { document.getElementById('h-' + r.key).textContent = hrs(byRole[r.key]); });
+    document.getElementById('h-total').textContent = hrs(total);
+
+    var body = document.getElementById('tsBody');
+    body.innerHTML = '';
+    var start = shiftStart();
+    rows.forEach(function (row) {
+      var p = row.p;
+      var first = empStart(p);
+      var out = isScheduled(p) ? '<span class="sched">sched</span>'
+        : onClock(p) ? '<span class="on">on</span>'
+        : p.moved ? '<span class="moved">' + clock(lastSeg(p).out) + ' ' + p.moved + '</span>'
+        : '<span class="cut">' + clock(lastSeg(p).out) + '</span>';
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td></td><td class="muted"></td><td>' + clock(first) + '</td><td>' + out + '</td><td>' + hrs(row.mins) + '</td>';
+      tr.children[0].textContent = row.name + (state.extra.indexOf(row.name) >= 0 ? ' (added)' : '') + (p.segs.length > 1 ? ' *' : '');
+      tr.children[1].textContent = row.roles.map(roleLabel).join(' → ');
+      body.appendChild(tr);
+    });
+    if (!rows.length) body.innerHTML = '<tr><td colspan="5" class="muted">No one on the clock yet</td></tr>';
+    document.getElementById('tsTotal').textContent = hrs(total);
+    var multi = rows.some(function (r) { return r.p.segs.length > 1; });
+    document.getElementById('notWorking').textContent =
+      (multi ? '* Cut and put back on the clock; hours count only time on. ' : '') +
+      (idle.length ? 'Not working: ' + idle.join(', ') : '');
+
+    renderStart();
+  }
+
+  function render() {
+    // Catch auto-role shifts and keep role history current even with no taps.
+    save();
+    var plan = PLANS[state.plan];
+    var dop = requiredFor(state.plan);
+    var roles = assignRoles();
+    var counts = { unloader: 0, sweep: 0, belt: 0 };
+    Object.keys(roles.eff).forEach(function (n) { counts[roles.eff[n]]++; });
+    // Only unloaders and sweeps count toward the DOP; scheduled (staggered) people
+    // already count.
+    var count = counts.unloader + counts.sweep;
+    var scheduled = roster().filter(function (n) { return isScheduled(state.people[n]); }).length;
+    var diff = count - dop;
+    var down = Math.max(0, -diff);
+
+    document.getElementById('vDop').textContent = dop;
+    document.getElementById('vWorking').textContent = count;
+    var dEl = document.getElementById('vDown');
+    dEl.textContent = down;
+    dEl.className = 'v ' + (down === 0 ? 'is-good' : 'is-short');
+
+    var bar = document.getElementById('bar');
+    bar.style.width = Math.min(100, dop ? count / dop * 100 : 0) + '%';
+    bar.className = diff === 0 ? 'is-good' : diff > 0 ? 'is-over' : '';
+
+    document.getElementById('split').innerHTML =
+      '<span><i class="role-dot unloader"></i>Unloaders <b>' + counts.unloader + '/' + plan.unloaders + '</b></span>' +
+      '<span><i class="role-dot sweep"></i>Sweeps <b>' + counts.sweep + '/' + plan.sweeps + '</b></span>' +
+      '<span><i class="role-dot belt"></i>Belt <b>' + counts.belt + '</b></span>' +
+      (scheduled ? '<span style="color:var(--sched)">' + scheduled + ' scheduled</span>' : '') +
+      '<span class="status">' + (diff === 0 ? 'On plan' : diff > 0 ? '+' + diff + ' over plan' : down + ' needed') + '</span>';
+
+    renderPlans();
+    renderRoster(roles);
+    renderHours();
+    if (openName) renderSheet();
+  }
+
+  function action(icon, text, fn) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'action';
+    b.innerHTML = '<span class="ico"></span><span></span>';
+    b.firstChild.textContent = icon;
+    b.lastChild.textContent = text;
+    b.addEventListener('click', fn);
+    return b;
+  }
+
+  function renderSheet() {
+    var name = openName;
+    var p = state.people[name];
+    document.getElementById('sAvatar').textContent = name.charAt(0);
+    document.getElementById('sName').textContent = name;
+    document.getElementById('sStatus').textContent = statusText(p) + (p.locked ? ' · Locked' : '');
+
+    var startWrap = document.getElementById('eStartWrap');
+    // The start picker shows for anyone on PS9. For someone not on the board yet it
+    // schedules them; otherwise it moves their start (late or staggered).
+    startWrap.hidden = !!p.moved;
+    if (!p.moved) {
+      var note = document.getElementById('eStartNote');
+      var reset = document.getElementById('eStartReset');
+      if (!p.segs.length) {
+        document.getElementById('eStartLabel').textContent = 'Schedule start';
+        setPicker('e', shiftStart());
+        note.className = 'emp-start-note';
+        note.textContent = 'Pick a time to schedule';
+        reset.hidden = true;
+      } else {
+        document.getElementById('eStartLabel').textContent = 'Start time';
+        var es = empStart(p);
+        setPicker('e', es);
+        var after = minuteOf(es) - minuteOf(shiftStart());
+        var future = Date.now() < es;
+        note.className = 'emp-start-note' + (future ? ' sched' : after > 0 ? ' late' : '');
+        note.textContent = future ? 'Scheduled · in ' + hrs(minuteOf(es) - minuteOf(Date.now()))
+          : after > 0 ? '+' + hrs(after) + ' after shift start' : 'Shift start';
+        reset.hidden = after <= 0;
+      }
+    }
+
+    var rolesEl = document.getElementById('sRoles');
+    rolesEl.innerHTML = '';
+    [{ key: "auto", one: "Auto" }].concat(ROLES).forEach(function (r) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = r.one;
+      b.setAttribute('aria-pressed', p.role === r.key ? 'true' : 'false');
+      b.addEventListener('click', function () { p.role = r.key; save(); render(); });
+      rolesEl.appendChild(b);
+    });
+
+    var acts = document.getElementById('sActions');
+    acts.innerHTML = '';
+    if (onClock(p)) {
+      acts.appendChild(action('✂', 'Cut (stop the clock)', function () {
+        cut(name); save(); render();
+        toast(name + ' cut at ' + clock(lastSeg(p).out));
+      }));
+    } else if (isCut(p)) {
+      acts.appendChild(action('▶', 'Put back on the clock', function () {
+        backOnClock(p); save(); render();
+        toast(name + ' back on at ' + clock(lastSeg(p).in));
+      }));
+    } else if (!p.moved && !p.present) {
+      acts.appendChild(action('✓', 'Mark working', function () {
+        markWorking(p); save(); render();
+      }));
+    }
+    if (p.moved) {
+      acts.appendChild(action('↩', 'Return to ' + HOME + (p.present ? ' (back on the clock)' : ''), function () {
+        p.moved = null;
+        if (p.present) backOnClock(p);
+        save(); render();
+      }));
+    }
+    var linesWrap = document.getElementById('sLines');
+    acts.appendChild(action('⇄', p.moved ? 'Change line' : 'Move to another PS line', function () {
+      linesWrap.hidden = !linesWrap.hidden;
+    }));
+    acts.appendChild(action(p.locked ? '🔓' : '🔒', p.locked ? 'Unlock' : 'Lock (tap on name disabled)', function () {
+      p.locked = !p.locked; save(); render();
+    }));
+    if (p.present && !p.moved) {
+      acts.appendChild(action('✕', 'Remove from shift (clears hours)', function () {
+        removeFromShift(p); save(); render();
+      }));
+    }
+    if (state.extra.indexOf(name) >= 0) {
+      acts.appendChild(action('🗑', 'Delete from roster (added employee)', function () {
+        state.extra.splice(state.extra.indexOf(name), 1);
+        delete state.people[name];
+        sheet.close();
+        save(); render();
+        toast(name + ' removed');
+      }));
+    }
+
+    var linesEl = document.getElementById('lines');
+    linesEl.innerHTML = '';
+    OTHER_LINES.forEach(function (line) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = line;
+      b.setAttribute('aria-current', p.moved === line ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        // Moving stops their PS9 clock; the hours so far stay on the time sheet.
+        cut(name);
+        p.moved = line;
+        linesWrap.hidden = true;
+        save(); render();
+        toast(name + ' moved to ' + line);
+      });
+      linesEl.appendChild(b);
+    });
+  }
+
+  var sheet = document.getElementById('sheet');
+  function openSheet(name) {
+    openName = name;
+    document.getElementById('sLines').hidden = true;
+    renderSheet();
+    sheet.showModal();
+    document.getElementById('sX').focus();
+  }
+  sheet.addEventListener('close', function () { openName = null; });
+  sheet.addEventListener('click', function (e) { if (e.target === sheet) sheet.close(); });
+  document.getElementById('sClose').addEventListener('click', function () { sheet.close(); });
+  document.getElementById('sX').addEventListener('click', function () { sheet.close(); });
+
+  document.getElementById('date').textContent =
+    shiftDay.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) + ' shift · v' + VERSION;
+
+  buildStartPickers();
+  buildEmpStartPicker();
+  setupReset();
+  setInterval(render, 30000);
+  render();
+</script>
+</body>
+</html>
