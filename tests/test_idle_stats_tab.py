@@ -34,12 +34,12 @@ with sync_playwright() as p:
     pg.evaluate(ADD, [[11, 30, False], [11, 20, False], [9, 75, False], [12, None, False], [10, 300, True]])
     pg.evaluate("()=>renderDashboard()"); pg.wait_for_timeout(150)   # section refreshes while open
     summary = pg.inner_text('#idle-summary').replace('\n', ' ')
-    good = all(x in summary for x in ['2h 5m', '42m', '1h 15m', 'D9'])
+    good = all(x in summary for x in ['125m', '42m', '75m', 'D9'])
     ok &= good
-    print(f'2. total 2h 5m, avg 42m, longest 1h 15m on D9: {good}  ({summary})')
+    print(f'2. total 125m, avg 42m, longest 75m on D9: {good}  ({summary})')
 
     rows = pg.eval_on_selector_all('#idle-stats-body tr', 'rs=>rs.map(r=>[...r.cells].map(c=>c.textContent))')
-    good = rows == [['Door 9', '1', '1h 15m', '1h 15m', '1h 15m'], ['Door 11', '2', '25m', '30m', '50m']]
+    good = rows == [['Door 9', '1', '75m', '75m', '75m'], ['Door 11', '2', '25m', '30m', '50m']]
     ok &= good
     print(f'3. per door, worst first: {good}  {rows}')
     good = not any(r[0] in ('Door 10', 'Door 12') for r in rows)

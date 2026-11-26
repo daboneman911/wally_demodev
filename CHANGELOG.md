@@ -1,5 +1,16 @@
 # Changelog
 
+### [7.25] - 2026-11-26
+
+**Idle timers on the Dashboard are readable and flag long gaps.**
+
+- The empty-door idle timer (completion -> re-onboard, unavailable time excluded) is now an 11px pill (`.bay-timer.idle`) instead of the 8px grey label, on every door 9-16. Each door gets an `aria-label` with its idle minutes.
+- While a shift is running, a door idle for more than `IDLE_ALERT_MINUTES` (10) turns its timer red (`.alert`) and gets a pulsing red ring (`.bay-circle.idle-alert`, reusing `ring-crit`). Nothing is red after End Shift.
+- New "Avg idle Xm" beside the Open Bays heading (`updateAvgIdleLabel()`, called from `renderDashboard()`): the average of this shift's completed gaps, red when over 10. It sits inside the existing heading, so the Dashboard height is unchanged and `test_layout_fit` still passes on a 13 mini.
+- `fmtIdleMins()` now gives plain minutes ("75m" rather than "1h 15m") for idle and dwell on the Logs tab.
+
+**Tests:** 32/35 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_idle_alert.py` (timer, 10-minute threshold, all eight doors, average label, End Shift, unavailable door); `test_idle_stats_tab.py` updated for minutes.
+
 ### [7.24] - 2026-11-25
 
 **Dwell time (arrival -> labor start) is measured correctly and summarised on the Logs tab.**
