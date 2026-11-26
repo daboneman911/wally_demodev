@@ -66,6 +66,7 @@ On macOS the `playwright` binary installs to `~/Library/Python/3.9/bin`;
 | `test_auto_shift` | Auto start at start time (bays kept), auto end at end time (bays incomplete), no restart after manual end, catch-up after the app was closed, Settings switch, start-only schedule with fixed 03:00 end |
 | `test_dop_port` | DOP port (docs/dop-port/PLAN.md): 5/2-9/2 plan picker, MET at 1+2+N per plan, bad saved plan, fits 375px; final-roster migration carries hours, flags, observations, logs and trailers |
 | `test_dop_board` | DOP tap-to-toggle, options sheet, move to another line and back, lock, later start times, End Shift with a moved person, rows fit 375px |
+| `test_dop_start_time` | DOP clocks start at the scheduled shift start, never at the tap: reserved before the shift, early Start Shift, mid-shift Start, Auto Start, Friday 19:30, after midnight + reload, custom start |
 | `test_reset_backup` | Reset keeps setup; backup round-trips; bad files refused |
 | `test_layout_fit` | Dashboard fits without scrolling at iPhone sizes |
 | `test_offline` | Service worker: offline launch, update lifecycle, opt-out |
