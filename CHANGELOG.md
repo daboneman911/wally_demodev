@@ -1,5 +1,18 @@
 # Changelog
 
+### [7.26] - 2026-11-26
+
+**New: Auto Start & End Shift.**
+
+- Each day in the weekly schedule now has an end time (`ps9_shift_end_schedule`, default 03:00 every day) beside its start time. An end at or before the start means the next morning. Rows use short day names, and the green "tonight" marker is now a dot so both times fit on a 375px screen.
+- `autoShiftTick()` runs on load, on `visibilitychange` to visible, and every 30s. While idle, inside tonight's start-end window, and if tonight's shift has not already run, it calls `confirmStartShift(true)` (keeps onboarded bays). While live, once the running shift's end time passes, it calls `confirmEndShift(false)` (open bays logged incomplete, SHIFT_END sent). End is checked before start, so a phone reopened a day later ends the old shift and then starts the new one.
+- `ps9_shift_meta {key, startedAt}` is written by every Start Shift. It stops a shift ended early by hand from restarting the same night, and leaves alone a shift started by hand after its own end time.
+- Settings switch "Auto Start & End Shift" (`ps9_auto_shift`, on by default). It is off in demo mode, and off under browser automation (`navigator.webdriver`) unless `window.__wallyAutoShiftUnderTest` is set, so the rest of the suite does not depend on the wall clock.
+- The three new keys are in `BACKUP_KEYS`.
+- Limitation: a Home Screen app is paused in the background, so it acts while open or on the next open, not at the exact minute while asleep.
+
+**Tests:** 33/36 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_auto_shift.py` covers start (bays kept), end (bays incomplete), no restart after a manual end, a manual late start left running, catch-up across a closed app, the switch, and the schedule layout.
+
 ### [7.25] - 2026-11-26
 
 **Idle timers on the Dashboard are readable and flag long gaps.**

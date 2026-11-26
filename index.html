@@ -163,6 +163,8 @@
         .bay-circle.idle-alert{border:3px solid var(--accent-red);animation:ring-crit 1.2s ease-out infinite}
         .avg-idle-label{margin-left:8px;color:var(--text-main);letter-spacing:0.2px;text-transform:none;font-weight:800}
         .avg-idle-label.alert{color:var(--accent-red)}
+        .settings-input-inline.sched-time{width:104px;padding:7px 6px;text-align:center;flex-shrink:0}
+        .sched-time::-webkit-calendar-picker-indicator{display:none}
         .bay-note-dot{position:absolute;top:-1px;left:-1px;width:9px;height:9px;background:var(--text-main);border-radius:50%;border:2px solid white;z-index:2}
 
         /* ── ACTIVE CARDS ─────────────────────────────────── */
@@ -714,7 +716,8 @@
                     <div class="settings-row"><span class="settings-label">Enable Grace Period</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Enable Grace Period" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('en-window')" id="switch-en-window" onclick="toggleSwitch('en-window')"></div></div>
                     <div class="settings-note" id="grace-window-note" style="border-top:1px solid var(--bg);padding-top:14px;">When enabled, Wallies completed in the first 10 minutes after each hour boundary can be counted toward the previous hour.</div>
                 </div>
-                <div class="settings-note" style="padding-top:4px;">Weekly start times. The dashboard picks tonight's automatically. Changing a day updates the start time above too, unless a shift is already running.</div>
+                <div class="settings-group"><div class="settings-row"><span class="settings-label">Auto Start &amp; End Shift</span><div class="toggle-switch" role="switch" aria-checked="false" aria-label="Auto Start and End Shift" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSwitch('auto-shift')" id="switch-auto-shift" onclick="toggleSwitch('auto-shift')"></div></div></div>
+                <div class="settings-note" style="padding-top:4px;">Weekly start and end times. The dashboard picks tonight's automatically. With Auto Start &amp; End on, the shift starts at the start time (bays kept) and ends at the end time (open bays closed as incomplete) whenever the app is open; if it was closed, it catches up the next time you open it.</div>
                 <div class="settings-group" id="shift-schedule-group"></div>
             </div>
 
@@ -1084,7 +1087,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.25',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
+    const APP_VERSION='7.26',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1236,6 +1239,15 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.26:
+- New: Auto Start & End Shift (Settings > Shift, on by default). The shift
+  starts by itself at tonight's start time, keeping any bays already
+  onboarded, and ends by itself at the end time, closing any bays still
+  open as incomplete. If the app was closed, it catches up the next time
+  you open it. Ending a shift early by hand does not restart it that night.
+- New: each day in the weekly schedule has an end time next to its start
+  time. All days default to 03:00 -- set yours.
+
 v7.25:
 - Change: idle timers on empty doors are bigger and easier to read. Idle
   runs from a door's completion until it is onboarded again, on every door
@@ -2898,7 +2910,7 @@ v5.06:
         historyLog=[];
         lastSortStartTime=null;isFirstOnboard=false;
         saveDoors();saveHistory();saveData();
-        shiftState='live';saveShiftState();
+        shiftState='live';saveShiftState();setShiftMeta(currentShiftKey(),Date.now());
         shiftEndTime=null;
         localStorage.removeItem('ps9_shift_end_time');
         startDashboardRefresh();
@@ -3019,7 +3031,7 @@ v5.06:
     function handleMoveCount(countAsCompletion){closeModal('move-count-modal');moveDoor(pendingMoveDest,countAsCompletion);pendingMoveDest=null}
     function openAddUnloaderModal(){byId('input-new-unloader-name').value='';byId('add-unloader-modal').style.display='flex';setTimeout(()=>{byId('input-new-unloader-name').focus()},100)}
     function confirmAddUnloader(){const raw=byId('input-new-unloader-name').value.trim();if(!raw)return alert("Please enter a name");const formatted=formatPersonName(raw);if(teamHasName(formatted)){alert(`"${formatted}" is already on the team list.`);return}teamNames.push(formatted);refreshTeamNamesSorted();saveTeam();populateUnloaderSelect();renderTeamManagement();htReconcileRoster();closeModal('add-unloader-modal');showSaveToast()}
-    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();migrateShiftSchedule();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];if(!l.shiftKey)l.shiftKey=shiftKeyFromTs(l.end);return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&syncShiftStartToSchedule()){renderShiftSchedule();renderDashboard();updateNameplate()}});processWebhookQueue()}
+    function init(){console.log(`Wally Dashboard v${APP_VERSION} initialized`);doors=loadJSON('ps9_doors',isObject,()=>({}));for(let i=DOORS_START;i<=DOORS_END;i++){if(!doors[i])doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};else if(doors[i].laborStart===undefined)doors[i].laborStart=doors[i].start||null}byId('active-trailers-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openActiveDetails(parseInt(btn.dataset.door))});byId('open-bays-grid').addEventListener('click',(e)=>{const btn=e.target.closest('.bay-circle');if(btn)openArrivalModal(parseInt(btn.dataset.door))});const searchInput=byId('log-search');if(searchInput)searchInput.addEventListener('input',debounce(()=>renderLogs(),300));const notesSearch=byId('notes-search');if(notesSearch)notesSearch.addEventListener('input',debounce(()=>renderNotesList(),300));loadNotes();loadPreferences();loadPphLog();loadObsState();loadChecklistState();loadShiftState();migrateShiftSchedule();syncShiftStartToSchedule();initAttributionSettings();const shiftStart=localStorage.getItem('ps9_shift_start')||"20:00";lastSortStartTime=localStorage.getItem('ps9_last_sort_start');isFirstOnboard=localStorage.getItem('ps9_is_first_onboard')==='true';historyLog=loadJSON('ps9_history',isArray,()=>[]);if(Array.isArray(historyLog)){const now=Date.now(),ONE_DAY_MS=24*60*60*1000;let pruned=false;historyLog=historyLog.filter(l=>{if(!l.end)return true;if(now-l.end>ONE_DAY_MS){pruned=true;return false}if(!l.dateKey)l.dateKey=dateKeyFromTs(l.end);if(!l.completionHour)l.completionHour=getCompletionHour(l.end-(l.statOffset||0));if(!l.cpuOptions)l.cpuOptions=[];if(!l.status)l.status='completed';if(!l.assistants)l.assistants=[];if(!l.shiftKey)l.shiftKey=shiftKeyFromTs(l.end);return true});if(pruned)saveHistory()}teamNames=loadJSON('ps9_team',v=>isNameList(v)&&v.length>0,()=>[...DEFAULT_TEAM]);refreshTeamNamesSorted();migrateTeamRoster();const startInput=byId('setting-shift-start');if(startInput)startInput.value=getShiftStartTime();populateUnloaderSelect();renderTeamManagement();renderShiftSchedule();obsEnsureToday();obsRenderAll();checklistRenderAll();renderDashboard();updateNameplate();setTimeout(()=>{updateAttributionUI();setupAttributionSlider();updateOfflineStatus()},100);setInterval(updateTabBadges,2000);updateTabBadges();startDashboardRefresh();window.addEventListener('online',processWebhookQueue);document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;if(syncShiftStartToSchedule()){renderShiftSchedule();renderDashboard();updateNameplate()}autoShiftTick()});processWebhookQueue();{const sw=byId('switch-auto-shift');if(sw){const on=autoShiftEnabled();sw.classList.toggle('checked',on);sw.setAttribute('aria-checked',String(on))}}autoShiftTick();setInterval(autoShiftTick,30000)}
     function updateShiftSummaryBar(){
         const{shiftStart}=getShiftTimeWindows();
         const now=Date.now();
@@ -3042,7 +3054,7 @@ v5.06:
     // recoverable if the device wiped its site data. This captures the lot -- roster,
     // observation rotation, notes, hours, schedule, settings -- as one JSON file.
     const BACKUP_KEYS=['ps9_doors','ps9_history','ps9_team','ps9_wally_notes','ps9_observations',
-        'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_roster_flags','ps9_shift_schedule','ps9_shift_start',
+        'ps9_checklist','ps9_pph_log','ps9_preferences','ps9_roster_flags','ps9_shift_schedule','ps9_shift_start','ps9_shift_end_schedule','ps9_shift_meta','ps9_auto_shift',
         'ps9_shift_state','ps9_shift_end_time','ps9_last_sort_start','ps9_is_first_onboard',
         'ps9_attribution_config_v2','ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715','ps9_roster_v717','ps9_schedule_v718',
         'ps9_webhook_queue','ps9_webhook_failed',
@@ -3177,7 +3189,7 @@ v5.06:
         if(isPS9Core(formattedName)!==wasCore||isPermanentMember(formattedName)!==wasPermanent){const f=getRosterFlags();f[formattedName]={core:wasCore,permanent:wasPermanent};saveRosterFlags(f)}
         let obsChanged=false;Object.values(obsState.assignments).forEach(a=>{if(a&&a.name===oldName){a.name=formattedName;obsChanged=true}});if(obsChanged){saveObsState();obsRenderAll()}
         refreshTeamNamesSorted();saveTeam();renderTeamManagement();populateUnloaderSelect();htRenameEmployee(oldName,formattedName);if(confirm(`Update all existing active trailers and past logs from "${oldName}" to "${formattedName}"?`)){let updatedCount=0;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'){let doorUpdated=false;if(doors[i].unloader===oldName){doors[i].unloader=formattedName;doorUpdated=true}if(doors[i].assignments){doors[i].assignments.forEach(a=>{if(a.name===oldName){a.name=formattedName;doorUpdated=true}})}if(doorUpdated){const updatePayload={stage:'update',door:i,id:doors[i].id,account:doors[i].account||'',type:doors[i].type,unloader:doors[i].unloader||'',assistants:doors[i].assignments?doors[i].assignments.map(a=>a.name).filter(n=>n!==doors[i].unloader):[],start:doors[i].start,end:null,dateKey:dateKeyFromTs(doors[i].start),durationMinutes:null,statOffset:0,logId:doors[i].logId,duplicate:doors[i].isDuplicate||false,completionHour:null,cpuOptions:doors[i].cpuOptions||[],status:'active',manual:false,shiftStart:getShiftStartTime()};sendToWebhook(updatePayload,'update')}}}historyLog.forEach(l=>{let logUpdated=false;if(l.unloader===oldName){l.unloader=formattedName;logUpdated=true}if(l.assistants&&l.assistants.includes(oldName)){l.assistants=l.assistants.map(a=>a===oldName?formattedName:a);logUpdated=true}if(logUpdated){updatedCount++;sendToWebhook(l,'end')}});saveDoors();saveHistory();renderDashboard();renderActiveTab();if(byId('tab-logs').classList.contains('active'))renderLogs();alert(`Successfully updated ${updatedCount} completed logs to "${formattedName}".`)}}
-    function toggleSwitch(id){const el=byId('switch-'+id);if(!el)return;el.classList.toggle('checked');const checked=el.classList.contains('checked');el.setAttribute('aria-checked',String(checked));if(id==='demo-mode'){demoActive=checked;if(!checked&&shiftState==='demo'){shiftState='idle';saveShiftState()}updateDemoBanner();updateNameplate();updateTabBadges()}if(id==='demo-replenish')config.replenish=checked;if(id==='demo-random')config.randomHistory=checked;if(id==='sim-window')config.simulateWindow=checked;if(id==='en-window'){attributionConfig.enabled=checked;saveAttributionSetting()}if(id==='share-on-complete'){config.shareOnComplete=checked;savePreferences()}if(id==='demo-autocomplete')config.autoComplete=checked;if(id==='demo-nowebhook')config.noWebhook=checked;renderDashboard()}
+    function toggleSwitch(id){const el=byId('switch-'+id);if(!el)return;el.classList.toggle('checked');const checked=el.classList.contains('checked');el.setAttribute('aria-checked',String(checked));if(id==='demo-mode'){demoActive=checked;if(!checked&&shiftState==='demo'){shiftState='idle';saveShiftState()}updateDemoBanner();updateNameplate();updateTabBadges()}if(id==='demo-replenish')config.replenish=checked;if(id==='demo-random')config.randomHistory=checked;if(id==='sim-window')config.simulateWindow=checked;if(id==='en-window'){attributionConfig.enabled=checked;saveAttributionSetting()}if(id==='share-on-complete'){config.shareOnComplete=checked;savePreferences()}if(id==='demo-autocomplete')config.autoComplete=checked;if(id==='demo-nowebhook')config.noWebhook=checked;if(id==='auto-shift'){localStorage.setItem('ps9_auto_shift',checked?'1':'0');autoShiftTick()}renderDashboard()}
     function updateDemoBanner(){const b=byId('demo-banner');if(!b)return;if(demoActive)b.classList.add('visible');else b.classList.remove('visible')}
     function stepDoor(delta){let val=parseInt(byId('demo-door-val').innerText)+delta;if(val<1)val=1;if(val>8)val=8;byId('demo-door-val').innerText=val;config.doorCount=val}function setDemoType(t){config.demoType=t;byId('seg-wally').classList.toggle('selected',t==='Wally');byId('seg-cpu').classList.toggle('selected',t==='CPU')}
     function startDemo(){startDemoShift()}
@@ -3703,6 +3715,64 @@ v5.06:
         const out={};for(let d=0;d<7;d++)out[d]=/^\d{2}:\d{2}$/.test(s[d])?s[d]:SHIFT_SCHEDULE_DEFAULT[d];
         return out}
     function saveShiftSchedule(sched){localStorage.setItem('ps9_shift_schedule',JSON.stringify(sched))}
+    // End time per shift day (the day the shift STARTED). An end at or before the start
+    // time means the next morning, which is every normal night.
+    const SHIFT_END_DEFAULT={0:'03:00',1:'03:00',2:'03:00',3:'03:00',4:'03:00',5:'03:00',6:'03:00'};
+    function getShiftEndSchedule(){
+        let s={};try{s=JSON.parse(localStorage.getItem('ps9_shift_end_schedule'))||{}}catch(e){s={}}
+        const out={};for(let d=0;d<7;d++)out[d]=/^\d{2}:\d{2}$/.test(s[d])?s[d]:SHIFT_END_DEFAULT[d];
+        return out}
+    function updateShiftEndDay(day,val){
+        if(!/^\d{2}:\d{2}$/.test(val)){renderShiftSchedule();return}
+        const s=getShiftEndSchedule();s[day]=val;localStorage.setItem('ps9_shift_end_schedule',JSON.stringify(s));
+        renderShiftSchedule();showSaveToast();autoShiftTick()}
+    // -- AUTO START / END ------------------------------------
+    // The app can only act while it is open (a Home Screen app is paused in the
+    // background), so this runs on load, on returning to the app and every 30s.
+    //   idle, inside tonight's start-end window, and tonight's shift not yet run
+    //       -> start it, keeping any bays already onboarded
+    //   live, and the end time of the shift it is running has passed
+    //       -> end it, closing open bays as incomplete
+    // ps9_shift_meta {key,startedAt} records which shift day is running / last ran, so a
+    // shift ended early by hand is not restarted the same night, and a shift started by
+    // hand after its end time is left alone rather than ended straight away.
+    // Off under browser automation (navigator.webdriver, never set on a real phone) so the
+    // test suite is not changed by the wall clock; tests of this feature set
+    // window.__wallyAutoShiftUnderTest before the page loads.
+    function autoShiftEnabled(){if(navigator.webdriver&&!window.__wallyAutoShiftUnderTest)return false;try{return localStorage.getItem('ps9_auto_shift')!=='0'}catch(e){return true}}
+    function getShiftMeta(){try{const m=JSON.parse(localStorage.getItem('ps9_shift_meta'));return m&&typeof m.key==='string'?m:null}catch(e){return null}}
+    function setShiftMeta(key,startedAt){localStorage.setItem('ps9_shift_meta',JSON.stringify({key,startedAt}))}
+    function shiftWindowForKey(key){
+        const[y,m,d]=key.split('-').map(Number),day=new Date(y,m-1,d).getDay();
+        const[sh,sm]=getShiftSchedule()[day].split(':').map(Number),[eh,em]=getShiftEndSchedule()[day].split(':').map(Number);
+        const start=new Date(y,m-1,d,sh,sm,0,0).getTime();let end=new Date(y,m-1,d,eh,em,0,0).getTime();
+        if(end<=start)end+=24*3600000;
+        return{start,end}}
+    let autoShiftBusy=false;
+    function autoShiftTick(){
+        if(autoShiftBusy||!autoShiftEnabled()||shiftState==='demo'||demoActive)return;
+        autoShiftBusy=true;
+        try{
+            const now=Date.now();
+            if(shiftState==='live'){
+                let meta=getShiftMeta();
+                if(!meta){meta={key:currentShiftKey(),startedAt:now};setShiftMeta(meta.key,meta.startedAt)}
+                const w=shiftWindowForKey(meta.key);
+                if(now>=w.end&&meta.startedAt<w.end){
+                    const c=byId('chk-share-total');if(c)c.checked=false;
+                    confirmEndShift(false);
+                    showToast('Shift ended automatically at '+getShiftEndSchedule()[new Date(w.start).getDay()]);
+                }
+            }
+            if(shiftState==='idle'){
+                const key=currentShiftKey(),w=shiftWindowForKey(key),meta=getShiftMeta();
+                if(now>=w.start&&now<w.end&&(!meta||meta.key!==key)){
+                    confirmStartShift(true);
+                    showToast('Shift started automatically');
+                }
+            }
+        }catch(e){console.error('autoShiftTick:',e)}
+        finally{autoShiftBusy=false}}
     // Wed/Thu moved from 20:15 to 20:00 in v7.18. Editing any one day saves the whole
     // week, so most devices carry the old 20:15 as a stored value and would never see the
     // new default. One time only: a day still on exactly the old 20:15 is moved, anything
@@ -3735,10 +3805,10 @@ v5.06:
         return true}
     function renderShiftSchedule(){
         const g=byId('shift-schedule-group');if(!g)return;
-        const sched=getShiftSchedule(),today=getShiftDayIndex();
+        const sched=getShiftSchedule(),ends=getShiftEndSchedule(),today=getShiftDayIndex();
         g.innerHTML=[1,2,3,4,5,6,0].map(d=>{
-            const tag=d===today?' <span style="font-size:9px;font-weight:900;color:var(--accent-green);letter-spacing:0.6px;">TONIGHT</span>':'';
-            return`<div class="settings-row"><span class="settings-label">${DAY_NAMES[d]}${tag}</span><input type="time" class="settings-input-inline" value="${sched[d]}" onchange="updateShiftScheduleDay(${d},this.value)"></div>`}).join('')}
+            const tag=d===today?'<span title="Tonight" aria-label="tonight" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent-green);margin-left:6px;flex-shrink:0;"></span>':'';
+            return`<div class="settings-row"><span class="settings-label">${DAY_NAMES[d].slice(0,3)}${tag}</span><input type="time" class="settings-input-inline sched-time" aria-label="${DAY_NAMES[d]} start" value="${sched[d]}" onchange="updateShiftScheduleDay(${d},this.value)"><span style="margin:0 5px;color:var(--text-sub);font-weight:700;">&ndash;</span><input type="time" class="settings-input-inline sched-time" aria-label="${DAY_NAMES[d]} end" value="${ends[d]}" onchange="updateShiftEndDay(${d},this.value)"></div>`}).join('')}
     function updateShiftScheduleDay(day,val){
         if(!/^\d{2}:\d{2}$/.test(val)){renderShiftSchedule();return}
         const s=getShiftSchedule();s[day]=val;saveShiftSchedule(s);
