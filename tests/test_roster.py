@@ -8,9 +8,12 @@ PORT = os.environ.get('WALLY_TEST_PORT', '8899')
 from playwright.sync_api import sync_playwright
 
 SHOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screenshots')
-CORE = ["Robert W", "Matt R", "Lorena R", "Russell H", "Trevon C",
-        "David F", "Arce J", "Eddie F", "Luis", "Elliot"]
-EXTRA = ["Solis", "Damian", "Johnny", "Evan"]
+# v7.29 final roster: PS9 Twilight (core) and Doubles (permanent, not core)
+CORE = ["Robert", "Matt", "Lorena", "Russell", "Tre", "David", "Eddie", "Luis", "Elliot"]
+EXTRA = ["Solis", "Damian", "Johnny", "Jeremiah"]
+# what an old device held before v7.29 renamed and trimmed it
+OLD_CORE = ["Robert W", "Matt R", "Lorena R", "Russell H", "Trevon C",
+            "David F", "Arce J", "Eddie F", "Luis", "Elliot"]
 RETIRED = ["Juan F", "Jeff", "Anthony", "Josh", "Jarrett"]
 REMOVED_V717 = ["Pablo", "Gilbert", "Fonseca J"]
 
@@ -25,9 +28,9 @@ with sync_playwright() as p:
 
     # seed a device holding the OLD 16-name roster, then reload to migrate
     pg.evaluate("""(old)=>{localStorage.setItem('ps9_team',JSON.stringify(old));
-        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715','ps9_roster_v717']
+        ['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714','ps9_roster_v715','ps9_roster_v717','ps9_roster_v729']
             .forEach(k=>localStorage.removeItem(k));}""",
-        CORE[:1] + RETIRED + CORE[1:9] + ["Solis", "Damian"])
+        OLD_CORE[:1] + RETIRED + OLD_CORE[1:9] + ["Solis", "Damian"])
     pg.reload()
     pg.wait_for_selector('text=Home', timeout=10000)
     pg.wait_for_timeout(400)
@@ -37,10 +40,12 @@ with sync_playwright() as p:
     retired_gone = not any(n in team for n in RETIRED)
     added = all(n in team for n in EXTRA)
     core_ok = all(n in team for n in CORE)
-    ok &= retired_gone and added and core_ok
+    old_gone = not any(n in team for n in OLD_CORE if n not in CORE) and 'Evan' not in team
+    ok &= retired_gone and added and core_ok and old_gone
     print(f'migrated roster ({len(team)}): {", ".join(team)}')
     print(f'   retired removed (Juan F, Jeff, Anthony, Josh, Jarrett): {retired_gone}')
-    print(f'   Johnny + Evan present: {added}   all {len(CORE)} core present: {core_ok}')
+    print(f'   Doubles present: {added}   all {len(CORE)} core present: {core_ok}')
+    print(f'   old names, Arce J and Evan gone: {old_gone}')
 
     # a device that already ran the earlier steps must still receive a later one
     pg.evaluate("""()=>{['ps9_roster_v7','ps9_roster_v708','ps9_roster_v714']

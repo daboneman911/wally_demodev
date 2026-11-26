@@ -33,8 +33,7 @@ with sync_playwright() as p:
     # ---- 1. rotation draws from the fixed pool, not the whole roster ----
     pool = pg.evaluate("()=>obsEligible()")
     team = pg.evaluate("()=>teamNames.length")
-    expect = ['Robert W', 'Matt R', 'Lorena R', 'Russell H', 'Trevon C', 'David F',
-              'Arce J', 'Eddie F', 'Luis', 'Elliot']
+    expect = ['Robert', 'Matt', 'Lorena', 'Russell', 'Tre', 'David', 'Eddie', 'Luis', 'Elliot']
     ok = _chk(ok, checks, pool == expect)
     print(f'1. pool = {len(pool)} of {team} on the team: {pool == expect}')
 

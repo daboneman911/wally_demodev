@@ -1,5 +1,18 @@
 # Changelog
 
+### [7.29] - 2026-11-26
+
+**DOP port, part 2 (docs/dop-port/PLAN.md section 2): the owner's final roster.**
+
+- `DEFAULT_TEAM` / `PS9_CORE` / `PS9_PERMANENT`: PS9 Twilight is Robert, Matt, Lorena, Russell, Tre, David, Eddie, Luis, Elliot; new `PS9_DOUBLES` is Solis, Damian, Johnny, Jeremiah (permanent, not core, so not observed). Core goes 10 -> 9, **so a full observation cycle is now 9 shift days**. Permanent goes 14 -> 13.
+- New `ps9_roster_v729` step with a new `rename` field: Robert W→Robert, Matt R→Matt, Lorena R→Lorena, Russell H→Russell, Trevon C→Tre, David F→David, Eddie F→Eddie. It also removes Arce J and Evan, adds Jeremiah, and clears any Double hand-flagged `core` (`doublesNotCore`). Renames run first, only where the old name is on the team and the new one is not. Steps without `rename` are unaffected. The key is in `BACKUP_KEYS` and `importBackup()`'s non-JSON list.
+- `editTeamMember()` is split into a non-interactive `renameTeamMember(old,new,{keepRoles})` (team list, role flags, observations, DOP hours) and `renameInRecords(old,new,{resendLogs})` (active and staged trailers, this shift's logs). The migration uses `keepRoles:false`, because the code lists already hold the new names and copying the old name's fallback roles would have marked everyone temporary. It also uses `resendLogs:false`, so updating phones don't re-post the night. The interactive rename behaves as before.
+- **Caught while building it:** the migration runs in `init()` before `htLoadState()`, so renaming only the in-memory DOP roster would have let `htReconcileRoster()` drop each renamed person's hours. New `htRenameInSavedState()` renames them in the saved `ps9_v4` too. The new test fails without it.
+- The v7 step's `remove` list is frozen as a literal, so adding Arce J and Evan to `PS9_RETIRED` (a record only) cannot change it.
+- Rows already in the Google Sheet keep the old names.
+
+**Tests:** 34/37 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. `test_dop_port.py` check 6 seeds an old device with hours, flags, an observation, a log and an active trailer under the old names, and checks everything follows the rename. `test_roster`, `test_observation`, `test_roster_editing`, `test_name_edit`, `test_obs_edit` and `test_reset_backup` are updated for the new names and counts.
+
 ### [7.28] - 2026-11-26
 
 **DOP port, part 1 (docs/dop-port/PLAN.md section 1): plan picker 5/2 to 9/2.**
