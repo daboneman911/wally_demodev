@@ -1,5 +1,15 @@
 # Changelog
 
+### [7.28] - 2026-11-26
+
+**DOP port, part 1 (docs/dop-port/PLAN.md section 1): plan picker 5/2 to 9/2.**
+
+- `HT_DOP_PLANS=[5,6,7,8,9]`; five `.ht-dop-btn` buttons `#ht-dop5`..`#ht-dop9` in ascending order. Padding is down to `6px 12px` so all five fit at 375px.
+- The plan's `*peak` note on 9/2 is dropped at the owner's request (it would not fit properly), so the buttons are a single line and need no `<small>`.
+- `htSyncDOPButtons()` loops over the plans; `htSetDOP()` ignores anything else; `htLoadState()` resets an unknown saved `dopConfig` to 6. The DOP bar, toast and observation gate already worked for any N (`1 + 2 + N`).
+
+**Tests:** 34/37 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. New `test_dop_port.py` (buttons, active state, LOW/MET/OVER at `1+2+N` for every plan, bad saved value, fits 375px).
+
 ### [7.27] - 2026-11-26
 
 **Every shift ends at 03:00. The per-day end times are removed** (owner's request).

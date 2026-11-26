@@ -411,7 +411,7 @@
 
         /* DOP toggle */
         .ht-dop-toggle{display:flex;gap:3px;background:var(--border-light);border-radius:var(--radius-sm);padding:3px;border:1px solid var(--border);}
-        .ht-dop-btn{font-size:12px;font-weight:800;padding:8px 16px;min-height:36px;border:none;border-radius:6px;background:transparent;color:var(--text-sub);cursor:pointer;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px;}
+        .ht-dop-btn{font-size:12px;font-weight:800;padding:6px 12px;line-height:1.15;min-height:36px;border:none;border-radius:6px;background:transparent;color:var(--text-sub);cursor:pointer;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px;}
         .ht-dop-btn.active{background:var(--text-main);color:#fff;}
 
         /* DOP status bar */
@@ -792,8 +792,11 @@
     </div>
     <div class="ht-header-dop-row">
       <div class="ht-dop-toggle">
-        <button class="ht-dop-btn active" id="ht-dop6" onclick="htSetDOP(6)">6/2</button>
         <button class="ht-dop-btn"        id="ht-dop5" onclick="htSetDOP(5)">5/2</button>
+        <button class="ht-dop-btn active" id="ht-dop6" onclick="htSetDOP(6)">6/2</button>
+        <button class="ht-dop-btn"        id="ht-dop7" onclick="htSetDOP(7)">7/2</button>
+        <button class="ht-dop-btn"        id="ht-dop8" onclick="htSetDOP(8)">8/2</button>
+        <button class="ht-dop-btn"        id="ht-dop9" onclick="htSetDOP(9)">9/2</button>
       </div>
     </div>
     <div class="ht-dop-bar state-none" id="ht-dop-bar">
@@ -1085,7 +1088,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.27',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
+    const APP_VERSION='7.28',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1237,6 +1240,11 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.28:
+- New: the DOP tab offers every plan from 5/2 to 9/2 (it had only 6/2 and
+  5/2). The DOP bar, staffing count and observation check follow whichever
+  plan is picked.
+
 v7.27:
 - Change: shifts always end automatically at 3:00 AM. The per-day end
   times are gone; the schedule shows start times only again.
@@ -4045,6 +4053,8 @@ v5.06:
         bulk:{icon:'\u2699\ufe0f',label:'Bulk Sweep',tagCls:'ht-tag-bulk'},
         unload:{icon:'\ud83d\udce6',label:'Unloader',tagCls:'ht-tag-unload'}
     };
+    // Unloader counts the plan picker offers; every plan is N/2 (2 bulk sweep + 1 belt on top).
+    const HT_DOP_PLANS=[5,6,7,8,9];
     const HT_DOP_ICON_MAP={none:'\u2b1c',met:'\u2705',low:'\u26a0\ufe0f',over:'\ud83d\udea8'};
 
     // -- State --------------------------------------------
@@ -4113,6 +4123,7 @@ v5.06:
             if(p.shiftStartTime)p.shiftStartTime=new Date(p.shiftStartTime);
             p.employees.forEach(e=>{if(e.startTime)e.startTime=new Date(e.startTime);});
             hoursState=p;
+            if(!HT_DOP_PLANS.includes(hoursState.dopConfig))hoursState.dopConfig=6;
             if(hoursState.employees.length)
                 hoursState.nextId=Math.max(...hoursState.employees.map(e=>e.id))+1;
             // Roster is derived from the master team list on every load.
@@ -4213,7 +4224,7 @@ v5.06:
         if(!engaged.length)return '';
         // Sort descending by hours — no special Robert default, pure merit-based
         const sorted=[...engaged].sort((a,b)=>htCalcHours(b)-htCalcHours(a));
-        const bulkSlots=2; // always 2 for 5/2 and 6/2 DOP configs
+        const bulkSlots=2; // every plan is N/2: always 2 bulk sweep
         const byRole={belt:[],bulk:[],unload:[]};
         sorted.forEach((e,i)=>{
             if(i===0)byRole.belt.push(e);
@@ -4276,11 +4287,11 @@ v5.06:
 
     // -- DOP config ----------------------------------------
     function htSetDOP(n){
+        if(!HT_DOP_PLANS.includes(n))return;
         hoursState.dopConfig=n;htSyncDOPButtons();htSaveState();htRenderAll();
     }
     function htSyncDOPButtons(){
-        document.getElementById('ht-dop6').classList.toggle('active',hoursState.dopConfig===6);
-        document.getElementById('ht-dop5').classList.toggle('active',hoursState.dopConfig===5);
+        HT_DOP_PLANS.forEach(n=>{const b=document.getElementById('ht-dop'+n);if(b)b.classList.toggle('active',hoursState.dopConfig===n)});
     }
 
     // -- Employee actions ----------------------------------
