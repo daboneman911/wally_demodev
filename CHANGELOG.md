@@ -1,5 +1,14 @@
 # Changelog
 
+### Tests - 2026-11-26
+
+**No app change.** New `test_dop_start_time.py` pins down when a DOP clock starts, at the owner's request. A person's clock is always the shift's scheduled start, never the moment Start is tapped:
+- tapped before the shift is running → reserved with no clock; `htSyncFromWallyShift()` sets it to the scheduled start;
+- Start Shift tapped early → clocks at the scheduled start, "Starts" shown and 0.00 earned until then;
+- tapped mid-shift → still the scheduled start;
+- Auto Start, Friday's 19:30, after midnight and a reload (`htParseHHMM()` wrap) → the evening's start;
+- a per-person custom start wins.
+
 ### [7.30] - 2026-11-26
 
 **DOP port, part 3 (docs/dop-port/PLAN.md sections 3-5): tap-to-toggle, options sheet, other lines, lock, later starts.**
