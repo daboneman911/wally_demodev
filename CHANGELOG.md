@@ -1,5 +1,14 @@
 # Changelog
 
+### [7.27] - 2026-11-26
+
+**Every shift ends at 03:00. The per-day end times are removed** (owner's request).
+
+- `SHIFT_END_TIME='03:00'` replaces `ps9_shift_end_schedule`, `getShiftEndSchedule()` and `updateShiftEndDay()`. `shiftWindowForKey()` uses it for every day; start times still come from the weekly schedule.
+- The schedule is back to one start time per day, with full day names and the TONIGHT tag. The 7.26 `.sched-time` styles are removed, and the key is gone from `BACKUP_KEYS`. A stored `ps9_shift_end_schedule` is simply ignored.
+
+**Tests:** 33/36 passed in a sandbox with no CDN access; `test_offline`, `test_team_edit` and `test_webhook_queue` failed there only on blocked CDN requests. `test_auto_shift.py` check 7 now asserts start times only and the fixed 03:00 end.
+
 ### [7.26] - 2026-11-26
 
 **New: Auto Start & End Shift.**

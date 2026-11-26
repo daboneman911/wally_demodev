@@ -1,6 +1,6 @@
 """Auto Start & End Shift (v7.26).
 
-Default schedule: Mon-Thu 20:00, Fri 19:30, end 03:00 every day.
+Default schedule: Mon-Thu 20:00, Fri 19:30. Every shift ends at 03:00 (fixed, v7.27).
 
 1. Before the start time nothing happens; just after it, the 30-second check starts the
    shift and keeps an already-onboarded bay.
@@ -10,7 +10,7 @@ Default schedule: Mon-Thu 20:00, Fri 19:30, end 03:00 every day.
 5. Catch-up: app closed across the end time, reopened during the next shift's window
    -> the old shift is ended, then the new one is started.
 6. The Settings switch turns it off.
-7. Each day has an editable end time, and the schedule fits a 375px phone.
+7. The schedule is start times only; the end is a fixed 03:00.
 """
 import datetime, os
 from playwright.sync_api import sync_playwright
@@ -108,16 +108,17 @@ with sync_playwright() as p:
     ok &= good
     print(f"6. switch off ({off}) -> Monday 20:05 stays idle: {good}")
 
-    # 7. schedule shows an editable end time per day and fits the screen
-    pg.evaluate("()=>{updateShiftEndDay(3,'02:30');switchTab('settings')}")
+    # 7. schedule is start times only (one per day); the end is fixed at 3:00 AM
+    pg.evaluate("()=>switchTab('settings')")
     pg.wait_for_timeout(200)
     pg.evaluate("()=>{const b=[...document.querySelectorAll('.settings-collapse-btn')].find(x=>/Shift/.test(x.textContent));if(b&&b.getAttribute('aria-expanded')!=='true')b.click()}")
     pg.wait_for_timeout(300)
-    ends = pg.evaluate("()=>[...document.querySelectorAll('#shift-schedule-group input[aria-label$=\" end\"]')].map(i=>i.value)")
+    n = pg.evaluate("()=>document.querySelectorAll('#shift-schedule-group input[type=time]').length")
+    end = pg.evaluate("()=>SHIFT_END_TIME")
     over = pg.evaluate("()=>document.documentElement.scrollWidth-document.documentElement.clientWidth")
-    good = len(ends) == 7 and '02:30' in ends and pg.evaluate("()=>getShiftEndSchedule()[3]") == '02:30' and over <= 0
+    good = n == 7 and end == '03:00' and over <= 0
     ok &= good
-    print(f"7. 7 end-time inputs, Wednesday saved as 02:30, no overflow ({over}px): {good}")
+    print(f"7. one start time per day ({n}), fixed end {end}, no overflow ({over}px): {good}")
     if os.environ.get('WALLY_SHOT'):
         pg.locator('#shift-schedule-group').scroll_into_view_if_needed()
         pg.screenshot(path=os.environ['WALLY_SHOT'])
