@@ -9,8 +9,8 @@ SEED = """()=>{
   const k=(n)=>{const d=new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);
                 d.setDate(d.getDate()-n);return dateKeyFromTs(d.getTime())};
   obsState={assignments:{},cycle:3};
-  obsState.assignments[k(2)]={name:'Robert W',status:'done',cycle:3};
-  obsState.assignments[k(1)]={name:'Matt R',status:'done',cycle:3};
+  obsState.assignments[k(2)]={name:'Robert',status:'done',cycle:3};
+  obsState.assignments[k(1)]={name:'Matt',status:'done',cycle:3};
   saveObsState();
   checklistState={tasks:{presort:true,slide:true},shared:false};saveChecklistState();
   pphLog=[{ts:Date.now(),volume:5000,hrs:10,pph:500}];savePphLog();

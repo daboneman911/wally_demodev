@@ -23,10 +23,10 @@ with sync_playwright() as p:
     # 1. default crew rename keeps roles and survives the End Shift purge
     pg.evaluate("()=>{localStorage.removeItem('ps9_roster_flags')}")
     pg.evaluate(STUB, 'Robert Williams')
-    pg.evaluate("()=>editTeamMember('Robert W')")
+    pg.evaluate("()=>editTeamMember('Robert')")
     r = pg.evaluate("""()=>({core:isPS9Core('Robert Williams'),perm:isPermanentMember('Robert Williams'),
         removed:purgeTemporaryEmployees(),onTeam:teamNames.includes('Robert Williams'),
-        oldGone:!teamNames.includes('Robert W')})""")
+        oldGone:!teamNames.includes('Robert')})""")
     good = r['core'] and r['perm'] and r['onTeam'] and r['oldGone']
     ok &= good
     print(f'1. renamed default crew keeps PS9 + permanent and survives End Shift: {good}  {r}')
@@ -49,18 +49,18 @@ with sync_playwright() as p:
     print(f'2. Mcdonald -> McDonald sticks: {cap}; all-lowercase input still title-cased: {lower}')
 
     # 3. renaming onto an existing name, different case, is refused
-    pg.evaluate(STUB, 'matt R')
+    pg.evaluate(STUB, 'maTT')
     pg.evaluate("()=>{teamNames.push('Someone');refreshTeamNamesSorted();saveTeam();editTeamMember('Someone')}")
     d = pg.evaluate("()=>({still:teamNames.includes('Someone'),alerts:window.__alerts.length,"
-                    "matts:teamNames.filter(n=>n.toLowerCase()==='matt r').length})")
+                    "matts:teamNames.filter(n=>n.toLowerCase()==='matt').length})")
     good = d['still'] and d['alerts'] == 1 and d['matts'] == 1
     ok &= good
     print(f'3. case-insensitive duplicate refused: {good}  {d}')
 
     # 4. observation assignments follow the rename
-    pg.evaluate("()=>{obsState.assignments['2026-11-01']={name:'Matt R',cycle:obsState.cycle,status:'done'};saveObsState()}")
+    pg.evaluate("()=>{obsState.assignments['2026-11-01']={name:'Matt',cycle:obsState.cycle,status:'done'};saveObsState()}")
     pg.evaluate(STUB, 'Matthew R')
-    pg.evaluate("()=>editTeamMember('Matt R')")
+    pg.evaluate("()=>editTeamMember('Matt')")
     o = pg.evaluate("()=>obsState.assignments['2026-11-01'].name")
     ok &= o == 'Matthew R'
     print(f'4. observation history follows the rename: {o == "Matthew R"}  ({o})')

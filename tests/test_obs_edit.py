@@ -11,8 +11,8 @@ SEED = """()=>{
   const k=(n)=>{const d=new Date();if(d.getHours()<12)d.setDate(d.getDate()-1);
                 d.setDate(d.getDate()-n);return dateKeyFromTs(d.getTime());};
   obsState={assignments:{},cycle:1};
-  obsState.assignments[k(2)]={name:'Robert W',status:'done',cycle:1,auto:false};
-  obsState.assignments[k(1)]={name:'Matt R',status:'pending',cycle:1,auto:true,skipped:['Lorena R']};
+  obsState.assignments[k(2)]={name:'Robert',status:'done',cycle:1,auto:false};
+  obsState.assignments[k(1)]={name:'Matt',status:'pending',cycle:1,auto:true,skipped:['Lorena']};
   saveObsState();obsEnsureToday();obsRenderAll();
   return {two:k(2),one:k(1),today:obsTodayKey()};}"""
 
@@ -52,16 +52,16 @@ with sync_playwright() as p:
     ok &= shown and keys['two'] in date and sel
     print(f"\nopened {date!r}: modal={shown}, 'Observed' preselected={sel}")
 
-    # Robert W is done this cycle, so he is out of the rotation
+    # Robert is done this cycle, so he is out of the rotation
     before = pg.evaluate("()=>obsCompletedThisCycle()")
     pg.click('#obs-edit-status-pending')
     pg.wait_for_timeout(250)
     after = pg.evaluate("()=>obsCompletedThisCycle()")
     flipped = pg.evaluate("(k)=>obsState.assignments[k].status", keys['two'])
-    back_in = 'Robert W' in before and 'Robert W' not in after
+    back_in = 'Robert' in before and 'Robert' not in after
     ok &= flipped == 'pending' and back_in
     print(f"status -> {flipped!r}; cycle-complete {before} -> {after}")
-    print(f"   reverting returns Robert W to the rotation: {back_in}")
+    print(f"   reverting returns Robert to the rotation: {back_in}")
 
     # ---- change the employee ----
     pg.select_option('#obs-edit-name', 'Trevon C')
