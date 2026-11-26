@@ -157,6 +157,12 @@
         .bay-circle.status-crit{border:2px solid var(--accent-red);animation:ring-crit 1.2s ease-out infinite}
         .type-badge{position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:white;background:var(--text-main);border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
         .bay-timer{position:absolute;bottom:-7px;font-size:8px;font-weight:800;color:var(--text-sub);background:white;padding:1px 4px;border-radius:4px;min-width:20px;text-align:center;box-shadow:var(--shadow-sm)}
+        /* Idle timer on an empty door: completion -> next onboard. Red past IDLE_ALERT_MINUTES. */
+        .bay-timer.idle{bottom:-9px;font-size:11px;font-weight:900;color:var(--text-main);padding:2px 6px;border-radius:6px;letter-spacing:-0.2px;white-space:nowrap}
+        .bay-timer.idle.alert{background:var(--accent-red);color:#fff}
+        .bay-circle.idle-alert{border:3px solid var(--accent-red);animation:ring-crit 1.2s ease-out infinite}
+        .avg-idle-label{margin-left:8px;color:var(--text-main);letter-spacing:0.2px;text-transform:none;font-weight:800}
+        .avg-idle-label.alert{color:var(--accent-red)}
         .bay-note-dot{position:absolute;top:-1px;left:-1px;width:9px;height:9px;background:var(--text-main);border-radius:50%;border:2px solid white;z-index:2}
 
         /* ── ACTIVE CARDS ─────────────────────────────────── */
@@ -655,7 +661,7 @@
         </div>
         <div class="section-label">Active Trailers</div>
         <div id="active-trailers-grid" class="bays-grid"></div>
-        <div class="section-label">Open Bays</div>
+        <div class="section-label">Open Bays<span id="open-bays-avg-idle" class="avg-idle-label"></span></div>
         <div id="open-bays-grid" class="bays-grid"></div>
         </div>
     </div>
@@ -1078,7 +1084,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     let demoActive=false,duplicateWallyFlag=false,pendingWallyDuplicate=null,currentDoor=null,currentType='Wally',detailDoor=null,currentLogFilter='All',activeLogFilter={door:'All',unloader:'All',type:'All',timeRange:'All',search:'',date:'All'},statsVisible=false,hourlyVisible=false,lastSortStartTime=null,isFirstOnboard=false,dashboardRefreshTimer=null,wallyNotes={},manualType='Wally',pendingMoveDest=null,shiftState='idle',shiftEndTime=null;
-    const APP_VERSION='7.24',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
+    const APP_VERSION='7.25',DOORS_START=9,DOORS_END=16,DEFAULT_TEAM=['Robert W','Matt R','Lorena R','Russell H','Trevon C','David F','Arce J','Eddie F','Solis','Damian','Johnny','Evan','Luis','Elliot'];
     const WEBHOOK_URL='https://script.google.com/macros/s/AKfycbwss7dFIVBNUuQQHzp5KDURwpRJyH58wUrlJR3XbSrL3SjrF4tvAFSaQiLjJJeOmH9m/exec';
     // Apps Script doPost must return ContentService.createTextOutput(JSON.stringify({ok:true/false})).setMimeType(ContentService.MimeType.JSON)
     const byId=(id)=>document.getElementById(id);
@@ -1230,6 +1236,17 @@
     function thisShiftLogs(){const k=currentShiftKey();return historyLog.filter(l=>(l.shiftKey||shiftKeyFromTs(l.end))===k)}
     function debounce(func,wait){let timeout;return function(...args){clearTimeout(timeout);timeout=setTimeout(()=>func.apply(this,args),wait)}}
     const CHANGELOG=`
+v7.25:
+- Change: idle timers on empty doors are bigger and easier to read. Idle
+  runs from a door's completion until it is onboarded again, on every door
+  9-16.
+- New: while the shift is running, a door idle for more than 10 minutes
+  turns its timer red and gets a pulsing red ring.
+- New: average idle time in minutes next to "Open Bays" on the Dashboard.
+  It turns red when the average is over 10 minutes.
+- Change: idle and dwell times on the Logs tab show plain minutes (75m
+  instead of 1h 15m).
+
 v7.24:
 - New: Dwell Time section on the Logs tab, under Idle Time. Dwell is how
   long a trailer sat staged before an unloader started on it. It shows how
@@ -3822,7 +3839,7 @@ v5.06:
     // grace-window adjustment included, and cannot drift into negative buckets.
     function calculateAndRenderHourlyStats(){const h={};thisShiftLogs().forEach(l=>{if(!l.completionHour)return;const idx=l.completionHour;if(!h[idx])h[idx]=0;h[idx]++});const tb=byId('hourly-stats-body');tb.innerHTML='';Object.keys(h).sort((a,b)=>a-b).forEach(k=>tb.innerHTML+=`<tr><td>${getHourText(parseInt(k))}</td><td style="text-align:center">${h[k]}</td></tr>`)}
     function nowOrFrozen(){return(shiftState==='idle'&&shiftEndTime)?shiftEndTime:Date.now();}
-    function renderDashboard(){updateStats();{const ic=byId('idle-content');if(ic&&ic.style.display==='block')calculateAndRenderIdleStats();const dc=byId('dwell-content');if(dc&&dc.style.display==='block')calculateAndRenderDwellStats()}updateNameplateHours();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:var(--accent-blue);">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idle=Math.max(0,Math.floor((nowOrFrozen()-d.lastCompletionTime-doorIdleExcludedMs(d,nowOrFrozen()))/60000));btn.innerHTML+=`<div class="bay-timer">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
+    function renderDashboard(){updateStats();updateAvgIdleLabel();{const ic=byId('idle-content');if(ic&&ic.style.display==='block')calculateAndRenderIdleStats();const dc=byId('dwell-content');if(dc&&dc.style.display==='block')calculateAndRenderDwellStats()}updateNameplateHours();const openGrid=byId('open-bays-grid'),activeGrid=byId('active-trailers-grid');openGrid.innerHTML='';activeGrid.innerHTML='';let hasOpen=false,hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){const d=doors[i];if(!d)doors[i]={status:'empty',start:0,laborStart:null,id:'',type:'',unloader:'',unavailable:false,lastCompletionTime:null,assignments:[]};const btn=document.createElement('div');btn.className=`bay-circle bay-${i} ${d.unavailable?'unavailable':''}`;btn.dataset.door=i;if(d.status==='active'||d.status==='staged'){hasActive=true;if(d.status==='staged'){btn.innerHTML=`${i}<div class="type-badge" style="background:var(--accent-blue);">${d.type==='Wally'?'W':'C'}</div>`;btn.classList.add('status-staged')}else{const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let statusClass='status-ok';if(hasUnloader&&min>60)statusClass='status-crit';else if(hasUnloader&&min>45)statusClass='status-warn';btn.classList.add(statusClass);const noteDot=(d.type==='Wally'&&noteHasContent(d.id))?'<div class="bay-note-dot"></div>':'';btn.innerHTML=`${i}${noteDot}<div class="type-badge ${d.type==='Wally'?'badge-w':'badge-c'}">${d.type==='Wally'?'W':'C'}</div>`}activeGrid.appendChild(btn)}else{hasOpen=true;btn.innerText=i;if(d.lastCompletionTime&&d.status==='empty'&&!d.unavailable&&shiftState!=='idle'){const idleMs=Math.max(0,nowOrFrozen()-d.lastCompletionTime-doorIdleExcludedMs(d,nowOrFrozen())),idle=Math.floor(idleMs/60000),alert=idleMs>IDLE_ALERT_MINUTES*60000;if(alert)btn.classList.add('idle-alert');btn.setAttribute('aria-label',`Door ${i}, idle ${idle} minutes`+(alert?', over '+IDLE_ALERT_MINUTES:''));btn.innerHTML+=`<div class="bay-timer idle${alert?' alert':''}">${idle}m</div>`}openGrid.appendChild(btn)}}if(!hasOpen)openGrid.innerHTML='<div class="empty-state-text">All bays full.</div>';if(!hasActive)activeGrid.innerHTML='<div class="empty-state-text">No active trailers.</div>'}
     function renderActiveTab(){const list=byId('active-tab-list');list.innerHTML='';let hasActive=false;for(let i=DOORS_START;i<=DOORS_END;i++){if(doors[i].status==='active'||doors[i].status==='staged'){hasActive=true;const d=doors[i],start=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),laborDisp=d.laborStart&&d.laborStart>d.start?new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):null;const hasUnloader=d.unloader&&d.unloader!=='Unassigned';const laborRef=hasUnloader?(d.laborStart||d.start):null;const min=laborRef?(nowOrFrozen()-laborRef)/60000:0;let urgencyClass='';if(d.status==='active'&&hasUnloader){if(min>60)urgencyClass='status-crit-card';else if(min>45)urgencyClass='status-warn-card'}const typeClass=d.type==='CPU'?'type-cpu':'type-wally';const noteObj=d.type==='Wally'?getNoteObj(d.id):null;const noteRow=noteObj&&(noteObj.tags.length>0||noteObj.text)?`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;">${renderNoteTagsInline(noteObj)}</div>`:'';const noteBtn=d.type==='Wally'?`<button class="note-icon-btn ${noteHasContent(d.id)?'has-note':''}" onclick="openNoteModal('${d.id}','active')"><i class="ph ph-note${noteHasContent(d.id)?'-pencil':''}"></i></button>`:'';const statusTag=d.status==='staged'?`<span class="log-tag tag-blue" style="font-size:11px;">Staged</span>`:'';list.innerHTML+=`<div class="active-card ${typeClass} ${urgencyClass}"><div class="active-card-info"><div class="active-card-header"><span class="door-pill">Door ${i}</span><span class="active-card-title">${d.type} ${d.id}${noteBtn}${statusTag}</span></div><div class="active-card-details">${d.unloader||'No Unloader'}${d.account?' | '+d.account:''}</div>${noteRow}<div class="active-card-time">${laborDisp?`Arrived: ${start} &middot; Labor: ${laborDisp}`:`Arrived: ${start}`}</div></div><div class="active-card-actions"><button class="icon-btn" onclick="openEditActiveModal(${i})"><i class="ph ph-pencil-simple"></i></button>${d.status==='staged'?`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;background:var(--accent-blue);" onclick="openEditActiveModal(${i})">Assign</button>`:`<button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;" onclick="completeDoor(${i})">Finish</button>`}</div></div>`}}if(!hasActive)list.innerHTML='<div style="text-align:center;color:var(--text-muted);margin-top:40px;">No active trailers</div>'}
     function openActiveDetails(doorNum){detailDoor=doorNum;const d=doors[doorNum];byId('detail-door-num').innerText=doorNum;byId('detail-type').innerText=d.type;byId('detail-id').innerText=d.id;byId('detail-unloader').innerText=d.unloader||"Unassigned";byId('detail-time').innerText=new Date(d.start).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const now=Date.now();byId('detail-duration').innerText=Math.floor((now-d.start)/60000)+"m";const ar=byId('row-account');if(d.account){ar.style.display='flex';byId('detail-account').innerText=d.account}else ar.style.display='none';const rowOpts=byId('row-cpu-opts');if(d.type==='CPU'&&d.cpuOptions&&d.cpuOptions.length>0){rowOpts.style.display='flex';byId('detail-cpu-opts').innerText=d.cpuOptions.join(', ')}else rowOpts.style.display='none';const laborStart=d.laborStart||d.start;const dwell=Math.round((laborStart-d.start)/60000);if(d.laborStart&&d.laborStart>d.start){byId('row-labor-start').style.display='flex';byId('detail-labor-time').innerText=new Date(d.laborStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});byId('row-unload-time').style.display='flex';byId('detail-unload-duration').innerText=Math.floor((now-d.laborStart)/60000)+"m";byId('row-dwell').style.display='flex';byId('detail-dwell').innerText=dwell+"m"}else{byId('row-labor-start').style.display='none';byId('row-unload-time').style.display='none';byId('row-dwell').style.display='none'}
         // Show CPU-next checkbox for both Wally and CPU doors, always reset it
@@ -3883,7 +3900,16 @@ v5.06:
     // Completed gaps only: minutes a door sat empty between a completion and the next
     // trailer's arrival, as stamped on each log (unavailable time already excluded,
     // never across a Start Shift). Doors empty right now are visible on the Dashboard.
-    function fmtIdleMins(m){m=Math.round(m);return m<60?m+'m':Math.floor(m/60)+'h '+(m%60)+'m'}
+    // Plain minutes everywhere ("75m", not "1h 15m") -- easier to compare at a glance.
+    function fmtIdleMins(m){return Math.round(m)+'m'}
+    // An empty door's idle timer turns red once it has sat longer than this while a shift runs.
+    const IDLE_ALERT_MINUTES=10;
+    // "Open Bays  AVG IDLE 12m": average of this shift's completed gaps (completion ->
+    // re-onboard), in minutes. Hidden until the shift is running and has a gap.
+    function updateAvgIdleLabel(){const el=byId('open-bays-avg-idle');if(!el)return;
+        if(shiftState==='idle'){el.textContent='';return}
+        const st=idleStatsThisShift();if(!st.gaps){el.textContent='';el.classList.remove('alert');return}
+        const avg=Math.round(st.avg);el.textContent='\u00b7 Avg idle '+avg+'m';el.classList.toggle('alert',avg>IDLE_ALERT_MINUTES)}
     function idleStatsThisShift(){const doorsMap={};let total=0,gaps=0,max=-1,maxDoor=null;
         thisShiftLogs().forEach(l=>{const v=l.idleBeforeMinutes;if(typeof v!=='number'||!(v>=0))return;
             gaps++;total+=v;if(v>max){max=v;maxDoor=l.door}
