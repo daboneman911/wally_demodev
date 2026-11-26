@@ -41,23 +41,27 @@ work for any N.
 The owner decided this on 2026-11-26. It replaces both apps' lists.
 
 **PS9 Twilight (core + permanent), in this order:**
-Robert, Matt, Lorena, Russell, Trevon, David, Eddie, Luis, Elliot, Jeremiah
+Robert, Matt, Lorena, Russell, Tre, David, Eddie, Luis, Elliot
 
-**Permanent, not core (DOP app's "Doubles"):** Solis, Damian, Johnny
+**Doubles (permanent, not core):** Solis, Damian, Johnny, Jeremiah
+
+Doubles are not PS9 staff. They stay on the roster every shift, but they get no PS9 chip and are
+**not in the observation rotation**. `obsEligible()` already filters by `isPS9Core()`, so keeping
+them out of `PS9_CORE` is enough. Add a test that proves it.
 
 | Change | Names |
 | --- | --- |
-| Drop the last initial | Robert W → Robert, Matt R → Matt, Lorena R → Lorena, Russell H → Russell, Trevon C → Trevon, David F → David, Eddie F → Eddie |
+| Drop the last initial | Robert W → Robert, Matt R → Matt, Lorena R → Lorena, Russell H → Russell, Trevon C → Tre, David F → David, Eddie F → Eddie |
 | Remove | Arce J, Evan (Wally); Gilbert, Pablo (DOP app; already gone from Wally since v7.17) |
-| Add | **Jeremiah**: PS9 Twilight + permanent, last in the core order. *Assumed tier; confirm with the owner.* |
+| Add | **Jeremiah**: a Double (permanent, not core, not observed) |
 | Unchanged | Luis, Elliot, Solis, Damian, Johnny |
 
-"Trevon" keeps Wally's spelling; the DOP app calls him "Tre". Core goes from 10 to 10
-(−Arce J, +Jeremiah), so the observation cycle stays at 10 shift days. Permanent goes from 14 to 13.
+"Tre" is Trevon C (owner confirmed). Core goes from 10 to 9 (−Arce J), so **a full observation
+cycle becomes 9 shift days**. Say so in the changelog. Permanent stays at 13 (−Arce J, −Evan, +Jeremiah).
 
 **Code:**
 - `DEFAULT_TEAM`, `PS9_CORE` and `PS9_PERMANENT` get the lists above.
-  `PS9_PERMANENT = PS9_CORE.concat(['Solis','Damian','Johnny'])`.
+  `PS9_PERMANENT = PS9_CORE.concat(['Solis','Damian','Johnny','Jeremiah'])`.
 - Add `'Arce J'` and `'Evan'` to `PS9_RETIRED`, for the record only; the frozen `ps9_roster_v7` step must not change.
 - **Renames must carry people's data, not drop it.** A remove + add would orphan the person's DOP hours
   (`ps9_v4`), roster flags (`ps9_roster_flags`), observation history, and door/log attribution.
@@ -73,17 +77,20 @@ Robert, Matt, Lorena, Russell, Trevon, David, Eddie, Luis, Elliot, Jeremiah
   ```js
   {key:'ps9_roster_v728', // use the real release version
    rename:{'Robert W':'Robert','Matt R':'Matt','Lorena R':'Lorena','Russell H':'Russell',
-           'Trevon C':'Trevon','David F':'David','Eddie F':'Eddie'},
+           'Trevon C':'Tre','David F':'David','Eddie F':'Eddie'},
    remove:['Arce J','Evan'], add:['Jeremiah']}
   ```
   In `migrateTeamRoster()`, do the renames first (only where the old name is on the team and the new one isn't), then
   removals (which already call `forgetRosterFlags`), then adds. Treat a missing `rename` as `{}` so older steps still
   run. Never edit an earlier step. Add the key to `BACKUP_KEYS` and to `importBackup()`'s non-JSON key list (see 7.17).
 - **Tests to update:** `test_roster` (CORE/EXTRA lists and counts), `test_observation` (expected pool),
-  `test_roster_editing` (uses `Evan`; switch to another non-core permanent such as `Johnny`), `test_obs_edit`,
+  `test_roster_editing` (uses `Evan`; switch to another Double such as `Johnny`), `test_obs_edit`,
   `test_reset_backup`, `test_name_edit`, `test_corrupt_storage` (they reference `Robert W`). A new check should
   seed a device that already ran `ps9_roster_v717`, with hours, flags and an observation on `Robert W`, and prove
-  that after load they all belong to `Robert`, that Arce J and Evan are gone, and that Jeremiah is core.
+  that after load they all belong to `Robert`, that Arce J and Evan are gone, that Jeremiah is permanent but not core, and that the observation pool is
+  exactly the 9 core names, with no Solis, Damian, Johnny or Jeremiah.
+- If a device has a `ps9_roster_flags` entry marking any Double as `core:true`, the migration should clear that
+  entry, so the Doubles really are out of the rotation.
 
 ## 3. Tap a name to toggle working
 
@@ -152,7 +159,7 @@ grouping, do it only for **inactive** rows (active rows stay in rank order): PS9
 ## Not ported (Wally's defaults win)
 
 - **DOP's look:** dark indigo theme, tiles, avatars, segmented control, start card. Use Wally's styles.
-- **Default roles** (Robert = belt, Trevon/Eddie = sweep). Wally deliberately has no preferred belt tender; roles follow hours.
+- **Default roles** (Robert = belt, Tre/Eddie = sweep). Wally deliberately has no preferred belt tender; roles follow hours.
 - **Belt tender outside the DOP.** Wally counts belt in `1+2+N`.
 - **Role hours split over time** (`roleLog`). Wally's role is by rank at the moment, and its KPI tiles are
   built on that. Changing it is a separate project.
@@ -170,6 +177,6 @@ grouping, do it only for **inactive** rows (active rows stay in rank order): PS9
   3. move to PS5 freezes hours, drops them from the DOP count, shows "→ PS5"; return resumes without crediting the gap;
   4. lock blocks the tap; unlock restores it;
   5. a future start counts toward the DOP and earns 0 until it arrives;
-  6. roster: the section 2 migration (renames carry hours, flags and observations; Arce J, Evan out; Jeremiah core).
+  6. roster: the section 2 migration (renames carry hours, flags and observations; Arce J, Evan out; Jeremiah a Double; observation pool = 9 core only).
 - Run `./tests/run.sh`. `test_offline`, `test_team_edit` and `test_webhook_queue` fail without CDN access; that's not a real failure.
 - Ship in small PRs if it helps: (1) plan picker, (2) roster names, (3) toggle + options sheet + move/lock.
