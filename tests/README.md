@@ -4,7 +4,7 @@ End-to-end tests for the Wally Dashboard. Each one drives a real headless
 Chromium against `index.html`, so they exercise the app as it actually runs
 rather than testing functions in isolation.
 
-They exist because the app is a single 4,000-line file with no build step and
+They exist because the app is plain HTML, CSS and JS (`index.html`, `css/`, `js/`) with no build step and
 no framework: the only way to know a change to the DOP tab did not quietly
 break the grace window is to open the page and check.
 
