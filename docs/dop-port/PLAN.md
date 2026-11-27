@@ -5,6 +5,10 @@ Follow `CLAUDE.md`: release checklist, tests, PR, merge. The DOP app itself is i
 `docs/dop-port/dop-app-reference.html`, a copy of `daboneman911/dop` `index.html` at
 v2.14.1. It is reference only: don't link it from the app or cache it in `sw.js`.
 
+**Since 7.31 the app is split into files.** Line numbers below refer to the old single
+`index.html`. The DOP tab's markup is still in `index.html`, its code is in `js/hours.js`
+and its styles are in `css/app.css`. See "Where things are" in `CLAUDE.md`.
+
 **The rule for the whole port: Wally's defaults win.** Bring over DOP's *features* (what
 you can do), not its look or its policies. That means you keep Wally's:
 
@@ -168,7 +172,7 @@ grouping, do it only for **inactive** rows (active rows stay in rank order): PS9
 
 ## Release (from CLAUDE.md)
 
-- Bump `APP_VERSION` (index.html) and `VERSION` (sw.js) together.
+- Bump `APP_VERSION` (js/core.js) and `VERSION` (sw.js) together.
 - Add an in-app `CHANGELOG` entry (plain language) and a `CHANGELOG.md` entry (technical).
 - Add tests and list them in `tests/README.md`. Suggested `tests/test_dop_port.py`:
   1. five plan buttons; each sets `dopConfig` and `.active`; MET/DOWN/OVER at `1+2+N` for every plan; a bad saved value → 6;

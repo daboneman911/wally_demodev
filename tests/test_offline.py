@@ -53,6 +53,20 @@ with sync_playwright() as p:
     ok &= stored
     print(f'2. index.html stored in the cache: {stored}')
 
+    # ---- 2a. every CSS/JS file the page loads is listed in the worker and stored ----
+    # The page is split across index.html, css/ and js/. A file missing from the
+    # worker's APP_FILES would load fine online and break the app offline.
+    import re
+    html = open(os.path.join(os.path.dirname(__file__), '..', 'index.html')).read()
+    local = re.findall(r'(?:src|href)="((?:js|css)/[^"]+)"', html)
+    sw = open(os.path.join(os.path.dirname(__file__), '..', 'sw.js')).read()
+    unlisted = [f for f in local if f"'./{f}'" not in sw]
+    stored_files = pg.evaluate("(fs)=>caches.open('wally-'+APP_VERSION).then(c=>Promise.all(fs.map(f=>c.match('./'+f).then(r=>!!r))))", local)
+    files_ok = len(local) > 0 and not unlisted and all(stored_files)
+    ok &= files_ok
+    print(f'2a. {len(local)} page files listed in sw.js and stored after one load: {files_ok}')
+    if unlisted: print(f'    missing from APP_FILES: {unlisted}')
+
     # ---- 2b. the CDN assets must land on the FIRST load, not the second ----
     # The worker is not controlling the page during its own first load, so the deferred
     # <script> tags bypass the fetch handler entirely. They are precached at install for

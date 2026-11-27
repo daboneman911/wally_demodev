@@ -1,5 +1,22 @@
 # Changelog
 
+### [7.31] - 2026-11-27
+
+**`index.html` split into separate files.** It was one 5,100-line file: markup, 580 lines of CSS, 1,200 lines of embedded changelog and 2,700 lines of script. It is now about 600 lines of markup plus `css/app.css` and 15 files in `js/` (`core`, `offline`, `changelog`, `webhook`, `calculator`, `notes`, `shift`, `settings`, `roster`, `observations`, `checklist`, `schedule`, `doors`, `boot`, `hours`). The code was moved, not edited.
+
+- **No build step, still plain GitHub Pages.** They are classic `<script src>` tags, not ES modules, so every file shares one global scope exactly as before. Every inline `onclick` and every test that calls app functions directly keeps working. They load in the original order, ahead of the deferred CDN scripts, the same as the inline block did. Only the encoding guard in `<head>` stays inline.
+- `APP_VERSION` is now in `js/core.js` and the in-app `CHANGELOG` in `js/changelog.js`.
+- Checked by script: every non-blank line of the old script and style blocks appears in the new files.
+
+**Service worker (`sw.js`):**
+- New `APP_FILES` list, precached at install with `cache:'reload'`, so a worker installed right after a deploy stores fresh copies instead of ones served from Pages' 10-minute HTTP cache.
+- The files only work as a matched set. On launch, the background refresh fetches `index.html` *and* every app file with `cache:'no-cache'`, and stores them only if all of them arrived. An old page is never paired with a new script, or the reverse.
+- `skipWaiting()` on install. The 7.30 worker knows nothing about `js/` or `css/`: if it stayed in charge, it could serve a newly cached split `index.html` offline with none of its files. Verified on the real upgrade path: 7.30 running, 7.31 deployed, one online launch, then two offline launches, both on 7.31 with no errors.
+
+**Release checklist:** `CLAUDE.md` updated with the new file locations, and a new rule: any new `js/` or `css/` file must also go in `APP_FILES` in `sw.js`. `test_offline` fails if it doesn't.
+
+**Tests:** 38/39. `test_offline` adds check 2a: every `js/` and `css/` file that `index.html` references is listed in `sw.js` and stored in the cache after one load. `test_dop_port` fails on unchanged 7.30 as well (3 of 3 runs there): the over-DOP toast covers `#ht-dop9` and the click times out. That fault predates this release and is not fixed by it.
+
 ### Tests - 2026-11-26
 
 **No app change.** New `test_dop_start_time.py` pins down when a DOP clock starts, at the owner's request. A person's clock is always the shift's scheduled start, never the moment Start is tapped:
