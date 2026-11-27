@@ -1,5 +1,11 @@
 # Changelog
 
+### Tests - 2026-11-27
+
+**No app change.** `test_dop_port` failed most runs (1 pass in 6, the same on 7.30 and 7.31) with `#ht-dop9` blocked by `#ht-toast`. Each plan check ended with N+4 people on the board, which is OVER. If the Hours tick ran before the next click, it raised the Over-DOP toast, which by design stays over the plan buttons until it is dismissed. The check now clears the board before it returns. 5/5 runs pass.
+
+**Tests:** 39/39.
+
 ### [7.31] - 2026-11-27
 
 **`index.html` split into separate files.** It was one 5,100-line file: markup, 580 lines of CSS, 1,200 lines of embedded changelog and 2,700 lines of script. It is now about 600 lines of markup plus `css/app.css` and 15 files in `js/` (`core`, `offline`, `changelog`, `webhook`, `calculator`, `notes`, `shift`, `settings`, `roster`, `observations`, `checklist`, `schedule`, `doors`, `boot`, `hours`). The code was moved, not edited.

@@ -42,6 +42,13 @@ with sync_playwright() as p:
               hoursState.employees.forEach(e=>{e.status='inactive'});
               ids.slice(0,k).forEach(id=>{const e=hoursState.employees.find(x=>x.id===id);e.status='active';e.startTime=new Date()});
               htAssignRoles();res[k]=htCalcDOP().dopState});
+            // Leave nobody on the board. The last case above is OVER, and the next
+            // timer tick would raise the Over-DOP toast, which sits over the plan
+            // buttons and blocks the next click (that is the toast working as
+            // designed; it waits for Dismiss). Whether a tick landed before the next
+            // click decided whether this test passed.
+            hoursState.employees.forEach(e=>{e.status='inactive';e.startTime=null});
+            htAssignRoles();
             return res}""", 3 + n)
         good = cfg == n and active == [f'ht-dop{n}'] and \
             states == {str(2 + n): 'low', str(3 + n): 'met', str(4 + n): 'over'}
